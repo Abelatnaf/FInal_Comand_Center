@@ -13,9 +13,13 @@ function cx(...classes: Array<string | false | undefined>) {
 export function AppShell({
   children,
   onSignOut,
+  categories,
+  fxRate,
 }: {
   children: React.ReactNode;
   onSignOut: () => void;
+  categories: { id: number; name: string }[];
+  fxRate: number;
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -103,7 +107,7 @@ export function AppShell({
         </main>
       </div>
 
-      <QuickAddFab />
+      <QuickAddFab categories={categories} fxRate={fxRate} />
     </div>
   );
 }
