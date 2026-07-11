@@ -1,11 +1,7 @@
 import { Glass } from "@/components/glass/Glass";
 import { StatCard } from "@/components/glass/StatCard";
 import { createClient } from "@/lib/supabase/server";
-
-function fmtUsd(n: number) {
-  const sign = n < 0 ? "-" : "";
-  return `${sign}$${Math.abs(n).toFixed(2)}`;
-}
+import { fmtUsd } from "@/lib/format";
 
 function startOfMonthIso() {
   const d = new Date();
