@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { LoginForm } from "@/components/LoginForm";
+import { AuthTabs } from "@/components/AuthTabs";
 
 export default async function LoginPage() {
   const supabase = await createClient();
@@ -12,7 +13,8 @@ export default async function LoginPage() {
           <span className="dot" />
           VMI FINANCE
         </div>
-        <LoginForm canSignUp={canSignUp ?? false} />
+        {canSignUp && <AuthTabs active="login" />}
+        <LoginForm />
       </div>
     </div>
   );

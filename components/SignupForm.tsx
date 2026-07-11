@@ -74,10 +74,6 @@ export function SignupForm() {
           {signUpPending ? "Creating…" : "Create account"}
         </button>
       </form>
-
-      <Link href="/login" className="block text-text-dim hover:text-text text-sm mt-5">
-        Already have an account? Sign in
-      </Link>
     </>
   );
 }

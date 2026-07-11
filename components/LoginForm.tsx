@@ -1,10 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
 import { login } from "@/app/login/actions";
 
-export function LoginForm({ canSignUp }: { canSignUp: boolean }) {
+export function LoginForm() {
   const [loginState, loginAction, loginPending] = useActionState(login, undefined);
 
   return (
@@ -38,12 +37,6 @@ export function LoginForm({ canSignUp }: { canSignUp: boolean }) {
           {loginPending ? "Signing in…" : "Sign in"}
         </button>
       </form>
-
-      {canSignUp && (
-        <Link href="/signup" className="block text-text-dim hover:text-text text-sm mt-5">
-          First time here? Create your account
-        </Link>
-      )}
     </>
   );
 }

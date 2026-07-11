@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SignupForm } from "@/components/SignupForm";
+import { AuthTabs } from "@/components/AuthTabs";
 
 export default async function SignupPage() {
   const supabase = await createClient();
@@ -17,6 +18,7 @@ export default async function SignupPage() {
           <span className="dot" />
           VMI FINANCE
         </div>
+        <AuthTabs active="signup" />
         <SignupForm />
       </div>
     </div>
