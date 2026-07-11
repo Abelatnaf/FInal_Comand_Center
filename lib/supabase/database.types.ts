@@ -469,7 +469,7 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      can_create_first_account: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
