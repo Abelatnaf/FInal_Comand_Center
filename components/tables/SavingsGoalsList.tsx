@@ -117,7 +117,7 @@ function GoalCard({ goal }: { goal: GoalRow }) {
           <button onClick={() => setEditing(true)} className="text-text-dim hover:text-text text-xs">
             Edit
           </button>
-          <button onClick={handleDelete} className="text-text-faint hover:text-text-dim text-xs">
+          <button onClick={handleDelete} className="text-text-dim hover:text-text text-xs">
             Delete
           </button>
         </div>
@@ -127,7 +127,7 @@ function GoalCard({ goal }: { goal: GoalRow }) {
         <div className="liquid-fill" style={{ width: `${pct}%` }} />
       </div>
 
-      <div className="flex justify-between num text-xs text-text-faint mb-4">
+      <div className="flex justify-between num text-xs text-text-dim mb-4">
         <span>{fmtUsd(goal.saved_so_far_usd)} saved</span>
         <span>{pct.toFixed(0)}%</span>
         <span>{fmtUsd(goal.target_amount_usd)} target</span>
@@ -135,15 +135,15 @@ function GoalCard({ goal }: { goal: GoalRow }) {
 
       <div className="grid grid-cols-3 gap-3 num text-sm">
         <div>
-          <div className="text-text-faint text-[11px] mb-1">Remaining</div>
+          <div className="text-text-dim text-[11px] mb-1">Remaining</div>
           <div className="text-text-dim">{fmtUsd(goal.remaining)}</div>
         </div>
         <div>
-          <div className="text-text-faint text-[11px] mb-1">Target Date</div>
+          <div className="text-text-dim text-[11px] mb-1">Target Date</div>
           <div className="text-text-dim">{goal.target_date ?? "—"}</div>
         </div>
         <div>
-          <div className="text-text-faint text-[11px] mb-1">Monthly Needed</div>
+          <div className="text-text-dim text-[11px] mb-1">Monthly Needed</div>
           <div className="text-text-dim">{goal.monthly_needed !== null ? fmtUsd(goal.monthly_needed) : "—"}</div>
         </div>
       </div>
@@ -187,7 +187,7 @@ export function SavingsGoalsList({ goals }: { goals: GoalRow[] }) {
       </Glass>
 
       {goals.length === 0 ? (
-        <Glass className="p-8 text-center text-text-faint text-sm">No savings goals yet.</Glass>
+        <Glass className="p-8 text-center text-text-dim text-sm">No savings goals yet.</Glass>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {goals.map((g) => (

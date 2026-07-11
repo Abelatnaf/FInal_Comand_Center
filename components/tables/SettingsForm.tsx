@@ -32,7 +32,7 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
             required
             className="input w-full num"
           />
-          <p className="text-text-faint text-xs mt-1.5">
+          <p className="text-text-dim text-xs mt-1.5">
             Changing this only affects new transactions — past entries keep the rate they were logged at.
           </p>
         </div>
@@ -54,7 +54,7 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
         <div className="stat-label mt-2">Starting Balances (USD)</div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="text-text-faint text-xs block mb-1.5" htmlFor="starting_sofi">
+            <label className="text-text-dim text-xs block mb-1.5" htmlFor="starting_sofi">
               SoFi
             </label>
             <input
@@ -67,7 +67,7 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
             />
           </div>
           <div>
-            <label className="text-text-faint text-xs block mb-1.5" htmlFor="starting_ally">
+            <label className="text-text-dim text-xs block mb-1.5" htmlFor="starting_ally">
               Ally
             </label>
             <input
@@ -80,7 +80,7 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
             />
           </div>
           <div>
-            <label className="text-text-faint text-xs block mb-1.5" htmlFor="starting_cash">
+            <label className="text-text-dim text-xs block mb-1.5" htmlFor="starting_cash">
               Cash
             </label>
             <input

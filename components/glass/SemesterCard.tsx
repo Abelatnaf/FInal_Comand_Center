@@ -35,26 +35,26 @@ export function SemesterCard({ semester }: { semester: SemesterPacing }) {
       <div className="liquid-track mb-2">
         <div className="liquid-fill" style={{ width: `${elapsed}%` }} />
       </div>
-      <div className="flex justify-between num text-[11px] text-text-faint mb-6">
+      <div className="flex justify-between num text-[11px] text-text-dim mb-6">
         <span>ELAPSED {elapsed.toFixed(0)}%</span>
         <span>SPEND {semester.spend_percent !== null ? `${semester.spend_percent.toFixed(0)}%` : "—"} OF BUDGET</span>
       </div>
 
       <div className="grid grid-cols-2 gap-4 num text-sm">
         <div>
-          <div className="text-text-faint text-[11px] mb-1">Income</div>
+          <div className="text-text-dim text-[11px] mb-1">Income</div>
           <div className="text-text-dim">{fmtUsd(semester.income)}</div>
         </div>
         <div>
-          <div className="text-text-faint text-[11px] mb-1">Budget</div>
+          <div className="text-text-dim text-[11px] mb-1">Budget</div>
           <div className="text-text-dim">{fmtUsd(semester.budget)}</div>
         </div>
         <div>
-          <div className="text-text-faint text-[11px] mb-1">Actual Spend</div>
+          <div className="text-text-dim text-[11px] mb-1">Actual Spend</div>
           <div className="text-text-dim">{fmtUsd(semester.actual_spend)}</div>
         </div>
         <div>
-          <div className="text-text-faint text-[11px] mb-1">Remaining</div>
+          <div className="text-text-dim text-[11px] mb-1">Remaining</div>
           <div className="text-silver font-medium">{fmtUsd(remaining)}</div>
         </div>
       </div>

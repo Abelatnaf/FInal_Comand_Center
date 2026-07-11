@@ -119,7 +119,7 @@ export function NetWorthTable({ snapshots }: { snapshots: SnapshotRow[] }) {
 
       <table className="w-full text-sm min-w-[900px] mt-2">
         <thead>
-          <tr className="text-text-faint text-left text-xs">
+          <tr className="text-text-dim text-left text-xs">
             <th className="py-3 px-2 font-normal">Date</th>
             <th className="py-3 px-2 font-normal text-right">SoFi</th>
             <th className="py-3 px-2 font-normal text-right">Ally</th>
@@ -134,7 +134,7 @@ export function NetWorthTable({ snapshots }: { snapshots: SnapshotRow[] }) {
         <tbody>
           {snapshots.length === 0 ? (
             <tr>
-              <td colSpan={9} className="py-10 text-center text-text-faint text-sm">
+              <td colSpan={9} className="py-10 text-center text-text-dim text-sm">
                 No snapshots yet.
               </td>
             </tr>
@@ -153,16 +153,16 @@ export function NetWorthTable({ snapshots }: { snapshots: SnapshotRow[] }) {
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.ally_actual)}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.cash_actual)}</td>
                   <td className="py-2.5 px-2 text-right num text-silver font-medium">{fmtUsd(s.total_actual)}</td>
-                  <td className="py-2.5 px-2 text-right num text-text-faint">{fmtUsd(s.computed_balance)}</td>
+                  <td className="py-2.5 px-2 text-right num text-text-dim">{fmtUsd(s.computed_balance)}</td>
                   <td className="py-2.5 px-2 text-right num">
                     {s.variance === 0 ? "—" : `${s.variance > 0 ? "↑" : "↓"} ${fmtUsd(Math.abs(s.variance))}`}
                   </td>
-                  <td className="py-2.5 px-2 text-text-faint text-xs">{s.notes ?? "—"}</td>
+                  <td className="py-2.5 px-2 text-text-dim text-xs">{s.notes ?? "—"}</td>
                   <td className="py-2.5 px-2 text-right whitespace-nowrap">
                     <button onClick={() => setEditingId(s.id)} className="text-text-dim hover:text-text text-xs mr-3">
                       Edit
                     </button>
-                    <button onClick={() => handleDelete(s.id)} className="text-text-faint hover:text-text-dim text-xs">
+                    <button onClick={() => handleDelete(s.id)} className="text-text-dim hover:text-text text-xs">
                       Delete
                     </button>
                   </td>

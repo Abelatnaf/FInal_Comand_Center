@@ -24,7 +24,7 @@ export function StatCard({
       <div>
         <div className="stat-label">{label}</div>
         <div className={`stat-value mt-2 ${size === "small" ? "!text-[22px]" : ""}`}>{value}</div>
-        {delta && <div className="text-text-faint text-xs mt-1.5 num">{delta}</div>}
+        {delta && <div className="text-text-dim text-xs mt-1.5 num">{delta}</div>}
       </div>
       {badge && <div className="badge mt-4">{badge}</div>}
     </Glass>

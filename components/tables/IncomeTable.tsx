@@ -104,18 +104,18 @@ function IncomeRowView({ row, onEdit }: { row: IncomeRow; onEdit: () => void }) 
   return (
     <tr className="border-t border-white/[0.05] hover:bg-white/[0.02]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{row.date}</td>
-      <td className="py-2.5 px-2 num text-xs text-text-faint">{row.cadet_week ?? "—"}</td>
+      <td className="py-2.5 px-2 num text-xs text-text-dim">{row.cadet_week ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{row.source ?? "—"}</td>
       <td className="py-2.5 px-2 text-right num">{fmtUsd(row.amount_usd ?? 0)}</td>
-      <td className="py-2.5 px-2 text-text-faint">{row.notes ?? "—"}</td>
+      <td className="py-2.5 px-2 text-text-dim">{row.notes ?? "—"}</td>
       <td className="py-2.5 px-2 text-right whitespace-nowrap">
         <button onClick={onEdit} className="text-text-dim hover:text-text text-xs mr-3">
           Edit
         </button>
-        <button onClick={handleDelete} disabled={pending} className="text-text-faint hover:text-text-dim text-xs">
+        <button onClick={handleDelete} disabled={pending} className="text-text-dim hover:text-text text-xs">
           {pending ? "…" : "Delete"}
         </button>
-        {error && <div className="text-text-faint text-[10px] mt-1">{error}</div>}
+        {error && <div className="text-text-dim text-[10px] mt-1">{error}</div>}
       </td>
     </tr>
   );
@@ -180,7 +180,7 @@ export function IncomeTable({ income }: { income: IncomeRow[] }) {
       <Glass className="overflow-x-auto">
         <table className="w-full text-sm min-w-[700px]">
           <thead>
-            <tr className="text-text-faint text-left text-xs">
+            <tr className="text-text-dim text-left text-xs">
               <th className="py-3 px-2 font-normal">Date</th>
               <th className="py-3 px-2 font-normal">Wk</th>
               <th className="py-3 px-2 font-normal">Source</th>
@@ -192,7 +192,7 @@ export function IncomeTable({ income }: { income: IncomeRow[] }) {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-10 text-center text-text-faint text-sm">
+                <td colSpan={6} className="py-10 text-center text-text-dim text-sm">
                   No income logged yet — use Quick Add to log your first entry.
                 </td>
               </tr>

@@ -51,7 +51,7 @@ export function AppShell({
         <form action={onSignOut} className="mt-auto pt-4">
           <button
             type="submit"
-            className="px-3 py-2.5 rounded-xl text-[14px] text-text-faint hover:text-text-dim w-full text-left"
+            className="px-3 py-2.5 rounded-xl text-[14px] text-text-dim hover:text-text w-full text-left"
           >
             Sign out
           </button>
@@ -94,7 +94,7 @@ export function AppShell({
             <form action={onSignOut}>
               <button
                 type="submit"
-                className="px-3 py-2.5 rounded-xl text-[14px] text-text-faint w-full text-left"
+                className="px-3 py-2.5 rounded-xl text-[14px] text-text-dim w-full text-left"
               >
                 Sign out
               </button>

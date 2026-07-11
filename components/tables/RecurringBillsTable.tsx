@@ -164,13 +164,13 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
               .map((b) => (
                 <div key={b.id} className="text-sm text-text-dim flex justify-between">
                   <span>{b.name}</span>
-                  <span className="num text-text-faint">
+                  <span className="num text-text-dim">
                     in {daysUntilNextBilling(b.billing_day!, today)}d
                   </span>
                 </div>
               ))}
             {bills.filter((b) => b.active && b.billing_day && daysUntilNextBilling(b.billing_day, today) <= 7)
-              .length === 0 && <div className="text-text-faint text-sm">Nothing due this week.</div>}
+              .length === 0 && <div className="text-text-dim text-sm">Nothing due this week.</div>}
           </div>
         </Glass>
       </div>
@@ -193,7 +193,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
 
         <table className="w-full text-sm min-w-[800px] mt-2">
           <thead>
-            <tr className="text-text-faint text-left text-xs">
+            <tr className="text-text-dim text-left text-xs">
               <th className="py-3 px-2 font-normal">Name</th>
               <th className="py-3 px-2 font-normal">Category</th>
               <th className="py-3 px-2 font-normal text-right">Monthly</th>
@@ -206,7 +206,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
           <tbody>
             {bills.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-10 text-center text-text-faint text-sm">
+                <td colSpan={7} className="py-10 text-center text-text-dim text-sm">
                   No recurring bills yet.
                 </td>
               </tr>
@@ -227,10 +227,10 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
                 ) : (
                   <tr key={b.id} className="border-t border-white/[0.05] hover:bg-white/[0.02]">
                     <td className="py-2.5 px-2 text-text-dim">{b.name}</td>
-                    <td className="py-2.5 px-2 text-text-faint">{b.categories?.name ?? "—"}</td>
+                    <td className="py-2.5 px-2 text-text-dim">{b.categories?.name ?? "—"}</td>
                     <td className="py-2.5 px-2 text-right num">{fmtUsd(b.monthly_cost_usd)}</td>
-                    <td className="py-2.5 px-2 num text-text-faint">{b.billing_day ?? "—"}</td>
-                    <td className="py-2.5 px-2 text-text-faint text-xs whitespace-nowrap">{b.payment_method ?? "—"}</td>
+                    <td className="py-2.5 px-2 num text-text-dim">{b.billing_day ?? "—"}</td>
+                    <td className="py-2.5 px-2 text-text-dim text-xs whitespace-nowrap">{b.payment_method ?? "—"}</td>
                     <td className="py-2.5 px-2">
                       <span className={`badge ${b.active ? "" : "badge-dim"}`}>{b.active ? "Active" : "Inactive"}</span>
                     </td>
@@ -238,7 +238,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
                       <button onClick={() => setEditingId(b.id)} className="text-text-dim hover:text-text text-xs mr-3">
                         Edit
                       </button>
-                      <button onClick={() => handleDelete(b.id)} className="text-text-faint hover:text-text-dim text-xs">
+                      <button onClick={() => handleDelete(b.id)} className="text-text-dim hover:text-text text-xs">
                         Delete
                       </button>
                     </td>

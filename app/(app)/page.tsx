@@ -147,7 +147,7 @@ export default async function CommandDeckPage() {
           </div>
           <div>
             <div className="stat-label mb-1">Discretionary spend</div>
-            <div className="text-text-faint text-[13px] num">
+            <div className="text-text-dim text-[13px] num">
               {fmtUsd(thisMonthDiscretionary)} discretionary this month
             </div>
           </div>
@@ -159,7 +159,7 @@ export default async function CommandDeckPage() {
           <div className="font-display text-lg font-medium mb-4">Budget vs Actual — This Month</div>
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="text-text-faint text-left">
+              <tr className="text-text-dim text-left">
                 <th className="font-normal pb-2">Category</th>
                 <th className="font-normal pb-2 text-right">Budget</th>
                 <th className="font-normal pb-2 text-right">Actual</th>
@@ -180,7 +180,7 @@ export default async function CommandDeckPage() {
           <div className="font-display text-lg font-medium mb-4">Life-to-Date Spend by Category</div>
           <table className="w-full text-[13px]">
             <thead>
-              <tr className="text-text-faint text-left">
+              <tr className="text-text-dim text-left">
                 <th className="font-normal pb-2">Category</th>
                 <th className="font-normal pb-2 text-right">Total</th>
               </tr>

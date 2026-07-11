@@ -123,7 +123,7 @@ export function QuickAddFab({
                 </div>
               </div>
               {currency === "ETB" && (
-                <div className="text-text-faint text-xs num -mt-1">
+                <div className="text-text-dim text-xs num -mt-1">
                   {usdPreview !== null ? `≈ $${usdPreview.toFixed(2)} at ${fxRate} ETB/USD` : ""}
                 </div>
               )}

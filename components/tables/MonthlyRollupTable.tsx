@@ -21,7 +21,7 @@ export function MonthlyRollupTable({
     <Glass className="overflow-x-auto">
       <table className="w-full text-sm min-w-[1400px]">
         <thead>
-          <tr className="text-text-faint text-left text-xs">
+          <tr className="text-text-dim text-left text-xs">
             <th className="py-3 px-2 font-normal sticky left-0 bg-[#0d0d10]">Month</th>
             {categoryNames.map((c) => (
               <th key={c} className="py-3 px-2 font-normal text-right whitespace-nowrap">
@@ -43,7 +43,7 @@ export function MonthlyRollupTable({
                   {fmtMonth(row.month)}
                 </td>
                 {categoryNames.map((c) => (
-                  <td key={c} className="py-2 px-2 text-right text-text-faint">
+                  <td key={c} className="py-2 px-2 text-right text-text-dim">
                     {fmtUsd(Number(row[c] ?? 0))}
                   </td>
                 ))}

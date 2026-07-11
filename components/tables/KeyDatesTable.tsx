@@ -110,7 +110,7 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
 
       <table className="w-full text-sm min-w-[900px] mt-2">
         <thead>
-          <tr className="text-text-faint text-left text-xs">
+          <tr className="text-text-dim text-left text-xs">
             <th className="py-3 px-2 font-normal">Event</th>
             <th className="py-3 px-2 font-normal">Window</th>
             <th className="py-3 px-2 font-normal">Status</th>
@@ -121,7 +121,7 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
         <tbody>
           {keyDates.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-10 text-center text-text-faint text-sm">
+              <td colSpan={5} className="py-10 text-center text-text-dim text-sm">
                 No key dates yet.
               </td>
             </tr>
@@ -136,14 +136,14 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
               ) : (
                 <tr key={k.id} className="border-t border-white/[0.05] hover:bg-white/[0.02]">
                   <td className="py-2.5 px-2 text-text-dim">{k.event}</td>
-                  <td className="py-2.5 px-2 text-text-faint whitespace-nowrap">{k.window_label}</td>
-                  <td className="py-2.5 px-2 text-text-faint text-xs">{k.status}</td>
-                  <td className="py-2.5 px-2 text-text-faint text-xs">{k.budget_note ?? "—"}</td>
+                  <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{k.window_label}</td>
+                  <td className="py-2.5 px-2 text-text-dim text-xs">{k.status}</td>
+                  <td className="py-2.5 px-2 text-text-dim text-xs">{k.budget_note ?? "—"}</td>
                   <td className="py-2.5 px-2 text-right whitespace-nowrap">
                     <button onClick={() => setEditingId(k.id)} className="text-text-dim hover:text-text text-xs mr-3">
                       Edit
                     </button>
-                    <button onClick={() => handleDelete(k.id)} className="text-text-faint hover:text-text-dim text-xs">
+                    <button onClick={() => handleDelete(k.id)} className="text-text-dim hover:text-text text-xs">
                       Delete
                     </button>
                   </td>
