@@ -55,7 +55,7 @@ export function SemesterCard({ semester }: { semester: SemesterPacing }) {
         </div>
         <div>
           <div className="text-text-dim text-[11px] mb-1">Remaining</div>
-          <div className="text-silver font-medium">{fmtUsd(remaining)}</div>
+          <div className="text-brass font-medium">{fmtUsd(remaining)}</div>
         </div>
       </div>
     </Glass>

@@ -26,7 +26,7 @@ export function AppShell({
 
   return (
     <div className="min-h-screen md:flex">
-      <aside className="hidden md:flex md:w-[240px] md:flex-col md:shrink-0 border-r border-white/[0.06] px-5 py-8 gap-1">
+      <aside className="hidden md:flex md:w-[240px] md:flex-col md:shrink-0 border-r border-[#241c14] px-5 py-8 gap-1">
         <div className="eyebrow mb-8 px-2">
           <span className="dot" />
           VMI FINANCE
@@ -40,8 +40,8 @@ export function AppShell({
               className={cx(
                 "px-3 py-2.5 rounded-xl text-[14px] transition-colors",
                 active
-                  ? "bg-white/[0.07] text-silver font-medium"
-                  : "text-text-dim hover:text-text hover:bg-white/[0.03]"
+                  ? "bg-[rgba(201,162,75,0.1)] text-brass font-medium"
+                  : "text-text-dim hover:text-text hover:bg-[rgba(201,162,75,0.06)]"
               )}
             >
               {link.label}
@@ -59,7 +59,7 @@ export function AppShell({
       </aside>
 
       <div className="flex-1 min-w-0">
-        <header className="md:hidden flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+        <header className="md:hidden flex items-center justify-between px-5 py-4 border-b border-[#241c14]">
           <div className="eyebrow">
             <span className="dot" />
             VMI FINANCE
@@ -68,7 +68,7 @@ export function AppShell({
             aria-label="Open menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
-            className="text-text-dim text-sm px-3 py-1.5 rounded-lg border border-white/10"
+            className="text-text-dim text-sm px-3 py-1.5 rounded-lg border border-[#3a2f22]"
           >
             Menu
           </button>
@@ -84,7 +84,7 @@ export function AppShell({
                 className={cx(
                   "px-3 py-2.5 rounded-xl text-[14px]",
                   pathname === link.href
-                    ? "bg-white/[0.07] text-silver font-medium"
+                    ? "bg-[rgba(201,162,75,0.1)] text-brass font-medium"
                     : "text-text-dim"
                 )}
               >

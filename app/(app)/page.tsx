@@ -89,23 +89,27 @@ export default async function CommandDeckPage() {
       <p className="text-text-dim text-[15px] mb-10">{activeSemester?.name ?? "Off-Semester"}</p>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-        <Glass className="md:col-span-8 p-8 flex flex-col justify-between min-h-[220px]">
-          <div>
-            <div className="stat-label mb-3.5">Current Balance</div>
-            <div className="hero-value">{fmtUsd(currentBalance)}</div>
-          </div>
-          <div className="flex flex-wrap gap-7 mt-6 num text-[13px] text-text-dim">
-            <div>
-              FX RATE <b className="text-silver font-medium">{settings?.fx_rate ?? "—"} ETB/USD</b>
+        <div className="ledger md:col-span-8 p-8 flex flex-col justify-between min-h-[220px]">
+          <div className="relative z-10">
+            <div className="font-mono text-[11px] tracking-[0.16em] uppercase text-[#5c5347] mb-3.5">
+              Current Balance
             </div>
-            <div>
-              MONTHLY BURN <b className="text-silver font-medium">{fmtUsd(monthlyBurn)}</b>
-            </div>
-            <div>
-              SEMESTER STATUS <b className="text-silver font-medium">{semesterStatus.toUpperCase()}</b>
+            <div className="hero-value" style={{ backgroundImage: "linear-gradient(180deg, #2a2119, #8a723c)" }}>
+              {fmtUsd(currentBalance)}
             </div>
           </div>
-        </Glass>
+          <div className="relative z-10 flex flex-wrap gap-7 mt-6 num text-[13px] text-[#5c5347] pt-4 border-t border-[rgba(42,33,25,0.14)]">
+            <div>
+              FX RATE <b className="text-[#2a2119] font-medium">{settings?.fx_rate ?? "—"} ETB/USD</b>
+            </div>
+            <div>
+              MONTHLY BURN <b className="text-[#2a2119] font-medium">{fmtUsd(monthlyBurn)}</b>
+            </div>
+            <div>
+              SEMESTER STATUS <b className="text-[#2a2119] font-medium">{semesterStatus.toUpperCase()}</b>
+            </div>
+          </div>
+        </div>
 
         <StatCard
           label="This month income"
@@ -122,7 +126,7 @@ export default async function CommandDeckPage() {
         <Glass className="md:col-span-6 p-6 flex items-center gap-5">
           <div className="relative w-[88px] h-[88px] shrink-0">
             <svg width="88" height="88" viewBox="0 0 88 88" className="-rotate-90">
-              <circle cx="44" cy="44" r="38" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="8" />
+              <circle cx="44" cy="44" r="38" fill="none" stroke="rgba(201,162,75,0.14)" strokeWidth="8" />
               <circle
                 cx="44"
                 cy="44"
@@ -136,12 +140,12 @@ export default async function CommandDeckPage() {
               />
               <defs>
                 <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#4a4a52" />
-                  <stop offset="100%" stopColor="#eceaf0" />
+                  <stop offset="0%" stopColor="#8a723c" />
+                  <stop offset="100%" stopColor="#e3c27e" />
                 </linearGradient>
               </defs>
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center num text-base font-semibold text-silver">
+            <div className="absolute inset-0 flex items-center justify-center num text-base font-semibold text-brass">
               {discretionaryPercent}%
             </div>
           </div>
@@ -167,7 +171,7 @@ export default async function CommandDeckPage() {
             </thead>
             <tbody className="num">
               {budgetRows.map((row) => (
-                <tr key={row.category_id} className="border-t border-white/[0.05]">
+                <tr key={row.category_id} className="border-t border-[#241c14]">
                   <td className="py-2 text-text-dim font-sans">{row.category}</td>
                   <td className="py-2 text-right">{fmtUsd(row.budget ?? 0)}</td>
                   <td className="py-2 text-right">{fmtUsd(row.actual ?? 0)}</td>
@@ -187,7 +191,7 @@ export default async function CommandDeckPage() {
             </thead>
             <tbody className="num">
               {categoryRows.map((row) => (
-                <tr key={row.category_id} className="border-t border-white/[0.05]">
+                <tr key={row.category_id} className="border-t border-[#241c14]">
                   <td className="py-2 text-text-dim font-sans">{row.category}</td>
                   <td className="py-2 text-right">{fmtUsd(row.total ?? 0)}</td>
                 </tr>
@@ -208,7 +212,16 @@ export default async function CommandDeckPage() {
         <div className="liquid-track">
           <div className="liquid-fill" style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }} />
         </div>
-        <div className="flex justify-between mt-2.5 num text-[10px] text-text-faint">
+        <div className="relative h-2 mt-2">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <span
+              key={i}
+              className="absolute top-0 w-px h-2 bg-text-faint"
+              style={{ left: `${i * 12.5}%` }}
+            />
+          ))}
+        </div>
+        <div className="flex justify-between mt-1.5 num text-[10px] text-text-faint">
           {ticks.map((t) => (
             <span key={t}>{t}</span>
           ))}

@@ -189,7 +189,7 @@ export function QuickAddFab({
                   </div>
 
                   <label className="flex items-center gap-2 text-sm text-text-dim">
-                    <input name="is_recurring" type="checkbox" className="accent-silver" />
+                    <input name="is_recurring" type="checkbox" className="accent-brass" />
                     Recurring
                   </label>
                 </>

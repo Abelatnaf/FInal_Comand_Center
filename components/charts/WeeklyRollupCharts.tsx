@@ -41,8 +41,8 @@ export function WeeklyRollupCharts({ rows }: { rows: WeeklyRow[] }) {
               <YAxis tick={axisTick} tickLine={false} axisLine={false} width={44} />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: 12, color: CHART_AXIS_COLOR }} iconType="circle" iconSize={8} />
-              <Line type="monotone" dataKey="total_income" name="Income" stroke={CHART_LINE_COLOR} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: "#08080a", strokeWidth: 2 }} />
-              <Line type="monotone" dataKey="total_expenses" name="Spent" stroke={CHART_LINE_SECONDARY} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: "#08080a", strokeWidth: 2 }} />
+              <Line type="monotone" dataKey="total_income" name="Income" stroke={CHART_LINE_COLOR} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: "#0b0908", strokeWidth: 2 }} />
+              <Line type="monotone" dataKey="total_expenses" name="Spent" stroke={CHART_LINE_SECONDARY} strokeWidth={2} dot={false} activeDot={{ r: 4, stroke: "#0b0908", strokeWidth: 2 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -64,7 +64,7 @@ export function WeeklyRollupCharts({ rows }: { rows: WeeklyRow[] }) {
                 stroke={CHART_LINE_COLOR}
                 strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 4, stroke: "#08080a", strokeWidth: 2 }}
+                activeDot={{ r: 4, stroke: "#0b0908", strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>
