@@ -112,7 +112,7 @@ function GoalCard({ goal }: { goal: GoalRow }) {
   return (
     <Glass className="p-5">
       <div className="flex justify-between items-baseline mb-3">
-        <div className="font-display text-base font-medium">{goal.name}</div>
+        <div className="font-display text-base font-semibold">{goal.name}</div>
         <div className="flex gap-3">
           <button onClick={() => setEditing(true)} className="text-text-dim hover:text-text text-xs">
             Edit
@@ -171,7 +171,7 @@ export function SavingsGoalsList({ goals }: { goals: GoalRow[] }) {
     <div>
       <Glass className="p-4 mb-4">
         <div className="flex items-center justify-between">
-          <div className="font-display text-lg font-medium">Goals</div>
+          <div className="font-display text-lg font-semibold">Goals</div>
           {!adding && (
             <button onClick={() => setAdding(true)} className="btn text-sm">
               + Add Goal

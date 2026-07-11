@@ -103,7 +103,7 @@ export function NetWorthTable({ snapshots }: { snapshots: SnapshotRow[] }) {
   return (
     <Glass className="overflow-x-auto">
       <div className="flex items-center justify-between p-4 pb-0">
-        <div className="font-display text-lg font-medium">Net Worth Snapshots</div>
+        <div className="font-display text-lg font-semibold">Net Worth Snapshots</div>
         {!adding && (
           <button onClick={() => setAdding(true)} className="btn text-sm">
             + Add Snapshot

@@ -177,7 +177,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
 
       <Glass className="overflow-x-auto">
         <div className="flex items-center justify-between p-4 pb-0">
-          <div className="font-display text-lg font-medium">Recurring Bills</div>
+          <div className="font-display text-lg font-semibold">Recurring Bills</div>
           {!adding && (
             <button onClick={() => setAdding(true)} className="btn text-sm">
               + Add Bill

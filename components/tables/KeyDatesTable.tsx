@@ -94,7 +94,7 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
   return (
     <Glass className="overflow-x-auto">
       <div className="flex items-center justify-between p-4 pb-0">
-        <div className="font-display text-lg font-medium">Key Dates</div>
+        <div className="font-display text-lg font-semibold">Key Dates</div>
         {!adding && (
           <button onClick={() => setAdding(true)} className="btn text-sm">
             + Add Date

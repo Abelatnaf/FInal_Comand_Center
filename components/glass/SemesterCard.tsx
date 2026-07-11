@@ -24,7 +24,7 @@ export function SemesterCard({ semester }: { semester: SemesterPacing }) {
     <Glass className="p-7">
       <div className="flex justify-between items-start mb-6 flex-wrap gap-2">
         <div>
-          <div className="font-display text-xl font-medium mb-1">{semester.name}</div>
+          <div className="font-display text-xl font-semibold mb-1">{semester.name}</div>
           <div className="text-text-dim text-xs num">
             {semester.start_date} — {semester.end_date}
           </div>

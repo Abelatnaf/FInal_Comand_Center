@@ -160,7 +160,7 @@ export default async function CommandDeckPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <Glass className="p-6">
-          <div className="font-display text-lg font-medium mb-4">Budget vs Actual — This Month</div>
+          <div className="font-display text-lg font-semibold mb-4">Budget vs Actual — This Month</div>
           <table className="w-full text-[13px]">
             <thead>
               <tr className="text-text-dim text-left">
@@ -181,7 +181,7 @@ export default async function CommandDeckPage() {
           </table>
         </Glass>
         <Glass className="p-6">
-          <div className="font-display text-lg font-medium mb-4">Life-to-Date Spend by Category</div>
+          <div className="font-display text-lg font-semibold mb-4">Life-to-Date Spend by Category</div>
           <table className="w-full text-[13px]">
             <thead>
               <tr className="text-text-dim text-left">
@@ -203,7 +203,7 @@ export default async function CommandDeckPage() {
 
       <Glass className="p-7 md:p-8">
         <div className="flex justify-between items-baseline mb-5 flex-wrap gap-2">
-          <div className="font-display text-lg font-medium">Cadet Week Progress</div>
+          <div className="font-display text-lg font-semibold">Cadet Week Progress</div>
           <div className="eyebrow">
             WEEK <b className="text-text">{weekOfSemester ?? "—"}</b> OF{" "}
             <b className="text-text">{totalWeeksInSemester ?? "—"}</b>

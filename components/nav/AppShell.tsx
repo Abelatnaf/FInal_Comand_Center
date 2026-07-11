@@ -38,7 +38,7 @@ export function AppShell({
               key={link.href}
               href={link.href}
               className={cx(
-                "px-3 py-2.5 rounded-xl text-[14px] transition-colors",
+                "px-3 py-2.5 rounded text-[14px] transition-colors",
                 active
                   ? "bg-[rgba(201,162,75,0.1)] text-brass font-medium"
                   : "text-text-dim hover:text-text hover:bg-[rgba(201,162,75,0.06)]"
@@ -51,7 +51,7 @@ export function AppShell({
         <form action={onSignOut} className="mt-auto pt-4">
           <button
             type="submit"
-            className="px-3 py-2.5 rounded-xl text-[14px] text-text-dim hover:text-text w-full text-left"
+            className="px-3 py-2.5 rounded text-[14px] text-text-dim hover:text-text w-full text-left"
           >
             Sign out
           </button>
@@ -68,7 +68,7 @@ export function AppShell({
             aria-label="Open menu"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
-            className="text-text-dim text-sm px-3 py-1.5 rounded-lg border border-[#3a2f22]"
+            className="text-text-dim text-sm px-3 py-1.5 rounded border border-[#3a2f22]"
           >
             Menu
           </button>
@@ -82,7 +82,7 @@ export function AppShell({
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
                 className={cx(
-                  "px-3 py-2.5 rounded-xl text-[14px]",
+                  "px-3 py-2.5 rounded text-[14px]",
                   pathname === link.href
                     ? "bg-[rgba(201,162,75,0.1)] text-brass font-medium"
                     : "text-text-dim"
@@ -94,7 +94,7 @@ export function AppShell({
             <form action={onSignOut}>
               <button
                 type="submit"
-                className="px-3 py-2.5 rounded-xl text-[14px] text-text-dim w-full text-left"
+                className="px-3 py-2.5 rounded text-[14px] text-text-dim w-full text-left"
               >
                 Sign out
               </button>

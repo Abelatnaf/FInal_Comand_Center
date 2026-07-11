@@ -37,8 +37,14 @@
   box-sizing: border-box;
 }
 
+input,
+select {
+  accent-color: var(--brass-bright);
+}
+
 html {
   background: var(--bg);
+  color-scheme: dark;
 }
 
 body {
