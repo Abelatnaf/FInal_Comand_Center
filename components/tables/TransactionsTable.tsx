@@ -5,6 +5,7 @@ import { Glass } from "@/components/glass/Glass";
 import { fmtUsd } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { updateTransaction, deleteTransaction } from "@/app/(app)/transactions/actions";
+import { PAYMENT_METHODS } from "@/lib/constants";
 
 type Category = { id: number; name: string };
 
@@ -23,8 +24,6 @@ export type TransactionRow = {
   notes: string | null;
   categories: { name: string } | null;
 };
-
-const PAYMENT_METHODS = ["SoFi Debit", "Ally", "Payoneer", "Cash", "VMI Cadet Store Charge", "Other"];
 
 function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; categories: Category[]; onDone: () => void }) {
   const [pending, startTransition] = useTransition();

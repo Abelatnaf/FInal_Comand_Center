@@ -5,6 +5,7 @@ import { Glass } from "@/components/glass/Glass";
 import { fmtUsd } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { updateIncome, deleteIncome } from "@/app/(app)/income/actions";
+import { INCOME_SOURCES } from "@/lib/constants";
 
 export type IncomeRow = {
   id: string;
@@ -16,8 +17,6 @@ export type IncomeRow = {
   amount_usd: number | null;
   notes: string | null;
 };
-
-const INCOME_SOURCES = ["Family Support", "Cadet Pay/Stipend", "SoFi/Ally Drawdown"];
 
 function IncomeEditRow({ row, onDone }: { row: IncomeRow; onDone: () => void }) {
   const [pending, startTransition] = useTransition();

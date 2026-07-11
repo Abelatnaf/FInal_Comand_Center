@@ -1,11 +1,20 @@
-import { ComingSoonPage } from "@/components/glass/ComingSoon";
+import { PageHeader } from "@/components/glass/Glass";
+import { KeyDatesTable } from "@/components/tables/KeyDatesTable";
+import { createClient } from "@/lib/supabase/server";
 
-export default function KeyDatesPage() {
+export default async function KeyDatesPage() {
+  const supabase = await createClient();
+
+  const { data: keyDates } = await supabase.from("key_dates").select("*").order("sort_order");
+
   return (
-    <ComingSoonPage
-      title="Key Dates"
-      subtitle="Leave / furlough calendar with budget notes."
-      phase="Phase 6"
-    />
+    <div>
+      <PageHeader
+        eyebrow="VMI FINANCE"
+        title="Key Dates"
+        subtitle="Leave / furlough calendar with budget notes."
+      />
+      <KeyDatesTable keyDates={keyDates ?? []} />
+    </div>
   );
 }

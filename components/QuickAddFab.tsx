@@ -2,19 +2,9 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { addTransaction, addIncome } from "@/app/(app)/quick-add-actions";
+import { PAYMENT_METHODS, INCOME_SOURCES } from "@/lib/constants";
 
 type Category = { id: number; name: string };
-
-const PAYMENT_METHODS = [
-  "SoFi Debit",
-  "Ally",
-  "Payoneer",
-  "Cash",
-  "VMI Cadet Store Charge",
-  "Other",
-];
-
-const INCOME_SOURCES = ["Family Support", "Cadet Pay/Stipend", "SoFi/Ally Drawdown"];
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);

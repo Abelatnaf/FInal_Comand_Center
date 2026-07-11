@@ -1,11 +1,26 @@
-import { ComingSoonPage } from "@/components/glass/ComingSoon";
+import { PageHeader } from "@/components/glass/Glass";
+import { RecurringBillsTable } from "@/components/tables/RecurringBillsTable";
+import { createClient } from "@/lib/supabase/server";
 
-export default function RecurringBillsPage() {
+export default async function RecurringBillsPage() {
+  const supabase = await createClient();
+
+  const [{ data: bills }, { data: categories }] = await Promise.all([
+    supabase
+      .from("recurring_bills")
+      .select("id, name, category_id, monthly_cost_usd, billing_day, payment_method, active, categories(name)")
+      .order("name"),
+    supabase.from("categories").select("id, name").order("sort_order"),
+  ]);
+
   return (
-    <ComingSoonPage
-      title="Recurring Bills"
-      subtitle="Monthly burn total, upcoming billing dates."
-      phase="Phase 6"
-    />
+    <div>
+      <PageHeader
+        eyebrow="VMI FINANCE"
+        title="Recurring Bills"
+        subtitle="Monthly burn total, upcoming billing dates."
+      />
+      <RecurringBillsTable bills={bills ?? []} categories={categories ?? []} />
+    </div>
   );
 }
