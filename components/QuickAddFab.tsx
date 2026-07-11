@@ -57,7 +57,7 @@ export function QuickAddFab({
       <button
         onClick={() => setOpen(true)}
         aria-label="Quick add transaction or income"
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full btn-primary text-2xl leading-none flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
+        className="fixed bottom-24 md:bottom-6 right-5 md:right-6 z-40 w-14 h-14 rounded-full btn-primary text-2xl leading-none flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
       >
         +
       </button>
@@ -71,18 +71,22 @@ export function QuickAddFab({
             className="glass w-full max-w-sm p-6 max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex gap-2 mb-5">
+            <div className="flex gap-1 mb-5 p-1 bg-[var(--surface-secondary)] rounded-[10px]">
               <button
                 type="button"
                 onClick={() => setMode("transaction")}
-                className={`btn flex-1 !py-2 ${mode === "transaction" ? "btn-primary" : ""}`}
+                className={`flex-1 py-1.5 rounded-[8px] text-sm font-medium transition-colors ${
+                  mode === "transaction" ? "bg-white/[0.16] text-text" : "text-text-dim"
+                }`}
               >
                 Transaction
               </button>
               <button
                 type="button"
                 onClick={() => setMode("income")}
-                className={`btn flex-1 !py-2 ${mode === "income" ? "btn-primary" : ""}`}
+                className={`flex-1 py-1.5 rounded-[8px] text-sm font-medium transition-colors ${
+                  mode === "income" ? "bg-white/[0.16] text-text" : "text-text-dim"
+                }`}
               >
                 Income
               </button>
@@ -189,7 +193,7 @@ export function QuickAddFab({
                   </div>
 
                   <label className="flex items-center gap-2 text-sm text-text-dim">
-                    <input name="is_recurring" type="checkbox" className="accent-brass" />
+                    <input name="is_recurring" type="checkbox" className="accent-tint" />
                     Recurring
                   </label>
                 </>

@@ -1,23 +1,20 @@
-// Monochrome-only categorical ramp (10 slots) — the design system forbids hue
-// for identity, so category identity is carried by a fixed-order lightness
-// ramp instead. Warm brass-tinted neutral, matching the Neo-Luxury ink/brass
-// palette (was a cold gray ramp under the earlier Liquid Glass system).
-// Compensated with a legend, 2px surface gaps between segments, hover
-// tooltips, and the always-present data table (never color-alone identity).
+// Monochrome-plus-one-accent ramp (10 slots) — the design system forbids hue
+// for category identity, only the single systemBlue tint carries emphasis.
+// Neutral gray ramp matching iOS's own systemGray tier scale.
 export const CATEGORY_SHADES = [
-  "#362c21",
-  "#423627",
-  "#4f412e",
-  "#5c4c36",
-  "#6a5a40",
-  "#7d6c4e",
-  "#93815f",
-  "#ab9c79",
-  "#c7bb9c",
-  "#e5dcc3",
+  "#2c2c2e",
+  "#3a3a3c",
+  "#48484a",
+  "#565658",
+  "#636366",
+  "#7c7c80",
+  "#8e8e93",
+  "#aeaeb2",
+  "#c7c7cc",
+  "#e5e5ea",
 ];
 
-export const CHART_GRID_COLOR = "rgba(201,162,75,0.08)";
-export const CHART_AXIS_COLOR = "#a99c86"; // --text-dim
-export const CHART_LINE_COLOR = "#e3c27e"; // --brass-bright
-export const CHART_LINE_SECONDARY = "#9c8570"; // muted oxblood-taupe, distinguishable from brass
+export const CHART_GRID_COLOR = "rgba(255,255,255,0.08)";
+export const CHART_AXIS_COLOR = "rgba(255,255,255,0.6)"; // --text-dim
+export const CHART_LINE_COLOR = "#0a84ff"; // --accent (systemBlue)
+export const CHART_LINE_SECONDARY = "#64d2ff"; // systemCyan, distinguishable from systemBlue

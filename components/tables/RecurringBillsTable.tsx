@@ -93,7 +93,7 @@ function BillForm({
         </select>
       </div>
       <label className="flex items-center gap-1.5 text-xs text-text-dim pb-2">
-        <input name="active" type="checkbox" defaultChecked={defaults?.active ?? true} className="accent-brass" />
+        <input name="active" type="checkbox" defaultChecked={defaults?.active ?? true} className="accent-tint" />
         Active
       </label>
       <div className="flex gap-1.5">
@@ -213,7 +213,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
             ) : (
               bills.map((b) =>
                 editingId === b.id ? (
-                  <tr key={b.id} className="border-t border-[#241c14] bg-[rgba(201,162,75,0.035)]">
+                  <tr key={b.id} className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
                     <td colSpan={7} className="py-3 px-2">
                       <BillForm
                         categories={categories}
@@ -225,7 +225,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
                     </td>
                   </tr>
                 ) : (
-                  <tr key={b.id} className="border-t border-[#241c14] hover:bg-[rgba(201,162,75,0.035)]">
+                  <tr key={b.id} className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
                     <td className="py-2.5 px-2 text-text-dim">{b.name}</td>
                     <td className="py-2.5 px-2 text-text-dim">{b.categories?.name ?? "—"}</td>
                     <td className="py-2.5 px-2 text-right num">{fmtUsd(b.monthly_cost_usd)}</td>

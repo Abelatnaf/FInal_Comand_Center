@@ -2,16 +2,20 @@ import Link from "next/link";
 
 export function AuthTabs({ active }: { active: "login" | "signup" }) {
   return (
-    <div className="flex gap-2 mb-6">
+    <div className="flex gap-1 mb-6 p-1 bg-[var(--surface-secondary)] rounded-[10px]">
       <Link
         href="/login"
-        className={`btn flex-1 !py-2 text-center ${active === "login" ? "btn-primary" : ""}`}
+        className={`flex-1 py-1.5 rounded-[8px] text-sm font-medium text-center transition-colors ${
+          active === "login" ? "bg-white/[0.16] text-text" : "text-text-dim"
+        }`}
       >
         Log In
       </Link>
       <Link
         href="/signup"
-        className={`btn flex-1 !py-2 text-center ${active === "signup" ? "btn-primary" : ""}`}
+        className={`flex-1 py-1.5 rounded-[8px] text-sm font-medium text-center transition-colors ${
+          active === "signup" ? "bg-white/[0.16] text-text" : "text-text-dim"
+        }`}
       >
         Sign Up
       </Link>

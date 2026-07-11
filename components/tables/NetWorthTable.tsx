@@ -141,18 +141,18 @@ export function NetWorthTable({ snapshots }: { snapshots: SnapshotRow[] }) {
           ) : (
             snapshots.map((s) =>
               editingId === s.id ? (
-                <tr key={s.id} className="border-t border-[#241c14] bg-[rgba(201,162,75,0.035)]">
+                <tr key={s.id} className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
                   <td colSpan={9} className="py-3 px-2">
                     <SnapshotForm defaults={s} onSubmit={(fd) => handleUpdate(s.id, fd)} onCancel={() => setEditingId(null)} pending={pending} />
                   </td>
                 </tr>
               ) : (
-                <tr key={s.id} className="border-t border-[#241c14] hover:bg-[rgba(201,162,75,0.035)]">
+                <tr key={s.id} className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
                   <td className="py-2.5 px-2 num text-text-dim whitespace-nowrap">{s.snapshot_date}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.sofi_actual)}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.ally_actual)}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.cash_actual)}</td>
-                  <td className="py-2.5 px-2 text-right num text-brass font-medium">{fmtUsd(s.total_actual)}</td>
+                  <td className="py-2.5 px-2 text-right num text-tint font-medium">{fmtUsd(s.total_actual)}</td>
                   <td className="py-2.5 px-2 text-right num text-text-dim">{fmtUsd(s.computed_balance)}</td>
                   <td className="py-2.5 px-2 text-right num">
                     {s.variance === 0 ? "—" : `${s.variance > 0 ? "↑" : "↓"} ${fmtUsd(Math.abs(s.variance))}`}

@@ -22,7 +22,7 @@ export function MonthlyRollupTable({
       <table className="w-full text-sm min-w-[1400px]">
         <thead>
           <tr className="text-text-dim text-left text-xs">
-            <th className="py-3 px-2 font-normal sticky left-0 bg-[#17120d]">Month</th>
+            <th className="py-3 px-2 font-normal sticky left-0 bg-[#1c1c1e]">Month</th>
             {categoryNames.map((c) => (
               <th key={c} className="py-3 px-2 font-normal text-right whitespace-nowrap">
                 {c}
@@ -38,8 +38,8 @@ export function MonthlyRollupTable({
           {categoryData.map((row) => {
             const balance = balanceByMonth.get(row.month);
             return (
-              <tr key={row.month} className="border-t border-[#241c14]">
-                <td className="py-2 px-2 text-text-dim whitespace-nowrap sticky left-0 bg-[#17120d]">
+              <tr key={row.month} className="border-t border-[#2c2c2e]">
+                <td className="py-2 px-2 text-text-dim whitespace-nowrap sticky left-0 bg-[#1c1c1e]">
                   {fmtMonth(row.month)}
                 </td>
                 {categoryNames.map((c) => (
@@ -50,7 +50,7 @@ export function MonthlyRollupTable({
                 <td className="py-2 px-2 text-right">{fmtUsd(balance?.total_expenses ?? 0)}</td>
                 <td className="py-2 px-2 text-right">{fmtUsd(balance?.total_income ?? 0)}</td>
                 <td className="py-2 px-2 text-right">{fmtUsd(balance?.net ?? 0)}</td>
-                <td className="py-2 px-2 text-right text-brass font-medium">{fmtUsd(balance?.running_balance ?? 0)}</td>
+                <td className="py-2 px-2 text-right text-tint font-medium">{fmtUsd(balance?.running_balance ?? 0)}</td>
               </tr>
             );
           })}

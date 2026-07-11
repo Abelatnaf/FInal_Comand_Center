@@ -31,7 +31,7 @@ function IncomeEditRow({ row, onDone }: { row: IncomeRow; onDone: () => void }) 
   }
 
   return (
-    <tr className="border-t border-[#241c14] bg-[rgba(201,162,75,0.035)]">
+    <tr className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
       <td colSpan={6} className="py-3 px-2">
         <form action={handleSave} className="flex flex-wrap gap-2 items-end">
           <div>
@@ -102,7 +102,7 @@ function IncomeRowView({ row, onEdit }: { row: IncomeRow; onEdit: () => void }) 
   }
 
   return (
-    <tr className="border-t border-[#241c14] hover:bg-[rgba(201,162,75,0.035)]">
+    <tr className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{row.date}</td>
       <td className="py-2.5 px-2 num text-xs text-text-dim">{row.cadet_week ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{row.source ?? "—"}</td>

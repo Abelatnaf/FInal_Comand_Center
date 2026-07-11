@@ -91,22 +91,18 @@ export default async function CommandDeckPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
         <div className="ledger md:col-span-8 p-8 flex flex-col justify-between min-h-[220px]">
           <div className="relative z-10">
-            <div className="font-mono text-[11px] tracking-[0.16em] uppercase text-[#5c5347] mb-3.5">
-              Current Balance
-            </div>
-            <div className="hero-value" style={{ backgroundImage: "linear-gradient(180deg, #2a2119, #8a723c)" }}>
-              {fmtUsd(currentBalance)}
-            </div>
+            <div className="stat-label mb-3.5">Current Balance</div>
+            <div className="hero-value">{fmtUsd(currentBalance)}</div>
           </div>
-          <div className="relative z-10 flex flex-wrap gap-7 mt-6 num text-[13px] text-[#5c5347] pt-4 border-t border-[rgba(42,33,25,0.14)]">
+          <div className="relative z-10 flex flex-wrap gap-7 mt-6 num text-[13px] text-text-dim pt-4 border-t border-[var(--divider)]">
             <div>
-              FX RATE <b className="text-[#2a2119] font-medium">{settings?.fx_rate ?? "—"} ETB/USD</b>
+              FX RATE <b className="text-text font-semibold">{settings?.fx_rate ?? "—"} ETB/USD</b>
             </div>
             <div>
-              MONTHLY BURN <b className="text-[#2a2119] font-medium">{fmtUsd(monthlyBurn)}</b>
+              MONTHLY BURN <b className="text-text font-semibold">{fmtUsd(monthlyBurn)}</b>
             </div>
             <div>
-              SEMESTER STATUS <b className="text-[#2a2119] font-medium">{semesterStatus.toUpperCase()}</b>
+              SEMESTER STATUS <b className="text-text font-semibold">{semesterStatus.toUpperCase()}</b>
             </div>
           </div>
         </div>
@@ -126,7 +122,7 @@ export default async function CommandDeckPage() {
         <Glass className="md:col-span-6 p-6 flex items-center gap-5">
           <div className="relative w-[88px] h-[88px] shrink-0">
             <svg width="88" height="88" viewBox="0 0 88 88" className="-rotate-90">
-              <circle cx="44" cy="44" r="38" fill="none" stroke="rgba(201,162,75,0.14)" strokeWidth="8" />
+              <circle cx="44" cy="44" r="38" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" />
               <circle
                 cx="44"
                 cy="44"
@@ -140,12 +136,12 @@ export default async function CommandDeckPage() {
               />
               <defs>
                 <linearGradient id="ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#8a723c" />
-                  <stop offset="100%" stopColor="#e3c27e" />
+                  <stop offset="0%" stopColor="#0a84ff" />
+                  <stop offset="100%" stopColor="#64d2ff" />
                 </linearGradient>
               </defs>
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center num text-base font-semibold text-brass">
+            <div className="absolute inset-0 flex items-center justify-center num text-base font-semibold text-tint">
               {discretionaryPercent}%
             </div>
           </div>
@@ -171,7 +167,7 @@ export default async function CommandDeckPage() {
             </thead>
             <tbody className="num">
               {budgetRows.map((row) => (
-                <tr key={row.category_id} className="border-t border-[#241c14]">
+                <tr key={row.category_id} className="border-t border-[#2c2c2e]">
                   <td className="py-2 text-text-dim font-sans">{row.category}</td>
                   <td className="py-2 text-right">{fmtUsd(row.budget ?? 0)}</td>
                   <td className="py-2 text-right">{fmtUsd(row.actual ?? 0)}</td>
@@ -191,7 +187,7 @@ export default async function CommandDeckPage() {
             </thead>
             <tbody className="num">
               {categoryRows.map((row) => (
-                <tr key={row.category_id} className="border-t border-[#241c14]">
+                <tr key={row.category_id} className="border-t border-[#2c2c2e]">
                   <td className="py-2 text-text-dim font-sans">{row.category}</td>
                   <td className="py-2 text-right">{fmtUsd(row.total ?? 0)}</td>
                 </tr>

@@ -55,7 +55,7 @@ export function MonthlyRollupCharts({
                   name={name}
                   stackId="categories"
                   fill={CATEGORY_SHADES[i % CATEGORY_SHADES.length]}
-                  stroke="#0b0908"
+                  stroke="#000000"
                   strokeWidth={2}
                   radius={i === categoryNames.length - 1 ? [4, 4, 0, 0] : 0}
                 />
@@ -81,7 +81,7 @@ export function MonthlyRollupCharts({
                 stroke={CHART_LINE_COLOR}
                 strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 4, stroke: "#0b0908", strokeWidth: 2 }}
+                activeDot={{ r: 4, stroke: "#000000", strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>

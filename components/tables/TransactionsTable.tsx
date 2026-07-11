@@ -38,7 +38,7 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
   }
 
   return (
-    <tr className="border-t border-[#241c14] bg-[rgba(201,162,75,0.035)]">
+    <tr className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
       <td colSpan={8} className="py-3 px-2">
         <form action={handleSave} className="flex flex-wrap gap-2 items-end">
           <div>
@@ -99,7 +99,7 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
             <input name="notes" defaultValue={tx.notes ?? ""} className="input !py-1.5 !px-2 text-sm w-full" />
           </div>
           <label className="flex items-center gap-1.5 text-xs text-text-dim pb-2">
-            <input name="is_recurring" type="checkbox" defaultChecked={tx.is_recurring} className="accent-brass" />
+            <input name="is_recurring" type="checkbox" defaultChecked={tx.is_recurring} className="accent-tint" />
             Recurring
           </label>
           <div className="flex gap-1.5">
@@ -130,7 +130,7 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
   }
 
   return (
-    <tr className="border-t border-[#241c14] hover:bg-[rgba(201,162,75,0.035)]">
+    <tr className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{tx.date}</td>
       <td className="py-2.5 px-2 num text-xs text-text-dim">{tx.cadet_week ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{tx.categories?.name ?? "—"}</td>
