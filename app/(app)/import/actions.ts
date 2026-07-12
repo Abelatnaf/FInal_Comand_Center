@@ -13,7 +13,12 @@ export type ImportRow = {
 
 export type ImportResult = { inserted: number; skipped: number; error?: string };
 
-export async function importRows(rows: ImportRow[], currency: string, necessity: string): Promise<ImportResult> {
+export async function importRows(
+  rows: ImportRow[],
+  currency: string,
+  necessity: string,
+  paymentMethod: string
+): Promise<ImportResult> {
   const supabase = await createClient();
   let inserted = 0;
   let skipped = 0;
@@ -65,7 +70,7 @@ export async function importRows(rows: ImportRow[], currency: string, necessity:
         is_recurring: false,
         currency,
         amount_original: row.amount,
-        payment_method: "Bank Import",
+        payment_method: paymentMethod || "Bank of America",
         notes: "Imported from CSV",
       });
       if (error) return { inserted, skipped, error: error.message };

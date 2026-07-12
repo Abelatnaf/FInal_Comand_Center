@@ -4,10 +4,35 @@ import { useMemo, useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
 import { parseCsv } from "@/lib/csv";
 import { fmtUsd } from "@/lib/format";
+import { PAYMENT_METHODS } from "@/lib/constants";
 import { importRows, type ImportRow, type ImportResult } from "@/app/(app)/import/actions";
 
 type Category = { id: number; name: string };
 type Currency = { code: string; name: string; rate_to_usd: number };
+
+// Bank of America's CSV exports (checking/savings and credit card alike)
+// lead with a few "Description / Generated on / Account type / Balance as
+// of" rows before the real header row -- find the row that actually looks
+// like column headers (has both a date-ish and an amount-ish cell) instead
+// of assuming row 0 is it.
+function findHeaderRowIndex(rows: string[][]): number {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.some((c) => /amount/i.test(c)) && row.some((c) => /date/i.test(c))) return i;
+  }
+  return 0;
+}
+
+// BoA checking/savings exports use "Date"/"Description"/"Amount"; their
+// credit card export uses "Posted Date"/"Payee"/"Amount" instead -- match
+// on substrings so either shape auto-maps correctly.
+function guessColumn(headers: string[], patterns: RegExp[]): number {
+  for (const pattern of patterns) {
+    const idx = headers.findIndex((h) => pattern.test(h.trim()));
+    if (idx !== -1) return idx;
+  }
+  return 0;
+}
 
 function parseDateFlexible(raw: string): string | null {
   const s = raw.trim();
@@ -50,6 +75,7 @@ export function ImportForm({ categories, currencies }: { categories: Category[];
   const [currency, setCurrency] = useState("USD");
   const [categoryId, setCategoryId] = useState<string>(categories[0] ? String(categories[0].id) : "");
   const [necessity, setNecessity] = useState("Necessary");
+  const [paymentMethod, setPaymentMethod] = useState("Bank of America");
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<ImportResult | null>(null);
 
@@ -63,11 +89,13 @@ export function ImportForm({ categories, currencies }: { categories: Category[];
       const text = String(reader.result ?? "");
       const parsed = parseCsv(text);
       if (parsed.length === 0) return;
-      setHeaders(parsed[0]);
-      setDataRows(parsed.slice(1));
-      setDateCol(0);
-      setDescCol(Math.min(1, parsed[0].length - 1));
-      setAmountCol(Math.min(2, parsed[0].length - 1));
+      const headerIdx = findHeaderRowIndex(parsed);
+      const headerRow = parsed[headerIdx];
+      setHeaders(headerRow);
+      setDataRows(parsed.slice(headerIdx + 1));
+      setDateCol(guessColumn(headerRow, [/^date$/i, /date/i]));
+      setDescCol(guessColumn(headerRow, [/^description$/i, /description|payee/i]));
+      setAmountCol(guessColumn(headerRow, [/^amount$/i, /amount/i]));
     };
     reader.readAsText(file);
   }
@@ -105,7 +133,8 @@ export function ImportForm({ categories, currencies }: { categories: Category[];
           categoryId,
         })),
         currency,
-        necessity
+        necessity,
+        paymentMethod
       );
       setResult(res);
     });
@@ -116,8 +145,12 @@ export function ImportForm({ categories, currencies }: { categories: Category[];
       <Glass className="p-6">
         <div className="ios-headline mb-1">1. Choose a file</div>
         <p className="text-text-dim ios-subhead mb-4">
-          Export a CSV from your bank (date, description, amount columns). Positive amounts are treated as income, negative as
-          expenses — flip that below if your bank does it the other way.
+          Built for Bank of America exports — checking/savings and credit card CSVs both work; their header row is
+          auto-detected and Date/Description (or Payee)/Amount columns are pre-mapped for you below, so you can usually skip
+          straight to step 3. In Online Banking: select the account → the download/export icon above the transaction list →
+          choose a date range → format <strong>Comma Delimited (.csv)</strong>. Deposits are positive, purchases are
+          negative — that already matches Bank of America&apos;s convention, so leave &quot;Flip sign&quot; off unless your
+          numbers look backwards.
         </p>
         <input
           type="file"
@@ -180,6 +213,21 @@ export function ImportForm({ categories, currencies }: { categories: Category[];
                   <option value="Necessary">Necessary</option>
                   <option value="Discretionary">Discretionary</option>
                 </select>
+              </div>
+              <div>
+                <label className="stat-label block mb-1 text-[10px]">Payment method (expenses)</label>
+                <input
+                  type="text"
+                  list="import-payment-methods"
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="input text-sm w-full"
+                />
+                <datalist id="import-payment-methods">
+                  {PAYMENT_METHODS.map((m) => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
               </div>
             </div>
             <label className="flex items-center gap-2 ios-body mt-4">
