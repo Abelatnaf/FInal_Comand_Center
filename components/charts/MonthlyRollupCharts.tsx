@@ -25,7 +25,7 @@ export type MonthlyRollupRow = {
   running_balance: number;
 };
 
-const axisTick = { fill: CHART_AXIS_COLOR, fontSize: 11, fontFamily: "var(--font-mono)" };
+const axisTick = { fill: CHART_AXIS_COLOR, fontSize: 11, fontFamily: "var(--font-body)" };
 
 export function MonthlyRollupCharts({
   categoryData,
@@ -39,7 +39,7 @@ export function MonthlyRollupCharts({
   return (
     <div className="grid grid-cols-1 gap-4 mb-4">
       <Glass className="p-6">
-        <div className="font-display text-lg font-semibold mb-4">Category Breakdown — By Month</div>
+        <div className="ios-headline mb-4">Category Breakdown — By Month</div>
         <div style={{ width: "100%", height: 320 }}>
           <ResponsiveContainer>
             <BarChart data={categoryData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barSize={24}>
@@ -66,7 +66,7 @@ export function MonthlyRollupCharts({
       </Glass>
 
       <Glass className="p-6">
-        <div className="font-display text-lg font-semibold mb-4">Running Balance</div>
+        <div className="ios-headline mb-4">Running Balance</div>
         <div style={{ width: "100%", height: 240 }}>
           <ResponsiveContainer>
             <LineChart data={balanceData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>

@@ -57,49 +57,38 @@ export function QuickAddFab({
       <button
         onClick={() => setOpen(true)}
         aria-label="Quick add transaction or income"
-        className="fixed bottom-24 md:bottom-6 right-5 md:right-6 z-40 w-14 h-14 rounded-full btn-primary text-2xl leading-none flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
+        className="fixed bottom-24 md:bottom-6 right-5 md:right-6 z-40 w-14 h-14 rounded-full bg-tint flex items-center justify-center shadow-[0_6px_20px_rgba(10,132,255,0.4)] active:opacity-80 transition-opacity"
       >
-        +
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
       </button>
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 px-4 pb-4 md:pb-0"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 px-0 md:px-4"
           onClick={close}
         >
           <div
-            className="glass w-full max-w-sm p-6 max-h-[85vh] overflow-y-auto"
+            className="material w-full max-w-md rounded-t-[16px] md:rounded-[16px] p-5 max-h-[88vh] overflow-y-auto"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex gap-1 mb-5 p-1 bg-[var(--surface-secondary)] rounded-[10px]">
-              <button
-                type="button"
-                onClick={() => setMode("transaction")}
-                className={`flex-1 py-1.5 rounded-[8px] text-sm font-medium transition-colors ${
-                  mode === "transaction" ? "bg-white/[0.16] text-text" : "text-text-dim"
-                }`}
-              >
-                Transaction
+            <div className="w-9 h-1 rounded-full bg-[var(--gray2)] mx-auto mb-4 md:hidden" />
+
+            <div className="segmented mb-5">
+              <button type="button" data-active={mode === "transaction"} onClick={() => setMode("transaction")}>
+                Expense
               </button>
-              <button
-                type="button"
-                onClick={() => setMode("income")}
-                className={`flex-1 py-1.5 rounded-[8px] text-sm font-medium transition-colors ${
-                  mode === "income" ? "bg-white/[0.16] text-text" : "text-text-dim"
-                }`}
-              >
+              <button type="button" data-active={mode === "income"} onClick={() => setMode("income")}>
                 Income
               </button>
             </div>
 
-            <form
-              key={mode}
-              action={mode === "transaction" ? txAction : incAction}
-              className="flex flex-col gap-3"
-            >
-              <div className="flex gap-2">
+            <form key={mode} action={mode === "transaction" ? txAction : incAction} className="flex flex-col gap-3.5">
+              <div className="flex gap-2.5">
                 <div className="flex-1">
-                  <label className="stat-label block mb-1.5 text-xs">Amount</label>
+                  <label className="stat-label block mb-1.5">Amount</label>
                   <input
                     name="amount"
                     type="number"
@@ -114,7 +103,7 @@ export function QuickAddFab({
                   />
                 </div>
                 <div className="w-28">
-                  <label className="stat-label block mb-1.5 text-xs">Currency</label>
+                  <label className="stat-label block mb-1.5">Currency</label>
                   <select
                     name="currency"
                     value={currency}
@@ -127,26 +116,20 @@ export function QuickAddFab({
                 </div>
               </div>
               {currency === "ETB" && (
-                <div className="text-text-dim text-xs num -mt-1">
+                <div className="stat-label num -mt-1.5">
                   {usdPreview !== null ? `≈ $${usdPreview.toFixed(2)} at ${fxRate} ETB/USD` : ""}
                 </div>
               )}
 
               <div>
-                <label className="stat-label block mb-1.5 text-xs">Date</label>
-                <input
-                  name="date"
-                  type="date"
-                  required
-                  defaultValue={todayIso()}
-                  className="input w-full"
-                />
+                <label className="stat-label block mb-1.5">Date</label>
+                <input name="date" type="date" required defaultValue={todayIso()} className="input w-full" />
               </div>
 
               {mode === "transaction" ? (
                 <>
                   <div>
-                    <label className="stat-label block mb-1.5 text-xs">Category</label>
+                    <label className="stat-label block mb-1.5">Category</label>
                     <select name="category_id" required className="select w-full" defaultValue="">
                       <option value="" disabled>
                         Select category
@@ -160,29 +143,21 @@ export function QuickAddFab({
                   </div>
 
                   <div>
-                    <label className="stat-label block mb-1.5 text-xs">Description</label>
+                    <label className="stat-label block mb-1.5">Description</label>
                     <input name="description" type="text" className="input w-full" />
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5">
                     <div className="flex-1">
-                      <label className="stat-label block mb-1.5 text-xs">Necessity</label>
-                      <select
-                        name="necessity"
-                        className="select w-full"
-                        defaultValue="Necessary"
-                      >
+                      <label className="stat-label block mb-1.5">Necessity</label>
+                      <select name="necessity" className="select w-full" defaultValue="Necessary">
                         <option value="Necessary">Necessary</option>
                         <option value="Discretionary">Discretionary</option>
                       </select>
                     </div>
                     <div className="flex-1">
-                      <label className="stat-label block mb-1.5 text-xs">Payment</label>
-                      <select
-                        name="payment_method"
-                        className="select w-full"
-                        defaultValue="SoFi Debit"
-                      >
+                      <label className="stat-label block mb-1.5">Payment</label>
+                      <select name="payment_method" className="select w-full" defaultValue="SoFi Debit">
                         {PAYMENT_METHODS.map((m) => (
                           <option key={m} value={m}>
                             {m}
@@ -192,14 +167,14 @@ export function QuickAddFab({
                     </div>
                   </div>
 
-                  <label className="flex items-center gap-2 text-sm text-text-dim">
-                    <input name="is_recurring" type="checkbox" className="accent-tint" />
-                    Recurring
+                  <label className="flex items-center justify-between ios-body py-0.5">
+                    <span>Recurring</span>
+                    <input name="is_recurring" type="checkbox" className="ios-switch" />
                   </label>
                 </>
               ) : (
                 <div>
-                  <label className="stat-label block mb-1.5 text-xs">Source</label>
+                  <label className="stat-label block mb-1.5">Source</label>
                   <input
                     name="source"
                     type="text"
@@ -216,14 +191,14 @@ export function QuickAddFab({
               )}
 
               <div>
-                <label className="stat-label block mb-1.5 text-xs">Notes</label>
+                <label className="stat-label block mb-1.5">Notes</label>
                 <input name="notes" type="text" className="input w-full" />
               </div>
 
-              {error && <p className="text-text-dim text-sm">{error}</p>}
+              {error && <p className="text-red text-[15px]">{error}</p>}
 
-              <button disabled={pending} type="submit" className="btn btn-primary mt-2">
-                {pending ? "Saving…" : `Save ${mode === "transaction" ? "transaction" : "income"}`}
+              <button disabled={pending} type="submit" className="btn btn-primary w-full !py-3 !text-[17px] mt-1">
+                {pending ? "Saving…" : mode === "transaction" ? "Add Expense" : "Add Income"}
               </button>
             </form>
           </div>

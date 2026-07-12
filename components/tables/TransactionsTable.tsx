@@ -38,7 +38,7 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
   }
 
   return (
-    <tr className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
+    <tr className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
       <td colSpan={8} className="py-3 px-2">
         <form action={handleSave} className="flex flex-wrap gap-2 items-end">
           <div>
@@ -98,9 +98,9 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
             <label className="stat-label block mb-1 text-[10px]">Notes</label>
             <input name="notes" defaultValue={tx.notes ?? ""} className="input !py-1.5 !px-2 text-sm w-full" />
           </div>
-          <label className="flex items-center gap-1.5 text-xs text-text-dim pb-2">
-            <input name="is_recurring" type="checkbox" defaultChecked={tx.is_recurring} className="accent-tint" />
+          <label className="flex items-center gap-2 ios-footnote text-text pb-1.5">
             Recurring
+            <input name="is_recurring" type="checkbox" defaultChecked={tx.is_recurring} className="ios-switch" />
           </label>
           <div className="flex gap-1.5">
             <button type="submit" disabled={pending} className="btn btn-primary !py-1.5 !px-3 text-xs">
@@ -130,7 +130,7 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
   }
 
   return (
-    <tr className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
+    <tr className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{tx.date}</td>
       <td className="py-2.5 px-2 num text-xs text-text-dim">{tx.cadet_week ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{tx.categories?.name ?? "—"}</td>
@@ -139,10 +139,10 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
       <td className="py-2.5 px-2 text-right num">{fmtUsd(tx.amount_usd ?? 0)}</td>
       <td className="py-2.5 px-2 text-xs text-text-dim whitespace-nowrap">{tx.payment_method ?? "—"}</td>
       <td className="py-2.5 px-2 text-right whitespace-nowrap">
-        <button onClick={onEdit} className="text-text-dim hover:text-text text-xs mr-3">
+        <button onClick={onEdit} className="link-action text-[13px] mr-4">
           Edit
         </button>
-        <button onClick={handleDelete} disabled={pending} className="text-text-dim hover:text-text text-xs">
+        <button onClick={handleDelete} disabled={pending} className="link-destructive text-[13px]">
           {pending ? "…" : "Delete"}
         </button>
         {error && <div className="text-text-dim text-[10px] mt-1">{error}</div>}

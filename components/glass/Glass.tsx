@@ -13,7 +13,6 @@ export function Glass({
 }
 
 export function PageHeader({
-  eyebrow,
   title,
   subtitle,
 }: {
@@ -22,15 +21,9 @@ export function PageHeader({
   subtitle?: string;
 }) {
   return (
-    <div className="mb-8">
-      {eyebrow && (
-        <div className="eyebrow mb-2">
-          <span className="dot" />
-          {eyebrow}
-        </div>
-      )}
-      <h1 className="font-display text-[32px] md:text-[42px] font-semibold">{title}</h1>
-      {subtitle && <p className="text-text-dim text-[15px] mt-1">{subtitle}</p>}
+    <div className="mb-6">
+      <h1 className="ios-large-title">{title}</h1>
+      {subtitle && <p className="ios-subhead text-text-dim mt-1">{subtitle}</p>}
     </div>
   );
 }

@@ -12,11 +12,11 @@ export default async function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="glass w-full max-w-sm p-8">
-        <div className="eyebrow mb-4">
-          <span className="dot" />
-          VMI FINANCE
+    <div className="min-h-screen flex items-center justify-center px-5">
+      <div className="glass w-full max-w-sm p-7">
+        <div className="mb-6">
+          <h1 className="ios-title2">VMI Finance</h1>
+          <p className="ios-subhead text-text-dim mt-0.5">Command Center</p>
         </div>
         <AuthTabs active="signup" />
         <SignupForm />

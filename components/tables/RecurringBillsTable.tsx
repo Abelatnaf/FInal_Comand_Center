@@ -92,9 +92,9 @@ function BillForm({
           ))}
         </select>
       </div>
-      <label className="flex items-center gap-1.5 text-xs text-text-dim pb-2">
-        <input name="active" type="checkbox" defaultChecked={defaults?.active ?? true} className="accent-tint" />
+      <label className="flex items-center gap-2 ios-footnote text-text pb-1.5">
         Active
+        <input name="active" type="checkbox" defaultChecked={defaults?.active ?? true} className="ios-switch" />
       </label>
       <div className="flex gap-1.5">
         <button type="submit" disabled={pending} className="btn btn-primary !py-1.5 !px-3 text-xs">
@@ -177,7 +177,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
 
       <Glass className="overflow-x-auto">
         <div className="flex items-center justify-between p-4 pb-0">
-          <div className="font-display text-lg font-semibold">Recurring Bills</div>
+          <div className="ios-headline">Recurring Bills</div>
           {!adding && (
             <button onClick={() => setAdding(true)} className="btn text-sm">
               + Add Bill
@@ -213,7 +213,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
             ) : (
               bills.map((b) =>
                 editingId === b.id ? (
-                  <tr key={b.id} className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
+                  <tr key={b.id} className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
                     <td colSpan={7} className="py-3 px-2">
                       <BillForm
                         categories={categories}
@@ -225,7 +225,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
                     </td>
                   </tr>
                 ) : (
-                  <tr key={b.id} className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
+                  <tr key={b.id} className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
                     <td className="py-2.5 px-2 text-text-dim">{b.name}</td>
                     <td className="py-2.5 px-2 text-text-dim">{b.categories?.name ?? "—"}</td>
                     <td className="py-2.5 px-2 text-right num">{fmtUsd(b.monthly_cost_usd)}</td>
@@ -235,10 +235,10 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
                       <span className={`badge ${b.active ? "" : "badge-dim"}`}>{b.active ? "Active" : "Inactive"}</span>
                     </td>
                     <td className="py-2.5 px-2 text-right whitespace-nowrap">
-                      <button onClick={() => setEditingId(b.id)} className="text-text-dim hover:text-text text-xs mr-3">
+                      <button onClick={() => setEditingId(b.id)} className="link-action text-[13px] mr-4">
                         Edit
                       </button>
-                      <button onClick={() => handleDelete(b.id)} className="text-text-dim hover:text-text text-xs">
+                      <button onClick={() => handleDelete(b.id)} className="link-destructive text-[13px]">
                         Delete
                       </button>
                     </td>

@@ -24,12 +24,12 @@ export function SemesterCard({ semester }: { semester: SemesterPacing }) {
     <Glass className="p-7">
       <div className="flex justify-between items-start mb-6 flex-wrap gap-2">
         <div>
-          <div className="font-display text-xl font-semibold mb-1">{semester.name}</div>
+          <div className="ios-title3 mb-1">{semester.name}</div>
           <div className="text-text-dim text-xs num">
             {semester.start_date} — {semester.end_date}
           </div>
         </div>
-        <div className="badge">{semester.status.toUpperCase()}</div>
+        <div className="badge">{semester.status}</div>
       </div>
 
       <div className="liquid-track mb-2">
@@ -55,7 +55,7 @@ export function SemesterCard({ semester }: { semester: SemesterPacing }) {
         </div>
         <div>
           <div className="text-text-dim text-[11px] mb-1">Remaining</div>
-          <div className="text-tint font-medium">{fmtUsd(remaining)}</div>
+          <div className="text-text font-semibold">{fmtUsd(remaining)}</div>
         </div>
       </div>
     </Glass>

@@ -1,52 +1,55 @@
-type IconProps = { className?: string };
+type IconProps = { className?: string; size?: number };
 
-const common = {
-  width: 24,
-  height: 24,
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.75,
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
-};
+function base(size: number) {
+  return {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+}
 
-export function HomeIcon({ className }: IconProps) {
+export function HomeIcon({ className, size = 24 }: IconProps) {
   return (
-    <svg {...common} className={className}>
-      <path d="M4 11.5 12 4l8 7.5" />
-      <path d="M6 10v9a1 1 0 0 0 1 1h3v-5a2 2 0 0 1 4 0v5h3a1 1 0 0 0 1-1v-9" />
+    <svg {...base(size)} className={className}>
+      <path d="M3.5 11.2 12 4l8.5 7.2" />
+      <path d="M5.5 9.8V19a1 1 0 0 0 1 1H10v-5.2a2 2 0 0 1 4 0V20h3.5a1 1 0 0 0 1-1V9.8" />
     </svg>
   );
 }
 
-export function ListIcon({ className }: IconProps) {
+export function ListIcon({ className, size = 24 }: IconProps) {
   return (
-    <svg {...common} className={className}>
-      <circle cx="5" cy="7" r="1" fill="currentColor" stroke="none" />
-      <circle cx="5" cy="12" r="1" fill="currentColor" stroke="none" />
-      <circle cx="5" cy="17" r="1" fill="currentColor" stroke="none" />
+    <svg {...base(size)} className={className}>
+      <circle cx="4.5" cy="7" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="4.5" cy="17" r="1.1" fill="currentColor" stroke="none" />
       <path d="M9 7h11M9 12h11M9 17h11" />
     </svg>
   );
 }
 
-export function IncomeIcon({ className }: IconProps) {
+export function IncomeIcon({ className, size = 24 }: IconProps) {
   return (
-    <svg {...common} className={className}>
+    <svg {...base(size)} className={className}>
       <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 8v8M9 10.5c0-1 1-1.75 3-1.75s3 .6 3 1.5c0 2-6 .5-6 2.5 0 .9 1 1.5 3 1.5s3-.75 3-1.75" />
+      <path d="M12 7.4v9.2" />
+      <path d="M14.4 9.4c-.5-.7-1.4-1.1-2.4-1.1-1.4 0-2.4.7-2.4 1.8 0 2.5 5 1 5 3.5 0 1.1-1.1 1.9-2.6 1.9-1.1 0-2-.4-2.5-1.2" />
     </svg>
   );
 }
 
-export function MoreIcon({ className }: IconProps) {
+export function MoreIcon({ className, size = 24 }: IconProps) {
   return (
-    <svg {...common} className={className}>
+    <svg {...base(size)} className={className}>
       <circle cx="12" cy="12" r="8.5" />
-      <circle cx="8.5" cy="12" r="1" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
-      <circle cx="15.5" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="8.4" cy="12" r="1.05" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.05" fill="currentColor" stroke="none" />
+      <circle cx="15.6" cy="12" r="1.05" fill="currentColor" stroke="none" />
     </svg>
   );
 }

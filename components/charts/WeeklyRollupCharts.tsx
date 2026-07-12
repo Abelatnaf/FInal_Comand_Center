@@ -26,13 +26,13 @@ export type WeeklyRow = {
   running_balance: number;
 };
 
-const axisTick = { fill: CHART_AXIS_COLOR, fontSize: 11, fontFamily: "var(--font-mono)" };
+const axisTick = { fill: CHART_AXIS_COLOR, fontSize: 11, fontFamily: "var(--font-body)" };
 
 export function WeeklyRollupCharts({ rows }: { rows: WeeklyRow[] }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
       <Glass className="p-6">
-        <div className="font-display text-lg font-semibold mb-4">Weekly Cash Flow</div>
+        <div className="ios-headline mb-4">Weekly Cash Flow</div>
         <div style={{ width: "100%", height: 260 }}>
           <ResponsiveContainer>
             <LineChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
@@ -49,7 +49,7 @@ export function WeeklyRollupCharts({ rows }: { rows: WeeklyRow[] }) {
       </Glass>
 
       <Glass className="p-6">
-        <div className="font-display text-lg font-semibold mb-4">Running Balance</div>
+        <div className="ios-headline mb-4">Running Balance</div>
         <div style={{ width: "100%", height: 260 }}>
           <ResponsiveContainer>
             <LineChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>

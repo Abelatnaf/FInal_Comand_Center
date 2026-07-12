@@ -103,7 +103,7 @@ export function NetWorthTable({ snapshots }: { snapshots: SnapshotRow[] }) {
   return (
     <Glass className="overflow-x-auto">
       <div className="flex items-center justify-between p-4 pb-0">
-        <div className="font-display text-lg font-semibold">Net Worth Snapshots</div>
+        <div className="ios-headline">Net Worth Snapshots</div>
         {!adding && (
           <button onClick={() => setAdding(true)} className="btn text-sm">
             + Add Snapshot
@@ -141,28 +141,28 @@ export function NetWorthTable({ snapshots }: { snapshots: SnapshotRow[] }) {
           ) : (
             snapshots.map((s) =>
               editingId === s.id ? (
-                <tr key={s.id} className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
+                <tr key={s.id} className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
                   <td colSpan={9} className="py-3 px-2">
                     <SnapshotForm defaults={s} onSubmit={(fd) => handleUpdate(s.id, fd)} onCancel={() => setEditingId(null)} pending={pending} />
                   </td>
                 </tr>
               ) : (
-                <tr key={s.id} className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
+                <tr key={s.id} className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
                   <td className="py-2.5 px-2 num text-text-dim whitespace-nowrap">{s.snapshot_date}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.sofi_actual)}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.ally_actual)}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.cash_actual)}</td>
-                  <td className="py-2.5 px-2 text-right num text-tint font-medium">{fmtUsd(s.total_actual)}</td>
+                  <td className="py-2.5 px-2 text-right num text-text font-semibold">{fmtUsd(s.total_actual)}</td>
                   <td className="py-2.5 px-2 text-right num text-text-dim">{fmtUsd(s.computed_balance)}</td>
                   <td className="py-2.5 px-2 text-right num">
                     {s.variance === 0 ? "—" : `${s.variance > 0 ? "↑" : "↓"} ${fmtUsd(Math.abs(s.variance))}`}
                   </td>
                   <td className="py-2.5 px-2 text-text-dim text-xs">{s.notes ?? "—"}</td>
                   <td className="py-2.5 px-2 text-right whitespace-nowrap">
-                    <button onClick={() => setEditingId(s.id)} className="text-text-dim hover:text-text text-xs mr-3">
+                    <button onClick={() => setEditingId(s.id)} className="link-action text-[13px] mr-4">
                       Edit
                     </button>
-                    <button onClick={() => handleDelete(s.id)} className="text-text-dim hover:text-text text-xs">
+                    <button onClick={() => handleDelete(s.id)} className="link-destructive text-[13px]">
                       Delete
                     </button>
                   </td>

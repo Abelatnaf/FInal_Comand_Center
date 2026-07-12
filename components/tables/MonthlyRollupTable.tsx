@@ -38,7 +38,7 @@ export function MonthlyRollupTable({
           {categoryData.map((row) => {
             const balance = balanceByMonth.get(row.month);
             return (
-              <tr key={row.month} className="border-t border-[#2c2c2e]">
+              <tr key={row.month} className="border-t border-[var(--separator)]">
                 <td className="py-2 px-2 text-text-dim whitespace-nowrap sticky left-0 bg-[#1c1c1e]">
                   {fmtMonth(row.month)}
                 </td>
@@ -50,7 +50,7 @@ export function MonthlyRollupTable({
                 <td className="py-2 px-2 text-right">{fmtUsd(balance?.total_expenses ?? 0)}</td>
                 <td className="py-2 px-2 text-right">{fmtUsd(balance?.total_income ?? 0)}</td>
                 <td className="py-2 px-2 text-right">{fmtUsd(balance?.net ?? 0)}</td>
-                <td className="py-2 px-2 text-right text-tint font-medium">{fmtUsd(balance?.running_balance ?? 0)}</td>
+                <td className="py-2 px-2 text-right text-text font-semibold">{fmtUsd(balance?.running_balance ?? 0)}</td>
               </tr>
             );
           })}

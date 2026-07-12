@@ -94,7 +94,7 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
   return (
     <Glass className="overflow-x-auto">
       <div className="flex items-center justify-between p-4 pb-0">
-        <div className="font-display text-lg font-semibold">Key Dates</div>
+        <div className="ios-headline">Key Dates</div>
         {!adding && (
           <button onClick={() => setAdding(true)} className="btn text-sm">
             + Add Date
@@ -128,22 +128,22 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
           ) : (
             keyDates.map((k) =>
               editingId === k.id ? (
-                <tr key={k.id} className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
+                <tr key={k.id} className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
                   <td colSpan={5} className="py-3 px-2">
                     <KeyDateForm defaults={k} onSubmit={(fd) => handleUpdate(k.id, fd)} onCancel={() => setEditingId(null)} pending={pending} />
                   </td>
                 </tr>
               ) : (
-                <tr key={k.id} className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
+                <tr key={k.id} className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
                   <td className="py-2.5 px-2 text-text-dim">{k.event}</td>
                   <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{k.window_label}</td>
                   <td className="py-2.5 px-2 text-text-dim text-xs">{k.status}</td>
                   <td className="py-2.5 px-2 text-text-dim text-xs">{k.budget_note ?? "—"}</td>
                   <td className="py-2.5 px-2 text-right whitespace-nowrap">
-                    <button onClick={() => setEditingId(k.id)} className="text-text-dim hover:text-text text-xs mr-3">
+                    <button onClick={() => setEditingId(k.id)} className="link-action text-[13px] mr-4">
                       Edit
                     </button>
-                    <button onClick={() => handleDelete(k.id)} className="text-text-dim hover:text-text text-xs">
+                    <button onClick={() => handleDelete(k.id)} className="link-destructive text-[13px]">
                       Delete
                     </button>
                   </td>

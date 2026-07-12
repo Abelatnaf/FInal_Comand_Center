@@ -31,7 +31,7 @@ function IncomeEditRow({ row, onDone }: { row: IncomeRow; onDone: () => void }) 
   }
 
   return (
-    <tr className="border-t border-[#2c2c2e] bg-[rgba(255,255,255,0.05)]">
+    <tr className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
       <td colSpan={6} className="py-3 px-2">
         <form action={handleSave} className="flex flex-wrap gap-2 items-end">
           <div>
@@ -102,17 +102,17 @@ function IncomeRowView({ row, onEdit }: { row: IncomeRow; onEdit: () => void }) 
   }
 
   return (
-    <tr className="border-t border-[#2c2c2e] hover:bg-[rgba(255,255,255,0.05)]">
+    <tr className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{row.date}</td>
       <td className="py-2.5 px-2 num text-xs text-text-dim">{row.cadet_week ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{row.source ?? "—"}</td>
       <td className="py-2.5 px-2 text-right num">{fmtUsd(row.amount_usd ?? 0)}</td>
       <td className="py-2.5 px-2 text-text-dim">{row.notes ?? "—"}</td>
       <td className="py-2.5 px-2 text-right whitespace-nowrap">
-        <button onClick={onEdit} className="text-text-dim hover:text-text text-xs mr-3">
+        <button onClick={onEdit} className="link-action text-[13px] mr-4">
           Edit
         </button>
-        <button onClick={handleDelete} disabled={pending} className="text-text-dim hover:text-text text-xs">
+        <button onClick={handleDelete} disabled={pending} className="link-destructive text-[13px]">
           {pending ? "…" : "Delete"}
         </button>
         {error && <div className="text-text-dim text-[10px] mt-1">{error}</div>}
