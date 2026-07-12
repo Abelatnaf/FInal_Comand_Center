@@ -19,6 +19,12 @@ const P: Record<string, React.ReactNode> = {
       <path d="M12 7.5v9M9.6 10c.4-.7 1.3-1.1 2.4-1.1 1.3 0 2.3.7 2.3 1.7 0 2.3-4.8 1-4.8 3.3 0 1 1 1.7 2.5 1.7 1.1 0 2-.4 2.4-1.1" />
     </>
   ),
+  "/transfers": (
+    <>
+      <path d="M7 7h11M18 7l-3-3M18 7l-3 3" />
+      <path d="M17 17H6M6 17l3 3M6 17l3-3" />
+    </>
+  ),
   "/weekly-rollup": (
     <>
       <path d="M4 19V5M4 19h16" />

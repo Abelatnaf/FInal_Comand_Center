@@ -2,6 +2,7 @@ export const NAV_LINKS = [
   { href: "/", label: "Command Deck" },
   { href: "/transactions", label: "Transactions" },
   { href: "/income", label: "Income" },
+  { href: "/transfers", label: "Transfers" },
   { href: "/weekly-rollup", label: "Weekly Rollup" },
   { href: "/monthly-rollup", label: "Monthly Rollup" },
   { href: "/recurring-bills", label: "Recurring Bills" },

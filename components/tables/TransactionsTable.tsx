@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
 import { fmtUsd } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
-import { updateTransaction, deleteTransaction } from "@/app/(app)/transactions/actions";
+import { updateTransaction, deleteTransaction, getReceiptUrl } from "@/app/(app)/transactions/actions";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import { DatePicker } from "@/components/ui/DatePicker";
 
@@ -23,8 +23,27 @@ export type TransactionRow = {
   amount_usd: number | null;
   payment_method: string | null;
   notes: string | null;
+  receipt_path: string | null;
   categories: { name: string } | null;
+  transaction_splits: { amount_usd: number; categories: { name: string } | null }[] | null;
 };
+
+function ReceiptLink({ path }: { path: string }) {
+  const [loading, setLoading] = useState(false);
+
+  async function open() {
+    setLoading(true);
+    const res = await getReceiptUrl(path);
+    setLoading(false);
+    if (res.url) window.open(res.url, "_blank", "noopener,noreferrer");
+  }
+
+  return (
+    <button onClick={open} disabled={loading} className="link-action text-[13px]" title="View receipt">
+      {loading ? "…" : "📎"}
+    </button>
+  );
+}
 
 function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; categories: Category[]; onDone: () => void }) {
   const [pending, startTransition] = useTransition();
@@ -108,6 +127,10 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
             Recurring
             <input name="is_recurring" type="checkbox" defaultChecked={tx.is_recurring} className="ios-switch" />
           </label>
+          <div>
+            <label className="stat-label block mb-1 text-[10px]">{tx.receipt_path ? "Replace Receipt" : "Add Receipt"}</label>
+            <input name="receipt" type="file" accept="image/*,application/pdf" className="input !py-1.5 text-xs" style={{ maxWidth: 160 }} />
+          </div>
           <div className="flex gap-1.5">
             <button type="submit" disabled={pending} className="btn btn-primary !py-1.5 !px-3 text-xs">
               {pending ? "Saving…" : "Save"}
@@ -135,12 +158,26 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
     });
   }
 
+  const splits = tx.transaction_splits ?? [];
+  const isSplit = splits.length > 1;
+  const categoryLabel = isSplit
+    ? `Split (${splits.length})`
+    : tx.categories?.name ?? "—";
+  const categoryTitle = isSplit
+    ? splits.map((s) => `${s.categories?.name ?? "—"}: ${fmtUsd(s.amount_usd)}`).join(", ")
+    : undefined;
+
   return (
     <tr className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{tx.date}</td>
       <td className="py-2.5 px-2 num text-xs text-text-dim">{tx.week_number ?? "—"}</td>
-      <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{tx.categories?.name ?? "—"}</td>
-      <td className="py-2.5 px-2 text-text-dim">{tx.description ?? "—"}</td>
+      <td className="py-2.5 px-2 text-text-dim whitespace-nowrap" title={categoryTitle}>{categoryLabel}</td>
+      <td className="py-2.5 px-2 text-text-dim">
+        <span className="inline-flex items-center gap-1.5">
+          {tx.description ?? "—"}
+          {tx.receipt_path && <ReceiptLink path={tx.receipt_path} />}
+        </span>
+      </td>
       <td className="py-2.5 px-2 text-xs text-text-dim whitespace-nowrap">{tx.necessity ?? "—"}</td>
       <td className="py-2.5 px-2 text-right num">{fmtUsd(tx.amount_usd ?? 0)}</td>
       <td className="py-2.5 px-2 text-xs text-text-dim whitespace-nowrap">{tx.payment_method ?? "—"}</td>

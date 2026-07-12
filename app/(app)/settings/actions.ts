@@ -52,12 +52,14 @@ export async function addAccount(formData: FormData) {
   const supabase = await createClient();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Name is required." };
+  const kind = String(formData.get("kind") ?? "asset");
 
   const { data: existing } = await supabase.from("accounts").select("sort_order").order("sort_order", { ascending: false }).limit(1);
   const nextSort = (existing?.[0]?.sort_order ?? 0) + 1;
 
   const { error } = await supabase.from("accounts").insert({
     name,
+    kind,
     starting_balance: Number(formData.get("starting_balance") ?? 0),
     sort_order: nextSort,
   });

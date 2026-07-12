@@ -18,6 +18,7 @@ export default async function InsightsPage() {
     { data: weeklyRows },
     { data: balanceRow },
     { data: periods },
+    { data: activeBills },
   ] = await Promise.all([
     supabase.from("settings").select("tracking_start_date").single(),
     supabase.from("transactions").select("amount_usd, necessity, date"),
@@ -26,6 +27,7 @@ export default async function InsightsPage() {
     supabase.from("weekly_rollup").select("week_number, total_expenses").order("total_expenses", { ascending: false }),
     supabase.from("account_balance").select("current_balance").single(),
     supabase.from("semesters").select("name, end_date").order("end_date", { ascending: false }).limit(1),
+    supabase.from("recurring_bills").select("monthly_cost_usd, billing_day").eq("active", true),
   ]);
 
   const totalSpend = (allTx ?? []).reduce((s, t) => s + (t.amount_usd ?? 0), 0);
@@ -66,6 +68,31 @@ export default async function InsightsPage() {
     : 0;
   const currentBalance = balanceRow?.current_balance ?? 0;
   const projectedBalance = currentBalance + avgWeeklyNet * weeksRemaining;
+
+  // ---- Cash flow forecast: projected end-of-month balance ----
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const today = now.getDate();
+  const daysRemainingInMonth = daysInMonth - today;
+  const remainingBillsThisMonth = (activeBills ?? [])
+    .filter((b) => b.billing_day && b.billing_day >= today)
+    .reduce((s, b) => s + b.monthly_cost_usd, 0);
+  const forecastNetPerDay = avgWeeklyNet / 7;
+  const projectedMonthEndBalance = currentBalance + forecastNetPerDay * daysRemainingInMonth - remainingBillsThisMonth;
+
+  // ---- Financial health ratios ----
+  const savingsRate = totalIncome > 0 ? (net / totalIncome) * 100 : 0;
+  const avgMonthlySpend = avgDailySpend * 30.44;
+  const emergencyFundMonths = avgMonthlySpend > 0 ? currentBalance / avgMonthlySpend : 0;
+
+  const thisMonthDiscretionary = (allTx ?? [])
+    .filter((t) => t.date >= thisMonthStart && t.necessity === "Discretionary")
+    .reduce((s, t) => s + (t.amount_usd ?? 0), 0);
+  const thisMonthDiscretionaryShare = thisMonthSpend > 0 ? (thisMonthDiscretionary / thisMonthSpend) * 100 : 0;
+  const lastMonthDiscretionary = (allTx ?? [])
+    .filter((t) => t.date >= lastMonthStart && t.date < thisMonthStart && t.necessity === "Discretionary")
+    .reduce((s, t) => s + (t.amount_usd ?? 0), 0);
+  const lastMonthDiscretionaryShare = lastMonthSpend > 0 ? (lastMonthDiscretionary / lastMonthSpend) * 100 : 0;
+  const discretionaryTrendDelta = thisMonthDiscretionaryShare - lastMonthDiscretionaryShare;
 
   return (
     <div>
@@ -110,6 +137,34 @@ export default async function InsightsPage() {
             size="small"
           />
         )}
+      </div>
+
+      <div className="section-header mt-8 mb-3">Financial Health</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard
+          label="Projected Balance — End of This Month"
+          value={fmtUsd(projectedMonthEndBalance)}
+          delta={`${daysRemainingInMonth} day${daysRemainingInMonth === 1 ? "" : "s"} left, ${fmtUsd(remainingBillsThisMonth)} in bills due`}
+          size="small"
+        />
+        <StatCard
+          label="Savings Rate (Life-to-Date)"
+          value={`${savingsRate.toFixed(0)}%`}
+          delta="Income kept after expenses"
+          size="small"
+        />
+        <StatCard
+          label="Emergency Fund Coverage"
+          value={`${emergencyFundMonths.toFixed(1)} mo`}
+          delta="Current balance ÷ avg monthly spend"
+          size="small"
+        />
+        <StatCard
+          label="Discretionary Spend Trend"
+          value={`${discretionaryTrendDelta >= 0 ? "↑" : "↓"} ${Math.abs(discretionaryTrendDelta).toFixed(0)}pt`}
+          delta={`${thisMonthDiscretionaryShare.toFixed(0)}% this month vs ${lastMonthDiscretionaryShare.toFixed(0)}% last month`}
+          size="small"
+        />
       </div>
     </div>
   );

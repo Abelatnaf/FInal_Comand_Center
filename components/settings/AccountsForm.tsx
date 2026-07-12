@@ -5,7 +5,7 @@ import { Glass } from "@/components/glass/Glass";
 import { fmtUsd } from "@/lib/format";
 import { updateAccountBalances, addAccount, deleteAccount } from "@/app/(app)/settings/actions";
 
-type Account = { id: string; name: string; starting_balance: number };
+type Account = { id: string; name: string; starting_balance: number; kind: string };
 
 export function AccountsForm({ accounts }: { accounts: Account[] }) {
   const [state, formAction, pending] = useActionState(updateAccountBalances, undefined);
@@ -16,7 +16,10 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
   const [addPending, startAddTransition] = useTransition();
   const [addError, setAddError] = useState<string | null>(null);
 
-  const total = accounts.reduce((s, a) => s + (parseFloat(values[a.id]) || 0), 0);
+  const total = accounts.reduce((s, a) => {
+    const v = parseFloat(values[a.id]) || 0;
+    return s + (a.kind === "liability" ? -v : v);
+  }, 0);
 
   function handleAdd(formData: FormData) {
     startAddTransition(async () => {
@@ -47,7 +50,7 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
         )}
       </div>
       <p className="text-text-dim ios-subhead mb-4">
-        Your own accounts — checking, savings, cash, whatever you use. Starting balance feeds Current Balance and Net Worth.
+        Your own accounts. Assets (checking, savings, cash) add to your net worth; liabilities (credit cards, loans) subtract from it.
       </p>
 
       {adding && (
@@ -55,6 +58,13 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
           <div className="flex-1 min-w-[140px]">
             <label className="stat-label block mb-1 text-[10px]">Name</label>
             <input name="name" required placeholder="e.g. Checking" className="input !py-1.5 !px-2 text-sm w-full" />
+          </div>
+          <div>
+            <label className="stat-label block mb-1 text-[10px]">Type</label>
+            <select name="kind" defaultValue="asset" className="select !py-1.5 !px-2 text-sm">
+              <option value="asset">Asset</option>
+              <option value="liability">Liability</option>
+            </select>
           </div>
           <div className="w-28">
             <label className="stat-label block mb-1 text-[10px]">Starting $</label>
@@ -78,8 +88,9 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
             key={a.id}
             className={`flex items-center justify-between gap-3 py-2.5 ${i > 0 ? "border-t border-[var(--separator)]" : ""}`}
           >
-            <label htmlFor={`acct_${a.id}`} className="ios-body">
+            <label htmlFor={`acct_${a.id}`} className="ios-body flex items-center gap-2">
               {a.name}
+              {a.kind === "liability" && <span className="badge badge-dim !text-[10px] !py-0.5">Liability</span>}
             </label>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 w-32">
@@ -105,7 +116,7 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
           <div className="text-text-dim text-sm py-3">No accounts yet — add one above.</div>
         ) : (
           <div className="flex items-center justify-between border-t border-[var(--separator-strong)] pt-3 mt-1">
-            <span className="ios-headline">Total Starting Balance</span>
+            <span className="ios-headline">Net Starting Balance</span>
             <span className="num ios-headline">{fmtUsd(total)}</span>
           </div>
         )}

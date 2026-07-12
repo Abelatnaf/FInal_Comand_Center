@@ -6,7 +6,7 @@ import { fmtUsd } from "@/lib/format";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { addNetWorthSnapshot, updateNetWorthSnapshot, deleteNetWorthSnapshot } from "@/app/(app)/net-worth/actions";
 
-type Account = { id: string; name: string };
+type Account = { id: string; name: string; kind?: string };
 
 export type SnapshotRow = {
   id: string;
@@ -133,8 +133,9 @@ export function NetWorthTable({ snapshots, accounts }: { snapshots: SnapshotRow[
           <tr className="text-text-dim text-left text-xs">
             <th className="py-3 px-2 font-normal">Date</th>
             {accounts.map((a) => (
-              <th key={a.id} className="py-3 px-2 font-normal text-right">
+              <th key={a.id} className="py-3 px-2 font-normal text-right whitespace-nowrap">
                 {a.name}
+                {a.kind === "liability" && <span className="text-text-faint"> (liab.)</span>}
               </th>
             ))}
             <th className="py-3 px-2 font-normal text-right">Total Actual</th>

@@ -23,9 +23,29 @@ export async function updateTransaction(id: string, formData: FormData) {
 
   if (error) return { error: error.message };
 
+  const receipt = formData.get("receipt");
+  if (receipt instanceof File && receipt.size > 0) {
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData.user) {
+      const ext = receipt.name.split(".").pop() || "jpg";
+      const path = `${userData.user.id}/${id}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("receipts").upload(path, receipt, { upsert: true });
+      if (!uploadError) {
+        await supabase.from("transactions").update({ receipt_path: path }).eq("id", id);
+      }
+    }
+  }
+
   revalidatePath("/transactions");
   revalidatePath("/");
   return { success: true };
+}
+
+export async function getReceiptUrl(path: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage.from("receipts").createSignedUrl(path, 60);
+  if (error) return { error: error.message };
+  return { url: data.signedUrl };
 }
 
 export async function deleteTransaction(id: string) {

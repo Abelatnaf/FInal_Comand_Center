@@ -57,7 +57,7 @@ export default async function CommandDeckPage() {
     supabase.from("budget_vs_actual_this_month").select("*").order("sort_order"),
     supabase.from("recurring_bills").select("id, name, monthly_cost_usd, billing_day").eq("active", true),
     supabase.from("savings_goal_progress").select("*").order("target_date").limit(4),
-    supabase.from("accounts").select("id, name, starting_balance").order("sort_order"),
+    supabase.from("accounts").select("id, name, starting_balance, kind").order("sort_order"),
     supabase.from("net_worth_snapshots").select("id").order("snapshot_date", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("transactions").select("amount_usd, necessity").gte("date", monthStart),
     supabase.from("income").select("amount_usd").gte("date", monthStart),
@@ -98,10 +98,11 @@ export default async function CommandDeckPage() {
   const accounts = (accountsRes.data ?? []).map((a, i) => ({
     name: a.name,
     value: detailByAccount.get(a.id) ?? a.starting_balance,
+    isLiability: a.kind === "liability",
     color: DONUT_COLORS[i % DONUT_COLORS.length],
     glyph: "bank" as const,
   }));
-  const accountsTotal = accounts.reduce((s, a) => s + a.value, 0);
+  const accountsTotal = accounts.reduce((s, a) => s + (a.isLiability ? -a.value : a.value), 0);
 
   const now = new Date();
   const today = now.getDate();
@@ -233,16 +234,19 @@ export default async function CommandDeckPage() {
                 View All
               </Link>
             </div>
-            <div className="stat-label mt-2">Total Balance</div>
+            <div className="stat-label mt-2">Net Balance</div>
             <div className="text-[26px] font-bold num tracking-tight mb-3">{fmtUsd(accountsTotal)}</div>
             <div className="flex flex-col">
               {accounts.map((a, i) => (
                 <div key={a.name}>
                   {i > 0 && <div className="h-px bg-[var(--separator)] ml-[46px]" />}
                   <div className="flex items-center gap-3 py-2.5">
-                    <AppIcon glyph={a.glyph} color={a.color} />
-                    <span className="ios-subhead text-text font-medium flex-1">{a.name}</span>
-                    <span className="num ios-subhead">{fmtUsd(a.value)}</span>
+                    <AppIcon glyph={a.glyph} color={a.isLiability ? "#8e8e93" : a.color} />
+                    <span className="ios-subhead text-text font-medium flex-1">
+                      {a.name}
+                      {a.isLiability && <span className="badge badge-dim !text-[10px] !py-0.5 ml-2">Liability</span>}
+                    </span>
+                    <span className="num ios-subhead">{a.isLiability ? `-${fmtUsd(a.value)}` : fmtUsd(a.value)}</span>
                   </div>
                 </div>
               ))}

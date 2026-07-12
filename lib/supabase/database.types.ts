@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          kind: string
           name: string
           sort_order: number
           starting_balance: number
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          kind?: string
           name: string
           sort_order?: number
           starting_balance?: number
@@ -34,6 +36,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          kind?: string
           name?: string
           sort_order?: number
           starting_balance?: number
@@ -72,6 +75,7 @@ export type Database = {
           created_at: string
           currency: string
           date: string
+          fx_rate_used: number | null
           id: string
           notes: string | null
           source: string | null
@@ -84,6 +88,7 @@ export type Database = {
           created_at?: string
           currency: string
           date: string
+          fx_rate_used?: number | null
           id?: string
           notes?: string | null
           source?: string | null
@@ -96,6 +101,7 @@ export type Database = {
           created_at?: string
           currency?: string
           date?: string
+          fx_rate_used?: number | null
           id?: string
           notes?: string | null
           source?: string | null
@@ -327,7 +333,7 @@ export type Database = {
         }
         Insert: {
           fx_rate?: number
-          id: number
+          id?: number
           tracking_start_date?: string
           updated_at?: string
           user_id?: string
@@ -341,6 +347,66 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_splits: {
+        Row: {
+          amount_usd: number
+          category_id: number | null
+          created_at: string
+          id: string
+          transaction_id: string
+        }
+        Insert: {
+          amount_usd: number
+          category_id?: number | null
+          created_at?: string
+          id?: string
+          transaction_id: string
+        }
+        Update: {
+          amount_usd?: number
+          category_id?: number | null
+          created_at?: string
+          id?: string
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_splits_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_vs_actual_this_month"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "transaction_splits_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_splits_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "life_to_date_spend_by_category"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "transaction_splits_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_category_totals"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "transaction_splits_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount_original: number
@@ -350,11 +416,13 @@ export type Database = {
           currency: string
           date: string
           description: string | null
+          fx_rate_used: number | null
           id: string
           is_recurring: boolean
           necessity: string | null
           notes: string | null
           payment_method: string | null
+          receipt_path: string | null
           user_id: string
           week_number: number | null
         }
@@ -366,11 +434,13 @@ export type Database = {
           currency: string
           date: string
           description?: string | null
+          fx_rate_used?: number | null
           id?: string
           is_recurring?: boolean
           necessity?: string | null
           notes?: string | null
           payment_method?: string | null
+          receipt_path?: string | null
           user_id?: string
           week_number?: number | null
         }
@@ -382,11 +452,13 @@ export type Database = {
           currency?: string
           date?: string
           description?: string | null
+          fx_rate_used?: number | null
           id?: string
           is_recurring?: boolean
           necessity?: string | null
           notes?: string | null
           payment_method?: string | null
+          receipt_path?: string | null
           user_id?: string
           week_number?: number | null
         }
@@ -418,6 +490,54 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "monthly_category_totals"
             referencedColumns: ["category_id"]
+          },
+        ]
+      }
+      transfers: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          date: string
+          from_account_id: string
+          id: string
+          notes: string | null
+          to_account_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          date: string
+          from_account_id: string
+          id?: string
+          notes?: string | null
+          to_account_id: string
+          user_id?: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          date?: string
+          from_account_id?: string
+          id?: string
+          notes?: string | null
+          to_account_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfers_from_account_id_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_to_account_id_fkey"
+            columns: ["to_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -561,6 +681,17 @@ export type Database = {
           start_date: string | null
           status: string | null
           total_days: number | null
+        }
+        Relationships: []
+      }
+      transaction_category_breakdown: {
+        Row: {
+          amount_usd: number | null
+          category_id: number | null
+          date: string | null
+          necessity: string | null
+          transaction_id: string | null
+          user_id: string | null
         }
         Relationships: []
       }

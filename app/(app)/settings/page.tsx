@@ -9,7 +9,7 @@ export default async function SettingsPage() {
   const [{ data: settings }, { data: categories }, { data: accounts }, { data: userData }] = await Promise.all([
     supabase.from("settings").select("fx_rate, tracking_start_date").single(),
     supabase.from("categories").select("id, name, monthly_budget").order("sort_order"),
-    supabase.from("accounts").select("id, name, starting_balance").order("sort_order"),
+    supabase.from("accounts").select("id, name, starting_balance, kind").order("sort_order"),
     supabase.auth.getUser(),
   ]);
 

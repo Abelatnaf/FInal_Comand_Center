@@ -24,12 +24,14 @@ export function AppShell({
   categories,
   fxRate,
   email,
+  accounts,
 }: {
   children: React.ReactNode;
   onSignOut: () => void;
   categories: { id: number; name: string }[];
   fxRate: number;
   email: string | null;
+  accounts: { id: string; name: string }[];
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -190,7 +192,7 @@ export function AppShell({
         </div>
       )}
 
-      <QuickAddFab categories={categories} fxRate={fxRate} />
+      <QuickAddFab categories={categories} fxRate={fxRate} accounts={accounts} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ export default async function NetWorthPage() {
 
   const [{ data: variance }, { data: accounts }, { data: detail }] = await Promise.all([
     supabase.from("net_worth_variance").select("*").order("snapshot_date", { ascending: false }),
-    supabase.from("accounts").select("id, name").order("sort_order"),
+    supabase.from("accounts").select("id, name, kind").order("sort_order"),
     supabase.from("net_worth_snapshot_detail").select("snapshot_id, account_id, amount"),
   ]);
 
