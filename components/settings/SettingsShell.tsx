@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Glass } from "@/components/glass/Glass";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { SettingsForm, type SettingsData } from "@/components/tables/SettingsForm";
+import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
+import { CategoryBudgetsForm } from "@/components/settings/CategoryBudgetsForm";
 
 type Section = "appearance" | "financial" | "account";
 
@@ -13,12 +14,16 @@ const SECTIONS: { id: Section; label: string; caption: string; Icon: (p: { size?
   { id: "account", label: "Account", caption: "Sign out", Icon: PersonIcon },
 ];
 
+type Category = { id: number; name: string; monthly_budget: number };
+
 export function SettingsShell({
   settings,
+  categories,
   email,
   onSignOut,
 }: {
   settings: SettingsData;
+  categories: Category[];
   email: string | null;
   onSignOut: () => void;
 }) {
@@ -60,17 +65,14 @@ export function SettingsShell({
 
       {/* Section content */}
       <div className="flex-1 min-w-0">
-        {active === "appearance" && (
-          <Glass className="p-6 max-w-xl">
-            <div className="ios-headline mb-1">Theme</div>
-            <p className="text-text-dim ios-subhead mb-4">
-              Choose Light, Dark, or Auto to follow your device.
-            </p>
-            <ThemeToggle />
-          </Glass>
-        )}
+        {active === "appearance" && <AppearanceSettings />}
 
-        {active === "financial" && <SettingsForm settings={settings} />}
+        {active === "financial" && (
+          <div className="flex flex-col gap-4">
+            <SettingsForm settings={settings} />
+            <CategoryBudgetsForm categories={categories} />
+          </div>
+        )}
 
         {active === "account" && (
           <Glass className="p-6 max-w-xl">

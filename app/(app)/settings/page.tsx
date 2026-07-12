@@ -6,12 +6,13 @@ import { signOut } from "../actions";
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  const [{ data: settings }, { data: userData }] = await Promise.all([
+  const [{ data: settings }, { data: categories }, { data: userData }] = await Promise.all([
     supabase
       .from("settings")
       .select("fx_rate, matriculation_date, starting_sofi, starting_ally, starting_cash")
       .eq("id", 1)
       .single(),
+    supabase.from("categories").select("id, name, monthly_budget").order("sort_order"),
     supabase.auth.getUser(),
   ]);
 
@@ -21,6 +22,7 @@ export default async function SettingsPage() {
       <SettingsShell
         email={userData?.user?.email ?? null}
         onSignOut={signOut}
+        categories={categories ?? []}
         settings={
           settings ?? {
             fx_rate: 180,
