@@ -86,7 +86,7 @@ export function AppearanceSettings() {
             className="absolute inset-0 flex items-center justify-around px-4 text-[13px] font-semibold"
             style={{ background: "linear-gradient(120deg,var(--blue),var(--purple) 55%,var(--teal))", color: "#fff" }}
           >
-            <span>VMI</span><span>FINANCE</span><span>COMMAND</span><span>DECK</span>
+            <span>COMMAND</span><span>DECK</span><span>FINANCE</span><span>TRACKER</span>
           </div>
           <div className="material absolute inset-x-0 bottom-0 h-11 flex items-center px-4 border-t border-[var(--separator)]">
             <span className="ios-subhead">Frosted overlay preview</span>

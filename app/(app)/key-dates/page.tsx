@@ -10,7 +10,6 @@ export default async function KeyDatesPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="VMI FINANCE"
         title="Key Dates"
         subtitle="Leave / furlough calendar with budget notes."
       />

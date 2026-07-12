@@ -23,7 +23,6 @@ export default async function SavingsGoalsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="VMI FINANCE"
         title="Savings Goals"
         subtitle="Progress bars, computed remaining / monthly needed."
       />

@@ -5,25 +5,29 @@ import { Glass } from "@/components/glass/Glass";
 import { SettingsForm, type SettingsData } from "@/components/tables/SettingsForm";
 import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { CategoryBudgetsForm } from "@/components/settings/CategoryBudgetsForm";
+import { AccountsForm } from "@/components/settings/AccountsForm";
 
 type Section = "appearance" | "financial" | "account";
 
 const SECTIONS: { id: Section; label: string; caption: string; Icon: (p: { size?: number }) => React.ReactElement }[] = [
   { id: "appearance", label: "Appearance", caption: "Theme & display", Icon: PaintIcon },
-  { id: "financial", label: "Financial", caption: "FX, dates, balances", Icon: DollarIcon },
+  { id: "financial", label: "Financial", caption: "FX, dates, accounts, budgets", Icon: DollarIcon },
   { id: "account", label: "Account", caption: "Sign out", Icon: PersonIcon },
 ];
 
 type Category = { id: number; name: string; monthly_budget: number };
+type Account = { id: string; name: string; starting_balance: number };
 
 export function SettingsShell({
   settings,
   categories,
+  accounts,
   email,
   onSignOut,
 }: {
   settings: SettingsData;
   categories: Category[];
+  accounts: Account[];
   email: string | null;
   onSignOut: () => void;
 }) {
@@ -70,6 +74,7 @@ export function SettingsShell({
         {active === "financial" && (
           <div className="flex flex-col gap-4">
             <SettingsForm settings={settings} />
+            <AccountsForm accounts={accounts} />
             <CategoryBudgetsForm categories={categories} />
           </div>
         )}

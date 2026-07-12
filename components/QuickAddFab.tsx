@@ -158,13 +158,18 @@ export function QuickAddFab({
                     </div>
                     <div className="flex-1">
                       <label className="stat-label block mb-1.5">Payment</label>
-                      <select name="payment_method" className="select w-full" defaultValue="SoFi Debit">
+                      <input
+                        name="payment_method"
+                        type="text"
+                        list="payment-methods"
+                        className="input w-full"
+                        placeholder="Debit Card"
+                      />
+                      <datalist id="payment-methods">
                         {PAYMENT_METHODS.map((m) => (
-                          <option key={m} value={m}>
-                            {m}
-                          </option>
+                          <option key={m} value={m} />
                         ))}
-                      </select>
+                      </datalist>
                     </div>
                   </div>
 

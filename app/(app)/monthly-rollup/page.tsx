@@ -37,7 +37,6 @@ export default async function MonthlyRollupPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="VMI FINANCE"
         title="Monthly Rollup"
         subtitle="Category breakdown per month, plus running balance."
       />

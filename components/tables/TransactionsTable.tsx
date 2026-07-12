@@ -13,7 +13,7 @@ type Category = { id: number; name: string };
 export type TransactionRow = {
   id: string;
   date: string;
-  cadet_week: number | null;
+  week_number: number | null;
   category_id: number | null;
   description: string | null;
   necessity: string | null;
@@ -87,13 +87,18 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
           </div>
           <div>
             <label className="stat-label block mb-1 text-[10px]">Payment</label>
-            <select name="payment_method" defaultValue={tx.payment_method ?? "SoFi Debit"} className="select !py-1.5 !px-2 text-sm">
+            <input
+              name="payment_method"
+              type="text"
+              list="payment-methods-edit"
+              defaultValue={tx.payment_method ?? ""}
+              className="input !py-1.5 !px-2 text-sm"
+            />
+            <datalist id="payment-methods-edit">
               {PAYMENT_METHODS.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
+                <option key={m} value={m} />
               ))}
-            </select>
+            </datalist>
           </div>
           <div className="flex-1 min-w-[140px]">
             <label className="stat-label block mb-1 text-[10px]">Notes</label>
@@ -133,7 +138,7 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
   return (
     <tr className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{tx.date}</td>
-      <td className="py-2.5 px-2 num text-xs text-text-dim">{tx.cadet_week ?? "—"}</td>
+      <td className="py-2.5 px-2 num text-xs text-text-dim">{tx.week_number ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{tx.categories?.name ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim">{tx.description ?? "—"}</td>
       <td className="py-2.5 px-2 text-xs text-text-dim whitespace-nowrap">{tx.necessity ?? "—"}</td>
@@ -178,7 +183,7 @@ export function TransactionsTable({
   function exportCsv() {
     const header = [
       "Date",
-      "Cadet Week",
+      "Week",
       "Category",
       "Description",
       "Necessary/Discretionary",
@@ -191,7 +196,7 @@ export function TransactionsTable({
     ];
     const rows = filtered.map((t) => [
       t.date,
-      t.cadet_week ?? "",
+      t.week_number ?? "",
       t.categories?.name ?? "",
       t.description ?? "",
       t.necessity ?? "",

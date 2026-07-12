@@ -16,7 +16,6 @@ export default async function RecurringBillsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="VMI FINANCE"
         title="Recurring Bills"
         subtitle="Monthly burn total, upcoming billing dates."
       />

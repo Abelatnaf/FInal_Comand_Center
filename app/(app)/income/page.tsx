@@ -7,12 +7,12 @@ export default async function IncomePage() {
 
   const { data: income } = await supabase
     .from("income")
-    .select("id, date, cadet_week, source, currency, amount_original, amount_usd, notes")
+    .select("id, date, week_number, source, currency, amount_original, amount_usd, notes")
     .order("date", { ascending: false });
 
   return (
     <div>
-      <PageHeader eyebrow="VMI FINANCE" title="Income" subtitle="Full table — filter, inline edit, CSV export." />
+      <PageHeader title="Income" subtitle="Full table — filter, inline edit, CSV export." />
       <IncomeTable income={income ?? []} />
     </div>
   );

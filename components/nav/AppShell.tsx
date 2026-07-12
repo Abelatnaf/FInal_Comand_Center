@@ -23,14 +23,17 @@ export function AppShell({
   onSignOut,
   categories,
   fxRate,
+  email,
 }: {
   children: React.ReactNode;
   onSignOut: () => void;
   categories: { id: number; name: string }[];
   fxRate: number;
+  email: string | null;
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const initial = (email?.[0] ?? "?").toUpperCase();
 
   const tabHrefs = new Set<string>(TAB_ITEMS.map((t) => t.href));
   const moreLinks = NAV_LINKS.filter((l) => !tabHrefs.has(l.href));
@@ -46,7 +49,7 @@ export function AppShell({
               <path d="M4 18h16M9 18v-5h6v5" />
             </svg>
           </div>
-          <div className="ios-headline">VMI Finance</div>
+          <div className="ios-headline">Command Deck</div>
         </div>
 
         <nav className="flex flex-col gap-0.5">
@@ -94,7 +97,7 @@ export function AppShell({
               Sign out
             </button>
           </form>
-          <div className="stat-label px-3 pt-3">© 2026 VMI Finance</div>
+          <div className="stat-label px-3 pt-3">© 2026 Command Deck</div>
         </div>
       </aside>
 
@@ -106,7 +109,7 @@ export function AppShell({
             className="w-9 h-9 rounded-full bg-[var(--blue)] text-white flex items-center justify-center text-[14px] font-semibold"
             aria-label="Settings"
           >
-            A
+            {initial}
           </Link>
         </div>
 

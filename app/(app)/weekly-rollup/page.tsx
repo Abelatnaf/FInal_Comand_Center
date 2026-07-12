@@ -9,12 +9,12 @@ export default async function WeeklyRollupPage() {
   const { data: rows } = await supabase
     .from("weekly_rollup")
     .select("*")
-    .order("cadet_week");
+    .order("week_number");
 
   const typedRows = (rows ?? [])
-    .filter((r) => r.cadet_week !== null && r.week_start !== null && r.week_end !== null)
+    .filter((r) => r.week_number !== null && r.week_start !== null && r.week_end !== null)
     .map((r) => ({
-      cadet_week: r.cadet_week!,
+      week_number: r.week_number!,
       week_start: r.week_start!,
       week_end: r.week_end!,
       total_expenses: r.total_expenses ?? 0,
@@ -28,9 +28,8 @@ export default async function WeeklyRollupPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="VMI FINANCE"
         title="Weekly Rollup"
-        subtitle="Computed live from transactions, grouped by cadet week."
+        subtitle="Computed live from transactions, grouped by week."
       />
       <WeeklyRollupCharts rows={typedRows} />
       <WeeklyRollupTable rows={typedRows} />

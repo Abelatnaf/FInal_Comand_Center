@@ -14,24 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          starting_balance: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          starting_balance?: number
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          starting_balance?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           id: number
           monthly_budget: number
           name: string
           sort_order: number
+          user_id: string
         }
         Insert: {
           id?: number
           monthly_budget?: number
           name: string
           sort_order: number
+          user_id?: string
         }
         Update: {
           id?: number
           monthly_budget?: number
           name?: string
           sort_order?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -39,35 +69,38 @@ export type Database = {
         Row: {
           amount_original: number
           amount_usd: number | null
-          cadet_week: number | null
           created_at: string
           currency: string
           date: string
           id: string
           notes: string | null
           source: string | null
+          user_id: string
+          week_number: number | null
         }
         Insert: {
           amount_original: number
           amount_usd?: number | null
-          cadet_week?: number | null
           created_at?: string
           currency: string
           date: string
           id?: string
           notes?: string | null
           source?: string | null
+          user_id?: string
+          week_number?: number | null
         }
         Update: {
           amount_original?: number
           amount_usd?: number | null
-          cadet_week?: number | null
           created_at?: string
           currency?: string
           date?: string
           id?: string
           notes?: string | null
           source?: string | null
+          user_id?: string
+          week_number?: number | null
         }
         Relationships: []
       }
@@ -78,6 +111,7 @@ export type Database = {
           id: number
           sort_order: number
           status: string
+          user_id: string
           window_label: string
         }
         Insert: {
@@ -86,6 +120,7 @@ export type Database = {
           id?: number
           sort_order: number
           status: string
+          user_id?: string
           window_label: string
         }
         Update: {
@@ -94,37 +129,75 @@ export type Database = {
           id?: number
           sort_order?: number
           status?: string
+          user_id?: string
           window_label?: string
         }
         Relationships: []
       }
+      net_worth_snapshot_balances: {
+        Row: {
+          account_id: string
+          amount: number
+          id: string
+          snapshot_id: string
+        }
+        Insert: {
+          account_id: string
+          amount?: number
+          id?: string
+          snapshot_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          id?: string
+          snapshot_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "net_worth_snapshot_balances_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "net_worth_snapshot_balances_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "net_worth_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "net_worth_snapshot_balances_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "net_worth_variance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       net_worth_snapshots: {
         Row: {
-          ally_actual: number
-          cash_actual: number
           created_at: string
           id: string
           notes: string | null
           snapshot_date: string
-          sofi_actual: number
+          user_id: string
         }
         Insert: {
-          ally_actual?: number
-          cash_actual?: number
           created_at?: string
           id?: string
           notes?: string | null
           snapshot_date: string
-          sofi_actual?: number
+          user_id?: string
         }
         Update: {
-          ally_actual?: number
-          cash_actual?: number
           created_at?: string
           id?: string
           notes?: string | null
           snapshot_date?: string
-          sofi_actual?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -137,6 +210,7 @@ export type Database = {
           monthly_cost_usd: number
           name: string
           payment_method: string | null
+          user_id: string
         }
         Insert: {
           active?: boolean
@@ -146,6 +220,7 @@ export type Database = {
           monthly_cost_usd: number
           name: string
           payment_method?: string | null
+          user_id?: string
         }
         Update: {
           active?: boolean
@@ -155,6 +230,7 @@ export type Database = {
           monthly_cost_usd?: number
           name?: string
           payment_method?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -195,6 +271,7 @@ export type Database = {
           saved_so_far_usd: number
           target_amount_usd: number
           target_date: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -203,6 +280,7 @@ export type Database = {
           saved_so_far_usd?: number
           target_amount_usd: number
           target_date?: string | null
+          user_id?: string
         }
         Update: {
           created_at?: string
@@ -211,6 +289,7 @@ export type Database = {
           saved_so_far_usd?: number
           target_amount_usd?: number
           target_date?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -220,18 +299,21 @@ export type Database = {
           id: number
           name: string
           start_date: string
+          user_id: string
         }
         Insert: {
           end_date: string
           id?: number
           name: string
           start_date: string
+          user_id?: string
         }
         Update: {
           end_date?: string
           id?: number
           name?: string
           start_date?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -239,29 +321,23 @@ export type Database = {
         Row: {
           fx_rate: number
           id: number
-          matriculation_date: string
-          starting_ally: number
-          starting_cash: number
-          starting_sofi: number
+          tracking_start_date: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           fx_rate?: number
-          id?: number
-          matriculation_date?: string
-          starting_ally?: number
-          starting_cash?: number
-          starting_sofi?: number
+          id: number
+          tracking_start_date?: string
           updated_at?: string
+          user_id?: string
         }
         Update: {
           fx_rate?: number
           id?: number
-          matriculation_date?: string
-          starting_ally?: number
-          starting_cash?: number
-          starting_sofi?: number
+          tracking_start_date?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -269,7 +345,6 @@ export type Database = {
         Row: {
           amount_original: number
           amount_usd: number | null
-          cadet_week: number | null
           category_id: number | null
           created_at: string
           currency: string
@@ -280,11 +355,12 @@ export type Database = {
           necessity: string | null
           notes: string | null
           payment_method: string | null
+          user_id: string
+          week_number: number | null
         }
         Insert: {
           amount_original: number
           amount_usd?: number | null
-          cadet_week?: number | null
           category_id?: number | null
           created_at?: string
           currency: string
@@ -295,11 +371,12 @@ export type Database = {
           necessity?: string | null
           notes?: string | null
           payment_method?: string | null
+          user_id?: string
+          week_number?: number | null
         }
         Update: {
           amount_original?: number
           amount_usd?: number | null
-          cadet_week?: number | null
           category_id?: number | null
           created_at?: string
           currency?: string
@@ -310,6 +387,8 @@ export type Database = {
           necessity?: string | null
           notes?: string | null
           payment_method?: string | null
+          user_id?: string
+          week_number?: number | null
         }
         Relationships: [
           {
@@ -347,6 +426,9 @@ export type Database = {
       account_balance: {
         Row: {
           current_balance: number | null
+          starting_total: number | null
+          total_expenses: number | null
+          total_income: number | null
         }
         Relationships: []
       }
@@ -389,15 +471,44 @@ export type Database = {
         }
         Relationships: []
       }
+      net_worth_snapshot_detail: {
+        Row: {
+          account_id: string | null
+          account_name: string | null
+          amount: number | null
+          snapshot_id: string | null
+          sort_order: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "net_worth_snapshot_balances_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "net_worth_snapshot_balances_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "net_worth_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "net_worth_snapshot_balances_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "net_worth_variance"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       net_worth_variance: {
         Row: {
-          ally_actual: number | null
-          cash_actual: number | null
           computed_balance: number | null
           id: string | null
           notes: string | null
           snapshot_date: string | null
-          sofi_actual: number | null
           total_actual: number | null
           variance: number | null
         }
@@ -455,7 +566,6 @@ export type Database = {
       }
       weekly_rollup: {
         Row: {
-          cadet_week: number | null
           discretionary: number | null
           necessary: number | null
           net: number | null
@@ -463,13 +573,14 @@ export type Database = {
           total_expenses: number | null
           total_income: number | null
           week_end: string | null
+          week_number: number | null
           week_start: string | null
         }
         Relationships: []
       }
     }
     Functions: {
-      can_create_first_account: { Args: never; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

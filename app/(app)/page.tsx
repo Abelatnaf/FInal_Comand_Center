@@ -38,31 +38,38 @@ export default async function CommandDeckPage() {
   const monthStart = startOfMonthIso();
 
   const [
-    settingsRes,
+    userRes,
     balanceRes,
     monthlyRes,
     weeklyRes,
     budgetRes,
     recurringRes,
     goalsRes,
-    snapshotRes,
+    accountsRes,
+    latestSnapshotRes,
     monthTxRes,
     monthIncomeRes,
   ] = await Promise.all([
-    supabase.from("settings").select("*").eq("id", 1).single(),
+    supabase.auth.getUser(),
     supabase.from("account_balance").select("current_balance").single(),
     supabase.from("monthly_rollup").select("month, running_balance").order("month"),
-    supabase.from("weekly_rollup").select("week_start, total_income, total_expenses").order("cadet_week").limit(12),
+    supabase.from("weekly_rollup").select("week_start, total_income, total_expenses").order("week_number").limit(12),
     supabase.from("budget_vs_actual_this_month").select("*").order("sort_order"),
     supabase.from("recurring_bills").select("id, name, monthly_cost_usd, billing_day").eq("active", true),
     supabase.from("savings_goal_progress").select("*").order("target_date").limit(4),
-    supabase.from("net_worth_snapshots").select("*").order("snapshot_date", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("accounts").select("id, name, starting_balance").order("sort_order"),
+    supabase.from("net_worth_snapshots").select("id").order("snapshot_date", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("transactions").select("amount_usd, necessity").gte("date", monthStart),
     supabase.from("income").select("amount_usd").gte("date", monthStart),
   ]);
 
-  const settings = settingsRes.data;
   const currentBalance = balanceRes.data?.current_balance ?? 0;
+  const firstName = userRes.data.user?.email?.split("@")[0] ?? "there";
+
+  const snapshotDetail = latestSnapshotRes.data
+    ? (await supabase.from("net_worth_snapshot_detail").select("account_id, amount").eq("snapshot_id", latestSnapshotRes.data.id)).data ?? []
+    : [];
+  const detailByAccount = new Map(snapshotDetail.map((d) => [d.account_id, d.amount]));
 
   const series = (monthlyRes.data ?? [])
     .filter((r) => r.month && r.running_balance !== null)
@@ -88,12 +95,12 @@ export default async function CommandDeckPage() {
     .sort((a, b) => b.value - a.value);
   const donutTotal = donut.reduce((s, d) => s + d.value, 0);
 
-  const snap = snapshotRes.data;
-  const accounts = [
-    { name: "SoFi", value: snap?.sofi_actual ?? settings?.starting_sofi ?? 0, color: "#007aff", glyph: "bank" as const },
-    { name: "Ally", value: snap?.ally_actual ?? settings?.starting_ally ?? 0, color: "#5856d6", glyph: "bank" as const },
-    { name: "Cash", value: snap?.cash_actual ?? settings?.starting_cash ?? 0, color: "#34c759", glyph: "cash" as const },
-  ];
+  const accounts = (accountsRes.data ?? []).map((a, i) => ({
+    name: a.name,
+    value: detailByAccount.get(a.id) ?? a.starting_balance,
+    color: DONUT_COLORS[i % DONUT_COLORS.length],
+    glyph: "bank" as const,
+  }));
   const accountsTotal = accounts.reduce((s, a) => s + a.value, 0);
 
   const now = new Date();
@@ -120,7 +127,7 @@ export default async function CommandDeckPage() {
       {/* Greeting */}
       <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <h1 className="ios-large-title">{greeting}, Abel.</h1>
+          <h1 className="ios-large-title">{greeting}, {firstName}.</h1>
           <p className="ios-subhead text-text-dim mt-1">Here&apos;s your financial overview for today.</p>
         </div>
         <p className="ios-subhead text-text-dim mt-2">{dateLabel}</p>

@@ -84,13 +84,18 @@ function BillForm({
       </div>
       <div>
         <label className="stat-label block mb-1 text-[10px]">Payment</label>
-        <select name="payment_method" defaultValue={defaults?.payment_method ?? "SoFi Debit"} className="select !py-1.5 !px-2 text-sm">
+        <input
+          name="payment_method"
+          type="text"
+          list="payment-methods-bill"
+          defaultValue={defaults?.payment_method ?? ""}
+          className="input !py-1.5 !px-2 text-sm"
+        />
+        <datalist id="payment-methods-bill">
           {PAYMENT_METHODS.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
+            <option key={m} value={m} />
           ))}
-        </select>
+        </datalist>
       </div>
       <label className="flex items-center gap-2 ios-footnote text-text pb-1.5">
         Active

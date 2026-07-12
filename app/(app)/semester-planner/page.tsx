@@ -1,13 +1,14 @@
 import { PageHeader } from "@/components/glass/Glass";
 import { SemesterCard } from "@/components/glass/SemesterCard";
+import { AddPeriodCard } from "@/components/glass/AddPeriodCard";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function SemesterPlannerPage() {
   const supabase = await createClient();
 
-  const { data: semesters } = await supabase.from("semester_pacing").select("*").order("start_date");
+  const { data: periods } = await supabase.from("semester_pacing").select("*").order("start_date");
 
-  const typedSemesters = (semesters ?? [])
+  const typedPeriods = (periods ?? [])
     .filter((s) => s.id !== null)
     .map((s) => ({
       id: s.id!,
@@ -26,15 +27,12 @@ export default async function SemesterPlannerPage() {
 
   return (
     <div>
-      <PageHeader
-        eyebrow="VMI FINANCE"
-        title="Semester Planner"
-        subtitle="Fall 2026 / Spring 2027 budget pacing."
-      />
+      <PageHeader title="Budget Periods" subtitle="Define your own periods and track pacing against budget." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {typedSemesters.map((s) => (
+        {typedPeriods.map((s) => (
           <SemesterCard key={s.id} semester={s} />
         ))}
+        <AddPeriodCard />
       </div>
     </div>
   );

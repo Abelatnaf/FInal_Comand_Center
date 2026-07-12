@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Command Deck — VMI Finance",
-  description: "Personal finance command center for VMI cadet life.",
+  title: "Command Deck — Finance Command Center",
+  description: "A personal finance command center for tracking spending, income, and net worth.",
 };
 
 export default function RootLayout({

@@ -7,10 +7,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 
 export type SettingsData = {
   fx_rate: number;
-  matriculation_date: string;
-  starting_sofi: number;
-  starting_ally: number;
-  starting_cash: number;
+  tracking_start_date: string;
 };
 
 export function SettingsForm({ settings }: { settings: SettingsData }) {
@@ -21,7 +18,7 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
       <form action={formAction} className="flex flex-col gap-4">
         <div>
           <label className="stat-label block mb-1.5" htmlFor="fx_rate">
-            FX Rate — ETB per 1 USD
+            FX Rate — Secondary Currency per 1 USD
           </label>
           <input
             id="fx_rate"
@@ -39,59 +36,19 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
         </div>
 
         <div>
-          <label className="stat-label block mb-1.5" htmlFor="matriculation_date">
-            Matriculation Date (Cadet Week 1 start)
+          <label className="stat-label block mb-1.5" htmlFor="tracking_start_date">
+            Start Date (Week 1)
           </label>
           <DatePicker
-            id="matriculation_date"
-            name="matriculation_date"
-            defaultValue={settings.matriculation_date}
+            id="tracking_start_date"
+            name="tracking_start_date"
+            defaultValue={settings.tracking_start_date}
             required
             className="w-full"
           />
-        </div>
-
-        <div className="stat-label mt-2">Starting Balances (USD)</div>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <label className="text-text-dim text-xs block mb-1.5" htmlFor="starting_sofi">
-              SoFi
-            </label>
-            <input
-              id="starting_sofi"
-              name="starting_sofi"
-              type="number"
-              step="0.01"
-              defaultValue={settings.starting_sofi}
-              className="input w-full num"
-            />
-          </div>
-          <div>
-            <label className="text-text-dim text-xs block mb-1.5" htmlFor="starting_ally">
-              Ally
-            </label>
-            <input
-              id="starting_ally"
-              name="starting_ally"
-              type="number"
-              step="0.01"
-              defaultValue={settings.starting_ally}
-              className="input w-full num"
-            />
-          </div>
-          <div>
-            <label className="text-text-dim text-xs block mb-1.5" htmlFor="starting_cash">
-              Cash
-            </label>
-            <input
-              id="starting_cash"
-              name="starting_cash"
-              type="number"
-              step="0.01"
-              defaultValue={settings.starting_cash}
-              className="input w-full num"
-            />
-          </div>
+          <p className="text-text-dim text-xs mt-1.5">
+            The date your weekly rollup and week numbers count from.
+          </p>
         </div>
 
         {state?.error && <p className="text-text-dim text-sm">{state.error}</p>}

@@ -36,14 +36,6 @@ export async function signUp(_prevState: SignUpState, formData: FormData): Promi
     return { error: "Password must be at least 8 characters." };
   }
 
-  // Re-check server-side right before creating the account — the account
-  // creation form only ever exists to bootstrap the single VMI account, so
-  // this must stay locked once that account exists, not just hidden in the UI.
-  const { data: canSignUp, error: gateError } = await supabase.rpc("can_create_first_account");
-  if (gateError || !canSignUp) {
-    return { error: "An account already exists. Please sign in instead." };
-  }
-
   const { data, error } = await supabase.auth.signUp({ email, password });
 
   if (error) {

@@ -9,7 +9,7 @@ export default async function TransactionsPage() {
     supabase
       .from("transactions")
       .select(
-        "id, date, cadet_week, category_id, description, necessity, is_recurring, currency, amount_original, amount_usd, payment_method, notes, categories(name)"
+        "id, date, week_number, category_id, description, necessity, is_recurring, currency, amount_original, amount_usd, payment_method, notes, categories(name)"
       )
       .order("date", { ascending: false }),
     supabase.from("categories").select("id, name").order("sort_order"),
@@ -18,7 +18,6 @@ export default async function TransactionsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="VMI FINANCE"
         title="Transactions"
         subtitle="Full table — filter, inline edit, CSV export."
       />

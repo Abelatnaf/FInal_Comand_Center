@@ -21,8 +21,8 @@ export function WeeklyRollupTable({ rows }: { rows: WeeklyRow[] }) {
         </thead>
         <tbody className="num">
           {rows.map((r) => (
-            <tr key={r.cadet_week} className="border-t border-[var(--separator)]">
-              <td className="py-2 px-2 text-text-dim">{r.cadet_week}</td>
+            <tr key={r.week_number} className="border-t border-[var(--separator)]">
+              <td className="py-2 px-2 text-text-dim">{r.week_number}</td>
               <td className="py-2 px-2 text-text-dim text-xs whitespace-nowrap">{r.week_start}</td>
               <td className="py-2 px-2 text-text-dim text-xs whitespace-nowrap">{r.week_end}</td>
               <td className="py-2 px-2 text-right">{fmtUsd(r.total_expenses)}</td>

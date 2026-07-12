@@ -11,7 +11,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 export type IncomeRow = {
   id: string;
   date: string;
-  cadet_week: number | null;
+  week_number: number | null;
   source: string | null;
   currency: string;
   amount_original: number;
@@ -105,7 +105,7 @@ function IncomeRowView({ row, onEdit }: { row: IncomeRow; onEdit: () => void }) 
   return (
     <tr className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{row.date}</td>
-      <td className="py-2.5 px-2 num text-xs text-text-dim">{row.cadet_week ?? "—"}</td>
+      <td className="py-2.5 px-2 num text-xs text-text-dim">{row.week_number ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{row.source ?? "—"}</td>
       <td className="py-2.5 px-2 text-right num">{fmtUsd(row.amount_usd ?? 0)}</td>
       <td className="py-2.5 px-2 text-text-dim">{row.notes ?? "—"}</td>
@@ -138,10 +138,10 @@ export function IncomeTable({ income }: { income: IncomeRow[] }) {
   }, [income, sourceFilter, dateFrom, dateTo]);
 
   function exportCsv() {
-    const header = ["Date", "Cadet Week", "Source", "Currency", "Amount (Original)", "Amount (USD)", "Notes"];
+    const header = ["Date", "Week", "Source", "Currency", "Amount (Original)", "Amount (USD)", "Notes"];
     const rows = filtered.map((r) => [
       r.date,
-      r.cadet_week ?? "",
+      r.week_number ?? "",
       r.source ?? "",
       r.currency,
       r.amount_original,

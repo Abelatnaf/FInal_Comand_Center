@@ -1,10 +1,3 @@
-export const PAYMENT_METHODS = [
-  "SoFi Debit",
-  "Ally",
-  "Payoneer",
-  "Cash",
-  "VMI Cadet Store Charge",
-  "Other",
-] as const;
+export const PAYMENT_METHODS = ["Debit Card", "Credit Card", "Cash", "Bank Transfer", "Other"] as const;
 
-export const INCOME_SOURCES = ["Family Support", "Cadet Pay/Stipend", "SoFi/Ally Drawdown"] as const;
+export const INCOME_SOURCES = ["Family Support", "Paycheck", "Savings Withdrawal", "Other"] as const;

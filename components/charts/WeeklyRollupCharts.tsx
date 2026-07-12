@@ -15,7 +15,7 @@ import { ChartTooltip } from "./ChartTooltip";
 import { CHART_GRID_COLOR, CHART_AXIS_COLOR, CHART_LINE_COLOR, CHART_LINE_SECONDARY } from "@/lib/chart-colors";
 
 export type WeeklyRow = {
-  cadet_week: number;
+  week_number: number;
   week_start: string;
   week_end: string;
   total_expenses: number;
@@ -37,7 +37,7 @@ export function WeeklyRollupCharts({ rows }: { rows: WeeklyRow[] }) {
           <ResponsiveContainer>
             <LineChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={CHART_GRID_COLOR} vertical={false} />
-              <XAxis dataKey="cadet_week" tick={axisTick} tickLine={false} axisLine={{ stroke: CHART_GRID_COLOR }} interval={4} />
+              <XAxis dataKey="week_number" tick={axisTick} tickLine={false} axisLine={{ stroke: CHART_GRID_COLOR }} interval={4} />
               <YAxis tick={axisTick} tickLine={false} axisLine={false} width={44} />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: 12, color: CHART_AXIS_COLOR }} iconType="circle" iconSize={8} />
@@ -54,7 +54,7 @@ export function WeeklyRollupCharts({ rows }: { rows: WeeklyRow[] }) {
           <ResponsiveContainer>
             <LineChart data={rows} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={CHART_GRID_COLOR} vertical={false} />
-              <XAxis dataKey="cadet_week" tick={axisTick} tickLine={false} axisLine={{ stroke: CHART_GRID_COLOR }} interval={4} />
+              <XAxis dataKey="week_number" tick={axisTick} tickLine={false} axisLine={{ stroke: CHART_GRID_COLOR }} interval={4} />
               <YAxis tick={axisTick} tickLine={false} axisLine={false} width={54} />
               <Tooltip content={<ChartTooltip />} />
               <Line
