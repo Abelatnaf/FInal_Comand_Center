@@ -25,8 +25,10 @@ export type TransactionRow = {
   notes: string | null;
   receipt_path: string | null;
   categories: { name: string } | null;
-  transaction_splits: { amount_usd: number; categories: { name: string } | null }[] | null;
+  transaction_splits: { id: string; category_id: number | null; amount_usd: number; categories: { name: string } | null }[] | null;
 };
+
+type SplitRow = { id: number; categoryId: string; amount: string };
 
 function ReceiptLink({ path }: { path: string }) {
   const [loading, setLoading] = useState(false);
@@ -45,11 +47,60 @@ function ReceiptLink({ path }: { path: string }) {
   );
 }
 
-function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; categories: Category[]; onDone: () => void }) {
+function TransactionEditRow({
+  tx,
+  categories,
+  fxRate,
+  onDone,
+}: {
+  tx: TransactionRow;
+  categories: Category[];
+  fxRate: number;
+  onDone: () => void;
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  const existingSplits = tx.transaction_splits ?? [];
+  const [amount, setAmount] = useState(String(tx.amount_original));
+  const [currency, setCurrency] = useState(tx.currency);
+  const [splitOn, setSplitOn] = useState(existingSplits.length > 1);
+  const [splits, setSplits] = useState<SplitRow[]>(
+    existingSplits.length > 1
+      ? existingSplits.map((s, i) => ({ id: i + 1, categoryId: String(s.category_id ?? ""), amount: String(s.amount_usd) }))
+      : [
+          { id: 1, categoryId: "", amount: "" },
+          { id: 2, categoryId: "", amount: "" },
+        ]
+  );
+
+  const usdPreview = useMemo(() => {
+    const n = parseFloat(amount);
+    if (!n || Number.isNaN(n)) return null;
+    return currency === "USD" ? n : n / fxRate;
+  }, [amount, currency, fxRate]);
+
+  const splitTotal = splits.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+  const splitTarget = usdPreview ?? (parseFloat(amount) || 0);
+  const splitMismatch = splitOn && Math.abs(splitTotal - splitTarget) > 0.01;
+
+  function addSplitRow() {
+    setSplits((rows) => [...rows, { id: Date.now(), categoryId: "", amount: "" }]);
+  }
+  function removeSplitRow(id: number) {
+    setSplits((rows) => (rows.length > 2 ? rows.filter((r) => r.id !== id) : rows));
+  }
+  function updateSplitRow(id: number, patch: Partial<SplitRow>) {
+    setSplits((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  }
+
   function handleSave(formData: FormData) {
+    if (splitOn && !splitMismatch) {
+      const rows = splits
+        .filter((r) => r.categoryId && parseFloat(r.amount) > 0)
+        .map((r) => ({ category_id: Number(r.categoryId), amount_usd: parseFloat(r.amount) }));
+      if (rows.length > 1) formData.set("splits", JSON.stringify(rows));
+    }
     startTransition(async () => {
       const res = await updateTransaction(tx.id, formData);
       if (res?.error) setError(res.error);
@@ -65,16 +116,18 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
             <label className="stat-label block mb-1 text-[10px]">Date</label>
             <DatePicker name="date" defaultValue={tx.date} required className="!py-1.5 !px-2 text-sm" />
           </div>
-          <div>
-            <label className="stat-label block mb-1 text-[10px]">Category</label>
-            <select name="category_id" defaultValue={tx.category_id ?? ""} required className="select !py-1.5 !px-2 text-sm">
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {!splitOn && (
+            <div>
+              <label className="stat-label block mb-1 text-[10px]">Category</label>
+              <select name="category_id" defaultValue={tx.category_id ?? ""} required className="select !py-1.5 !px-2 text-sm">
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="flex-1 min-w-[140px]">
             <label className="stat-label block mb-1 text-[10px]">Description</label>
             <input name="description" defaultValue={tx.description ?? ""} className="input !py-1.5 !px-2 text-sm w-full" />
@@ -88,7 +141,12 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
           </div>
           <div className="w-20">
             <label className="stat-label block mb-1 text-[10px]">Currency</label>
-            <select name="currency" defaultValue={tx.currency} className="select !py-1.5 !px-2 text-sm">
+            <select
+              name="currency"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="select !py-1.5 !px-2 text-sm"
+            >
               <option value="USD">USD</option>
               <option value="ETB">ETB</option>
             </select>
@@ -99,11 +157,73 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
               name="amount"
               type="number"
               step="0.01"
-              defaultValue={tx.amount_original}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               required
               className="input !py-1.5 !px-2 text-sm num"
             />
           </div>
+
+          <label className="flex items-center gap-2 ios-footnote text-text pb-1.5 w-full">
+            <input
+              type="checkbox"
+              className="ios-switch"
+              checked={splitOn}
+              onChange={(e) => setSplitOn(e.target.checked)}
+            />
+            Split into categories
+          </label>
+
+          {splitOn && (
+            <div className="flex flex-col gap-2 rounded-[12px] p-3 w-full" style={{ background: "var(--fill-quaternary)" }}>
+              <input type="hidden" name="category_id" value={splits.find((r) => r.categoryId)?.categoryId ?? tx.category_id ?? categories[0]?.id ?? ""} />
+              {splits.map((row, i) => (
+                <div key={row.id} className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    {i === 0 && <label className="stat-label block mb-1 text-[10px]">Category</label>}
+                    <select
+                      value={row.categoryId}
+                      onChange={(e) => updateSplitRow(row.id, { categoryId: e.target.value })}
+                      className="select w-full !py-1.5 !px-2 text-sm"
+                    >
+                      <option value="">Select</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="w-24">
+                    {i === 0 && <label className="stat-label block mb-1 text-[10px]">Amount</label>}
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={row.amount}
+                      onChange={(e) => updateSplitRow(row.id, { amount: e.target.value })}
+                      className="input w-full !py-1.5 !px-2 text-sm num"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeSplitRow(row.id)}
+                    disabled={splits.length <= 2}
+                    className="link-destructive text-[13px] pb-1.5 disabled:opacity-30"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              <button type="button" onClick={addSplitRow} className="link-action text-[13px] self-start">
+                + Add category
+              </button>
+              <div className={`text-[12px] num ${splitMismatch ? "text-red" : "text-text-dim"}`}>
+                {splitTarget > 0
+                  ? `Split total: $${splitTotal.toFixed(2)} of $${splitTarget.toFixed(2)}${splitMismatch ? " — must match the amount above" : " ✓"}`
+                  : "Enter the amount above first."}
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="stat-label block mb-1 text-[10px]">Payment</label>
             <input
@@ -132,7 +252,7 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
             <input name="receipt" type="file" accept="image/*,application/pdf" className="input !py-1.5 text-xs" style={{ maxWidth: 160 }} />
           </div>
           <div className="flex gap-1.5">
-            <button type="submit" disabled={pending} className="btn btn-primary !py-1.5 !px-3 text-xs">
+            <button type="submit" disabled={pending || (splitOn && splitMismatch)} className="btn btn-primary !py-1.5 !px-3 text-xs">
               {pending ? "Saving…" : "Save"}
             </button>
             <button type="button" onClick={onDone} className="btn !py-1.5 !px-3 text-xs">
@@ -197,9 +317,11 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
 export function TransactionsTable({
   transactions,
   categories,
+  fxRate,
 }: {
   transactions: TransactionRow[];
   categories: Category[];
+  fxRate: number;
 }) {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [necessityFilter, setNecessityFilter] = useState("");
@@ -306,7 +428,7 @@ export function TransactionsTable({
             ) : (
               filtered.map((tx) =>
                 editingId === tx.id ? (
-                  <TransactionEditRow key={tx.id} tx={tx} categories={categories} onDone={() => setEditingId(null)} />
+                  <TransactionEditRow key={tx.id} tx={tx} categories={categories} fxRate={fxRate} onDone={() => setEditingId(null)} />
                 ) : (
                   <TransactionRowView key={tx.id} tx={tx} onEdit={() => setEditingId(tx.id)} />
                 )

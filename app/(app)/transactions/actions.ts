@@ -23,6 +23,28 @@ export async function updateTransaction(id: string, formData: FormData) {
 
   if (error) return { error: error.message };
 
+  // Always replace splits with whatever the form submitted: delete the old
+  // set, then insert the new one if provided. Absent/empty "splits" means
+  // the user turned splitting off, which correctly falls back to this
+  // transaction's own category_id via transaction_category_breakdown.
+  const { error: deleteSplitsError } = await supabase.from("transaction_splits").delete().eq("transaction_id", id);
+  if (deleteSplitsError) return { error: deleteSplitsError.message };
+
+  const splitsRaw = formData.get("splits");
+  if (splitsRaw) {
+    try {
+      const splits: { category_id: number; amount_usd: number }[] = JSON.parse(String(splitsRaw));
+      if (splits.length > 1) {
+        const { error: splitError } = await supabase
+          .from("transaction_splits")
+          .insert(splits.map((s) => ({ transaction_id: id, category_id: s.category_id, amount_usd: s.amount_usd })));
+        if (splitError) return { error: splitError.message };
+      }
+    } catch {
+      // malformed splits payload — ignore, transaction keeps its single fallback category
+    }
+  }
+
   const receipt = formData.get("receipt");
   if (receipt instanceof File && receipt.size > 0) {
     const { data: userData } = await supabase.auth.getUser();
