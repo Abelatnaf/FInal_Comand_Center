@@ -90,14 +90,18 @@ export function AppShell({
             <div className="text-[12px] mt-0.5" style={{ color: "rgba(255,255,255,0.65)" }}>
               Every dollar, in one place.
             </div>
-            <Link href="/insights" className="inline-block text-[13px] font-medium mt-3" style={{ color: "#5ac8fa" }}>
+            <Link
+              href="/insights"
+              className="inline-block text-[13px] font-medium mt-3 transition-opacity hover:opacity-80"
+              style={{ color: "#5ac8fa" }}
+            >
               View insights →
             </Link>
           </div>
           <form action={onSignOut}>
             <button
               type="submit"
-              className="w-full text-left px-3 py-2 rounded-[9px] text-[15px] text-text-dim hover:text-text hover:bg-[var(--fill-quaternary)]"
+              className="w-full text-left px-3 py-2 rounded-[9px] text-[15px] text-text-dim hover:text-text hover:bg-[var(--fill-quaternary)] transition-colors"
             >
               Sign out
             </button>
@@ -111,7 +115,7 @@ export function AppShell({
         <div className="hidden md:flex items-center justify-end gap-3 px-8 h-14 border-b border-[var(--separator)] bg-[color:var(--bg)]/80 sticky top-0 z-30 backdrop-blur">
           <Link
             href="/settings"
-            className="w-9 h-9 rounded-full bg-[var(--blue)] text-white flex items-center justify-center text-[14px] font-semibold"
+            className="w-9 h-9 rounded-full bg-[var(--blue)] text-white flex items-center justify-center text-[14px] font-semibold transition-transform active:scale-90 hover:opacity-90"
             aria-label="Settings"
           >
             {initial}
@@ -134,7 +138,7 @@ export function AppShell({
               href={href}
               onClick={() => setMoreOpen(false)}
               className={cx(
-                "flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5",
+                "flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 transition-colors active:opacity-60",
                 active ? "text-tint" : "text-[color:var(--gray)]"
               )}
             >
@@ -146,7 +150,7 @@ export function AppShell({
         <button
           onClick={() => setMoreOpen((v) => !v)}
           className={cx(
-            "flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5",
+            "flex-1 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 transition-colors active:opacity-60",
             moreOpen || moreLinks.some((l) => l.href === pathname) ? "text-tint" : "text-[color:var(--gray)]"
           )}
         >
@@ -158,9 +162,9 @@ export function AppShell({
       {/* More bottom sheet */}
       {moreOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex items-end" onClick={() => setMoreOpen(false)}>
-          <div className="absolute inset-0 bg-black/25" />
+          <div className="absolute inset-0 bg-black/25 anim-backdrop" />
           <div
-            className="relative material rounded-t-[16px] w-full p-2 shadow-[0_-8px_40px_rgba(0,0,0,0.15)] max-h-[74vh] overflow-y-auto"
+            className="relative material rounded-t-[16px] w-full p-2 shadow-[0_-8px_40px_rgba(0,0,0,0.15)] max-h-[74vh] overflow-y-auto anim-sheet"
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -173,7 +177,7 @@ export function AppShell({
                     href={link.href}
                     onClick={() => setMoreOpen(false)}
                     className={cx(
-                      "flex items-center gap-3 px-4 py-3 text-[17px]",
+                      "flex items-center gap-3 px-4 py-3 text-[17px] transition-colors active:bg-[var(--fill-quaternary)]",
                       pathname === link.href ? "text-tint font-medium" : "text-text"
                     )}
                   >
@@ -186,7 +190,10 @@ export function AppShell({
               ))}
               <div className="h-px bg-[var(--separator)] ml-4" />
               <form action={onSignOut}>
-                <button type="submit" className="block px-4 py-3 text-[17px] text-red w-full text-left">
+                <button
+                  type="submit"
+                  className="block px-4 py-3 text-[17px] text-red w-full text-left transition-colors active:bg-[var(--fill-quaternary)]"
+                >
                   Sign out
                 </button>
               </form>

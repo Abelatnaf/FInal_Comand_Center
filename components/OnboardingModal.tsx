@@ -36,8 +36,8 @@ export function OnboardingModal() {
   const isLast = step === STEPS.length - 1;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4">
-      <div className="material w-full max-w-sm rounded-[16px] p-6">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4 anim-backdrop">
+      <div className="material w-full max-w-sm rounded-[16px] p-6 anim-modal">
         <div className="flex gap-1.5 mb-5">
           {STEPS.map((_, i) => (
             <div key={i} className={`h-1 flex-1 rounded-full ${i <= step ? "bg-[var(--blue)]" : "bg-[var(--fill-tertiary)]"}`} />

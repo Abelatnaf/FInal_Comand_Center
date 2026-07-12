@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
+import { HScroll } from "@/components/ui/HScroll";
 import { fmtUsd } from "@/lib/format";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import { addRecurringBill, updateRecurringBill, deleteRecurringBill } from "@/app/(app)/recurring-bills/actions";
@@ -180,7 +181,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
         </Glass>
       </div>
 
-      <Glass className="overflow-x-auto">
+      <Glass>
         <div className="flex items-center justify-between p-4 pb-0">
           <div className="ios-headline">Recurring Bills</div>
           {!adding && (
@@ -196,6 +197,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
           </div>
         )}
 
+        <HScroll>
         <table className="w-full text-sm min-w-[800px] mt-2">
           <thead>
             <tr className="text-text-dim text-left text-xs">
@@ -230,7 +232,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
                     </td>
                   </tr>
                 ) : (
-                  <tr key={b.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
+                  <tr key={b.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)] transition-colors">
                     <td className="py-2.5 px-2 text-text-dim">{b.name}</td>
                     <td className="py-2.5 px-2 text-text-dim">{b.categories?.name ?? "—"}</td>
                     <td className="py-2.5 px-2 text-right num">{fmtUsd(b.monthly_cost_usd)}</td>
@@ -253,6 +255,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
             )}
           </tbody>
         </table>
+        </HScroll>
         {error && <p className="text-text-dim text-xs p-4">{error}</p>}
       </Glass>
     </div>

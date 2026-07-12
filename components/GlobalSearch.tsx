@@ -70,18 +70,18 @@ export function GlobalSearch() {
       <button
         onClick={() => setOpen(true)}
         aria-label="Search"
-        className="md:hidden fixed bottom-24 left-5 z-40 w-12 h-12 rounded-full material border border-[var(--separator)] flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.18)] active:opacity-80"
+        className="md:hidden fixed bottom-24 left-5 z-40 w-12 h-12 rounded-full material border border-[var(--separator)] flex items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.18)] active:opacity-80 active:scale-90 transition-[opacity,transform] duration-150"
       >
         <SearchIcon size={19} />
       </button>
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 px-4 pt-[10vh]"
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 px-4 pt-[10vh] anim-backdrop"
           onClick={close}
         >
           <div
-            className="material w-full max-w-lg rounded-[16px] overflow-hidden max-h-[70vh] flex flex-col"
+            className="material w-full max-w-lg rounded-[16px] overflow-hidden max-h-[70vh] flex flex-col anim-modal"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--separator)]">
@@ -114,7 +114,7 @@ export function GlobalSearch() {
                       key={`${r.type}-${r.id}`}
                       href={r.href}
                       onClick={() => goTo(r.href)}
-                      className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-[var(--fill-quaternary)]"
+                      className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-[var(--fill-quaternary)] transition-colors active:bg-[var(--fill-tertiary)]"
                     >
                       <span className="text-[15px] text-text truncate">{r.label}</span>
                       <span className="text-[12px] text-text-dim whitespace-nowrap num">{r.sublabel}</span>

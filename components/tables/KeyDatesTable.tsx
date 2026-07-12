@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
+import { HScroll } from "@/components/ui/HScroll";
 import { addKeyDate, updateKeyDate, deleteKeyDate } from "@/app/(app)/key-dates/actions";
 
 export type KeyDateRow = {
@@ -92,7 +93,7 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
   }
 
   return (
-    <Glass className="overflow-x-auto">
+    <Glass>
       <div className="flex items-center justify-between p-4 pb-0">
         <div className="ios-headline">Key Dates</div>
         {!adding && (
@@ -108,6 +109,7 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
         </div>
       )}
 
+      <HScroll>
       <table className="w-full text-sm min-w-[900px] mt-2">
         <thead>
           <tr className="text-text-dim text-left text-xs">
@@ -134,7 +136,7 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
                   </td>
                 </tr>
               ) : (
-                <tr key={k.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
+                <tr key={k.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)] transition-colors">
                   <td className="py-2.5 px-2 text-text-dim">{k.event}</td>
                   <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{k.window_label}</td>
                   <td className="py-2.5 px-2 text-text-dim text-xs">{k.status}</td>
@@ -153,6 +155,7 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
           )}
         </tbody>
       </table>
+      </HScroll>
       {error && <p className="text-text-dim text-xs p-4">{error}</p>}
     </Glass>
   );

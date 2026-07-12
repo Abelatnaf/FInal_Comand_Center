@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
+import { HScroll } from "@/components/ui/HScroll";
 import { fmtUsd } from "@/lib/format";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { addTransfer } from "@/app/(app)/quick-add-actions";
@@ -121,7 +122,7 @@ export function TransfersTable({ transfers, accounts }: { transfers: TransferRow
         Moving money between your own accounts — never counted as income or an expense.
       </p>
 
-      <Glass className="overflow-x-auto">
+      <Glass>
         <div className="flex items-center justify-between p-4 pb-0">
           <div className="ios-headline">Transfers</div>
           {!adding && accounts.length >= 2 && (
@@ -141,6 +142,7 @@ export function TransfersTable({ transfers, accounts }: { transfers: TransferRow
           </div>
         )}
 
+        <HScroll>
         <table className="w-full text-sm min-w-[700px] mt-2">
           <thead>
             <tr className="text-text-dim text-left text-xs">
@@ -168,7 +170,7 @@ export function TransfersTable({ transfers, accounts }: { transfers: TransferRow
                     </td>
                   </tr>
                 ) : (
-                  <tr key={t.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
+                  <tr key={t.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)] transition-colors">
                     <td className="py-2.5 px-2 num text-text-dim whitespace-nowrap">{t.date}</td>
                     <td className="py-2.5 px-2 text-text-dim">{nameOf(t.from_account_id)}</td>
                     <td className="py-2.5 px-2 text-text-dim">{nameOf(t.to_account_id)}</td>
@@ -184,6 +186,7 @@ export function TransfersTable({ transfers, accounts }: { transfers: TransferRow
             )}
           </tbody>
         </table>
+        </HScroll>
         {error && <p className="text-text-dim text-xs p-4">{error}</p>}
       </Glass>
     </div>

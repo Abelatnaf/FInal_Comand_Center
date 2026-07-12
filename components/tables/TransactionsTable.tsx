@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
+import { HScroll } from "@/components/ui/HScroll";
 import { fmtUsd } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { updateTransaction, deleteTransaction, getReceiptUrl } from "@/app/(app)/transactions/actions";
@@ -304,7 +305,7 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
     : undefined;
 
   return (
-    <tr className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
+    <tr className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)] transition-colors">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{tx.date}</td>
       <td className="py-2.5 px-2 num text-xs text-text-dim">{tx.week_number ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap" title={categoryTitle}>{categoryLabel}</td>
@@ -420,38 +421,40 @@ export function TransactionsTable({
         </button>
       </Glass>
 
-      <Glass className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[900px]">
-          <thead>
-            <tr className="text-text-dim text-left text-xs">
-              <th className="py-3 px-2 font-normal">Date</th>
-              <th className="py-3 px-2 font-normal">Wk</th>
-              <th className="py-3 px-2 font-normal">Category</th>
-              <th className="py-3 px-2 font-normal">Description</th>
-              <th className="py-3 px-2 font-normal">Necessity</th>
-              <th className="py-3 px-2 font-normal text-right">Amount (USD)</th>
-              <th className="py-3 px-2 font-normal">Payment</th>
-              <th className="py-3 px-2 font-normal text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="py-10 text-center text-text-dim text-sm">
-                  No transactions yet — use Quick Add to log your first one.
-                </td>
+      <Glass>
+        <HScroll>
+          <table className="w-full text-sm min-w-[900px]">
+            <thead>
+              <tr className="text-text-dim text-left text-xs">
+                <th className="py-3 px-2 font-normal">Date</th>
+                <th className="py-3 px-2 font-normal">Wk</th>
+                <th className="py-3 px-2 font-normal">Category</th>
+                <th className="py-3 px-2 font-normal">Description</th>
+                <th className="py-3 px-2 font-normal">Necessity</th>
+                <th className="py-3 px-2 font-normal text-right">Amount (USD)</th>
+                <th className="py-3 px-2 font-normal">Payment</th>
+                <th className="py-3 px-2 font-normal text-right">Actions</th>
               </tr>
-            ) : (
-              filtered.map((tx) =>
-                editingId === tx.id ? (
-                  <TransactionEditRow key={tx.id} tx={tx} categories={categories} currencies={currencies} onDone={() => setEditingId(null)} />
-                ) : (
-                  <TransactionRowView key={tx.id} tx={tx} onEdit={() => setEditingId(tx.id)} />
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-10 text-center text-text-dim text-sm">
+                    No transactions yet — use Quick Add to log your first one.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((tx) =>
+                  editingId === tx.id ? (
+                    <TransactionEditRow key={tx.id} tx={tx} categories={categories} currencies={currencies} onDone={() => setEditingId(null)} />
+                  ) : (
+                    <TransactionRowView key={tx.id} tx={tx} onEdit={() => setEditingId(tx.id)} />
+                  )
                 )
-              )
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </HScroll>
       </Glass>
     </div>
   );

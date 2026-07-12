@@ -245,12 +245,121 @@ h3,
   border-radius: 18px;
   border: var(--card-border);
   box-shadow: var(--card-shadow);
-  overflow: hidden;
+}
+
+/* overflow lives in the components layer (below Tailwind's utilities
+   layer) specifically so that className="overflow-x-auto"/"overflow-y-auto"
+   on a <Glass> can actually override it -- plain unlayered CSS like the
+   rest of this file otherwise beats every Tailwind layer regardless of
+   className order, which was silently clipping every wide/scrollable
+   table (Weekly/Monthly Rollup, Transactions, etc.) inside a Glass card. */
+@layer components {
+  .glass {
+    overflow: hidden;
+  }
 }
 
 .glass-dense {
   background: var(--bg-elevated-2);
   border-radius: 12px;
+}
+
+/* ---------- Horizontal-scroll affordance (wide tables) ---------- */
+
+.hscroll {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.hscroll-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  pointer-events: none;
+  z-index: 5;
+  transition: opacity 0.15s ease;
+}
+
+.hscroll-fade-right {
+  right: 0;
+  background: linear-gradient(to right, transparent, var(--bg-elevated));
+}
+
+.hscroll-fade-left {
+  left: 0;
+  background: linear-gradient(to left, transparent, var(--bg-elevated));
+}
+
+/* Any other overflow-scrolled region (modals, sheets, nested nav) also
+   gets momentum scrolling on iOS -- not just the tables above. */
+.overflow-x-auto,
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Motion: entrance animations for sheets, modals, popovers ----------
+   Plain @keyframes (not transitions) since these elements are freshly
+   mounted on open, not toggled -- a transition alone can't animate a
+   from-state on first paint. Respects prefers-reduced-motion / the manual
+   Settings toggle automatically via the animation-duration override above. */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes modal-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popover-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.anim-backdrop {
+  animation: fade-in 0.2s ease both;
+}
+
+.anim-sheet {
+  animation: sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@media (min-width: 768px) {
+  .anim-sheet {
+    animation: modal-pop 0.22s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+}
+
+.anim-modal {
+  animation: modal-pop 0.2s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 /* Frosted "liquid glass" overlay chrome (tab bar, top bar, sheets).
@@ -484,7 +593,7 @@ a:focus-visible {
   border: none;
   background: rgba(0, 122, 255, 0.1);
   color: var(--blue);
-  transition: opacity 0.15s ease, background 0.15s ease;
+  transition: opacity 0.15s ease, background 0.15s ease, transform 0.1s ease;
   cursor: pointer;
 }
 
@@ -494,6 +603,7 @@ a:focus-visible {
 
 .btn:active {
   opacity: 0.6;
+  transform: scale(0.97);
 }
 
 .btn:disabled {
@@ -513,6 +623,7 @@ a:focus-visible {
 
 .btn-primary:active {
   opacity: 0.8;
+  transform: scale(0.97);
 }
 
 .link-action {
@@ -709,6 +820,8 @@ a:focus-visible {
   box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
   padding: 14px;
   width: 300px;
+  animation: popover-pop 0.16s cubic-bezier(0.32, 0.72, 0, 1) both;
+  transform-origin: top center;
 }
 
 .cal-grid {

@@ -116,7 +116,7 @@ export function QuickAddFab({
       <button
         onClick={() => setOpen(true)}
         aria-label="Quick add transaction, income, or transfer"
-        className="fixed bottom-24 md:bottom-6 right-5 md:right-6 z-40 w-14 h-14 rounded-full bg-tint flex items-center justify-center shadow-[0_6px_20px_rgba(10,132,255,0.4)] active:opacity-80 transition-opacity"
+        className="fixed bottom-24 md:bottom-6 right-5 md:right-6 z-40 w-14 h-14 rounded-full bg-tint flex items-center justify-center shadow-[0_6px_20px_rgba(10,132,255,0.4)] active:opacity-80 active:scale-90 transition-[opacity,transform] duration-150"
       >
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round">
           <path d="M12 5v14M5 12h14" />
@@ -125,11 +125,11 @@ export function QuickAddFab({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 px-0 md:px-4"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 px-0 md:px-4 anim-backdrop"
           onClick={close}
         >
           <div
-            className="material w-full max-w-md rounded-t-[16px] md:rounded-[16px] p-5 max-h-[88vh] overflow-y-auto"
+            className="material w-full max-w-md rounded-t-[16px] md:rounded-[16px] p-5 max-h-[88vh] overflow-y-auto anim-sheet"
             style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}
             onClick={(e) => e.stopPropagation()}
           >

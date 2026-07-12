@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Glass } from "@/components/glass/Glass";
+import { HScroll } from "@/components/ui/HScroll";
 import type { Json } from "@/lib/supabase/database.types";
 
 type AuditRow = {
@@ -126,45 +127,47 @@ export function AuditLogTable({ entries }: { entries: AuditRow[] }) {
         </div>
       </Glass>
 
-      <Glass className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[700px]">
-          <thead>
-            <tr className="text-text-dim text-left text-xs">
-              <th className="py-3 px-2 font-normal whitespace-nowrap">When</th>
-              <th className="py-3 px-2 font-normal">Table</th>
-              <th className="py-3 px-2 font-normal">Action</th>
-              <th className="py-3 px-2 font-normal">Record</th>
-              <th className="py-3 px-2 font-normal">What changed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="py-10 text-center text-text-dim text-sm">
-                  No changes logged yet — this fills in as you add, edit, or delete entries.
-                </td>
+      <Glass>
+        <HScroll>
+          <table className="w-full text-sm min-w-[700px]">
+            <thead>
+              <tr className="text-text-dim text-left text-xs">
+                <th className="py-3 px-2 font-normal whitespace-nowrap">When</th>
+                <th className="py-3 px-2 font-normal">Table</th>
+                <th className="py-3 px-2 font-normal">Action</th>
+                <th className="py-3 px-2 font-normal">Record</th>
+                <th className="py-3 px-2 font-normal">What changed</th>
               </tr>
-            ) : (
-              filtered.map((row) => (
-                <tr key={row.id} className="border-t border-[var(--separator)]">
-                  <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">
-                    {new Date(row.changed_at).toLocaleString()}
-                  </td>
-                  <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{TABLE_LABELS[row.table_name] ?? row.table_name}</td>
-                  <td className="py-2.5 px-2 whitespace-nowrap">
-                    <span className="badge badge-dim !text-[11px]">
-                      {row.action === "INSERT" ? "Created" : row.action === "DELETE" ? "Deleted" : "Edited"}
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{recordLabel(row)}</td>
-                  <td className="py-2.5 px-2">
-                    <AuditRowDetail row={row} />
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-10 text-center text-text-dim text-sm">
+                    No changes logged yet — this fills in as you add, edit, or delete entries.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filtered.map((row) => (
+                  <tr key={row.id} className="border-t border-[var(--separator)]">
+                    <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">
+                      {new Date(row.changed_at).toLocaleString()}
+                    </td>
+                    <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{TABLE_LABELS[row.table_name] ?? row.table_name}</td>
+                    <td className="py-2.5 px-2 whitespace-nowrap">
+                      <span className="badge badge-dim !text-[11px]">
+                        {row.action === "INSERT" ? "Created" : row.action === "DELETE" ? "Deleted" : "Edited"}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{recordLabel(row)}</td>
+                    <td className="py-2.5 px-2">
+                      <AuditRowDetail row={row} />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </HScroll>
       </Glass>
     </div>
   );

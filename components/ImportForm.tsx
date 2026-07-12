@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
+import { HScroll } from "@/components/ui/HScroll";
 import { parseCsv } from "@/lib/csv";
 import { fmtUsd } from "@/lib/format";
 import { PAYMENT_METHODS } from "@/lib/constants";
@@ -236,35 +237,37 @@ export function ImportForm({ categories, currencies }: { categories: Category[];
             </label>
           </Glass>
 
-          <Glass className="p-6 overflow-x-auto">
+          <Glass className="p-6">
             <div className="ios-headline mb-1">3. Preview</div>
             <p className="text-text-dim ios-subhead mb-4">
               {validCount} row{validCount === 1 ? "" : "s"} ready to import
               {invalidCount > 0 ? `, ${invalidCount} skipped (unparseable date or amount)` : ""}. Duplicates already in your
               records (same date, amount, currency) are skipped automatically.
             </p>
-            <table className="w-full text-sm min-w-[600px]">
-              <thead>
-                <tr className="text-text-dim text-left text-xs">
-                  <th className="py-2 px-2 font-normal">Date</th>
-                  <th className="py-2 px-2 font-normal">Description</th>
-                  <th className="py-2 px-2 font-normal text-right">Amount</th>
-                  <th className="py-2 px-2 font-normal">Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                {parsedRows.slice(0, 25).map((r, i) => (
-                  <tr key={i} className="border-t border-[var(--separator)]">
-                    <td className={`py-2 px-2 num text-xs ${r.date ? "text-text-dim" : "text-red"}`}>{r.date || r.rawDate || "—"}</td>
-                    <td className="py-2 px-2 text-text-dim">{r.description || "—"}</td>
-                    <td className={`py-2 px-2 num text-right ${r.amount > 0 ? "text-text-dim" : "text-red"}`}>
-                      {r.amount > 0 ? fmtUsd(r.amount) : "invalid"}
-                    </td>
-                    <td className="py-2 px-2 text-text-dim">{r.isIncome ? "Income" : "Expense"}</td>
+            <HScroll>
+              <table className="w-full text-sm min-w-[600px]">
+                <thead>
+                  <tr className="text-text-dim text-left text-xs">
+                    <th className="py-2 px-2 font-normal">Date</th>
+                    <th className="py-2 px-2 font-normal">Description</th>
+                    <th className="py-2 px-2 font-normal text-right">Amount</th>
+                    <th className="py-2 px-2 font-normal">Type</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {parsedRows.slice(0, 25).map((r, i) => (
+                    <tr key={i} className="border-t border-[var(--separator)]">
+                      <td className={`py-2 px-2 num text-xs ${r.date ? "text-text-dim" : "text-red"}`}>{r.date || r.rawDate || "—"}</td>
+                      <td className="py-2 px-2 text-text-dim">{r.description || "—"}</td>
+                      <td className={`py-2 px-2 num text-right ${r.amount > 0 ? "text-text-dim" : "text-red"}`}>
+                        {r.amount > 0 ? fmtUsd(r.amount) : "invalid"}
+                      </td>
+                      <td className="py-2 px-2 text-text-dim">{r.isIncome ? "Income" : "Expense"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </HScroll>
             {parsedRows.length > 25 && (
               <p className="text-text-dim text-xs mt-2">…and {parsedRows.length - 25} more rows not shown.</p>
             )}
