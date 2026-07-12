@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_log: {
+        Row: {
+          action: string
+          changed_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          table_name: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          table_name: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          table_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           id: number
@@ -63,6 +96,36 @@ export type Database = {
           id?: number
           monthly_budget?: number
           name?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      currencies: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          rate_to_usd: number
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          rate_to_usd: number
+          sort_order?: number
+          user_id?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          rate_to_usd?: number
           sort_order?: number
           user_id?: string
         }
@@ -213,6 +276,7 @@ export type Database = {
           billing_day: number | null
           category_id: number | null
           id: string
+          last_posted_date: string | null
           monthly_cost_usd: number
           name: string
           payment_method: string | null
@@ -223,6 +287,7 @@ export type Database = {
           billing_day?: number | null
           category_id?: number | null
           id?: string
+          last_posted_date?: string | null
           monthly_cost_usd: number
           name: string
           payment_method?: string | null
@@ -233,6 +298,7 @@ export type Database = {
           billing_day?: number | null
           category_id?: number | null
           id?: string
+          last_posted_date?: string | null
           monthly_cost_usd?: number
           name?: string
           payment_method?: string | null
@@ -325,22 +391,22 @@ export type Database = {
       }
       settings: {
         Row: {
-          fx_rate: number
           id: number
+          onboarding_dismissed: boolean
           tracking_start_date: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          fx_rate?: number
           id?: number
+          onboarding_dismissed?: boolean
           tracking_start_date?: string
           updated_at?: string
           user_id?: string
         }
         Update: {
-          fx_rate?: number
           id?: number
+          onboarding_dismissed?: boolean
           tracking_start_date?: string
           updated_at?: string
           user_id?: string
@@ -711,7 +777,7 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      post_due_recurring_bills: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

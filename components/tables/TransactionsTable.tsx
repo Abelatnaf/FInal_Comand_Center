@@ -9,6 +9,7 @@ import { PAYMENT_METHODS } from "@/lib/constants";
 import { DatePicker } from "@/components/ui/DatePicker";
 
 type Category = { id: number; name: string };
+type Currency = { code: string; name: string; rate_to_usd: number };
 
 export type TransactionRow = {
   id: string;
@@ -50,16 +51,21 @@ function ReceiptLink({ path }: { path: string }) {
 function TransactionEditRow({
   tx,
   categories,
-  fxRate,
+  currencies,
   onDone,
 }: {
   tx: TransactionRow;
   categories: Category[];
-  fxRate: number;
+  currencies: Currency[];
   onDone: () => void;
 }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+
+  const allCurrencies = useMemo<Currency[]>(
+    () => [{ code: "USD", name: "US Dollar", rate_to_usd: 1 }, ...currencies],
+    [currencies]
+  );
 
   const existingSplits = tx.transaction_splits ?? [];
   const [amount, setAmount] = useState(String(tx.amount_original));
@@ -74,11 +80,13 @@ function TransactionEditRow({
         ]
   );
 
+  const selectedRate = allCurrencies.find((c) => c.code === currency)?.rate_to_usd ?? 1;
+
   const usdPreview = useMemo(() => {
     const n = parseFloat(amount);
     if (!n || Number.isNaN(n)) return null;
-    return currency === "USD" ? n : n / fxRate;
-  }, [amount, currency, fxRate]);
+    return currency === "USD" ? n : n / selectedRate;
+  }, [amount, currency, selectedRate]);
 
   const splitTotal = splits.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
   const splitTarget = usdPreview ?? (parseFloat(amount) || 0);
@@ -147,8 +155,11 @@ function TransactionEditRow({
               onChange={(e) => setCurrency(e.target.value)}
               className="select !py-1.5 !px-2 text-sm"
             >
-              <option value="USD">USD</option>
-              <option value="ETB">ETB</option>
+              {allCurrencies.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code}
+                </option>
+              ))}
             </select>
           </div>
           <div className="w-24">
@@ -163,6 +174,11 @@ function TransactionEditRow({
               className="input !py-1.5 !px-2 text-sm num"
             />
           </div>
+          {currency !== "USD" && usdPreview !== null && (
+            <div className="stat-label num w-full -mt-1">
+              ≈ ${usdPreview.toFixed(2)} at {selectedRate} {currency}/USD
+            </div>
+          )}
 
           <label className="flex items-center gap-2 ios-footnote text-text pb-1.5 w-full">
             <input
@@ -317,11 +333,11 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
 export function TransactionsTable({
   transactions,
   categories,
-  fxRate,
+  currencies,
 }: {
   transactions: TransactionRow[];
   categories: Category[];
-  fxRate: number;
+  currencies: Currency[];
 }) {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [necessityFilter, setNecessityFilter] = useState("");
@@ -428,7 +444,7 @@ export function TransactionsTable({
             ) : (
               filtered.map((tx) =>
                 editingId === tx.id ? (
-                  <TransactionEditRow key={tx.id} tx={tx} categories={categories} fxRate={fxRate} onDone={() => setEditingId(null)} />
+                  <TransactionEditRow key={tx.id} tx={tx} categories={categories} currencies={currencies} onDone={() => setEditingId(null)} />
                 ) : (
                   <TransactionRowView key={tx.id} tx={tx} onEdit={() => setEditingId(tx.id)} />
                 )

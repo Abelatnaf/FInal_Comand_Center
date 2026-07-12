@@ -11,5 +11,7 @@ export const NAV_LINKS = [
   { href: "/semester-planner", label: "Budget Periods" },
   { href: "/insights", label: "Insights" },
   { href: "/key-dates", label: "Key Dates" },
+  { href: "/import", label: "Import" },
+  { href: "/audit-log", label: "Audit Log" },
   { href: "/settings", label: "Settings" },
 ] as const;

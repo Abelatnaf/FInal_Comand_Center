@@ -7,6 +7,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 
 type Category = { id: number; name: string };
 type Account = { id: string; name: string };
+type Currency = { code: string; name: string; rate_to_usd: number };
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -16,16 +17,20 @@ type SplitRow = { id: number; categoryId: string; amount: string };
 
 export function QuickAddFab({
   categories,
-  fxRate,
+  currencies,
   accounts,
 }: {
   categories: Category[];
-  fxRate: number;
+  currencies: Currency[];
   accounts: Account[];
 }) {
+  const allCurrencies = useMemo<Currency[]>(
+    () => [{ code: "USD", name: "US Dollar", rate_to_usd: 1 }, ...currencies],
+    [currencies]
+  );
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"transaction" | "income" | "transfer">("transaction");
-  const [currency, setCurrency] = useState<"USD" | "ETB">("USD");
+  const [currency, setCurrency] = useState("USD");
   const [amount, setAmount] = useState("");
   const [splitOn, setSplitOn] = useState(false);
   const [splits, setSplits] = useState<SplitRow[]>([
@@ -40,11 +45,13 @@ export function QuickAddFab({
   const error = mode === "transaction" ? txState?.error : mode === "income" ? incState?.error : transferState?.error;
   const duplicateWarning = mode === "transaction" ? txState?.duplicateWarning : mode === "income" ? incState?.duplicateWarning : undefined;
 
+  const selectedRate = allCurrencies.find((c) => c.code === currency)?.rate_to_usd ?? 1;
+
   const usdPreview = useMemo(() => {
     const n = parseFloat(amount);
     if (!n || Number.isNaN(n)) return null;
-    return currency === "USD" ? n : n / fxRate;
-  }, [amount, currency, fxRate]);
+    return currency === "USD" ? n : n / selectedRate;
+  }, [amount, currency, selectedRate]);
 
   const splitTotal = splits.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
   const splitTarget = usdPreview ?? (parseFloat(amount) || 0);
@@ -211,17 +218,20 @@ export function QuickAddFab({
                     <select
                       name="currency"
                       value={currency}
-                      onChange={(e) => setCurrency(e.target.value as "USD" | "ETB")}
+                      onChange={(e) => setCurrency(e.target.value)}
                       className="select w-full"
                     >
-                      <option value="USD">USD</option>
-                      <option value="ETB">ETB</option>
+                      {allCurrencies.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
-                {currency === "ETB" && (
+                {currency !== "USD" && (
                   <div className="stat-label num -mt-1.5">
-                    {usdPreview !== null ? `≈ $${usdPreview.toFixed(2)} at ${fxRate} ETB/USD` : ""}
+                    {usdPreview !== null ? `≈ $${usdPreview.toFixed(2)} at ${selectedRate} ${currency}/USD` : ""}
                   </div>
                 )}
 

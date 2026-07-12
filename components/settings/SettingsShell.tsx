@@ -6,13 +6,15 @@ import { SettingsForm, type SettingsData } from "@/components/tables/SettingsFor
 import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { CategoryBudgetsForm } from "@/components/settings/CategoryBudgetsForm";
 import { AccountsForm } from "@/components/settings/AccountsForm";
+import { CurrenciesForm, type Currency } from "@/components/settings/CurrenciesForm";
+import { ExportDataButton } from "@/components/settings/ExportDataButton";
 
 type Section = "appearance" | "financial" | "account";
 
 const SECTIONS: { id: Section; label: string; caption: string; Icon: (p: { size?: number }) => React.ReactElement }[] = [
   { id: "appearance", label: "Appearance", caption: "Theme & display", Icon: PaintIcon },
-  { id: "financial", label: "Financial", caption: "FX, dates, accounts, budgets", Icon: DollarIcon },
-  { id: "account", label: "Account", caption: "Sign out", Icon: PersonIcon },
+  { id: "financial", label: "Financial", caption: "Currencies, dates, accounts, budgets", Icon: DollarIcon },
+  { id: "account", label: "Account", caption: "Export, sign out", Icon: PersonIcon },
 ];
 
 type Category = { id: number; name: string; monthly_budget: number };
@@ -22,12 +24,14 @@ export function SettingsShell({
   settings,
   categories,
   accounts,
+  currencies,
   email,
   onSignOut,
 }: {
   settings: SettingsData;
   categories: Category[];
   accounts: Account[];
+  currencies: Currency[];
   email: string | null;
   onSignOut: () => void;
 }) {
@@ -74,23 +78,34 @@ export function SettingsShell({
         {active === "financial" && (
           <div className="flex flex-col gap-4">
             <SettingsForm settings={settings} />
+            <CurrenciesForm currencies={currencies} />
             <AccountsForm accounts={accounts} />
             <CategoryBudgetsForm categories={categories} />
           </div>
         )}
 
         {active === "account" && (
-          <Glass className="p-6 max-w-xl">
-            <div className="ios-headline mb-1">Account</div>
-            <p className="text-text-dim ios-subhead mb-5">
-              {email ? `Signed in as ${email}.` : "You are signed in."}
-            </p>
-            <form action={onSignOut}>
-              <button type="submit" className="btn !text-[var(--red)] !bg-[rgba(255,59,48,0.1)] hover:!bg-[rgba(255,59,48,0.16)]">
-                Sign out
-              </button>
-            </form>
-          </Glass>
+          <div className="flex flex-col gap-4">
+            <Glass className="p-6 max-w-xl">
+              <div className="ios-headline mb-1">Account</div>
+              <p className="text-text-dim ios-subhead mb-5">
+                {email ? `Signed in as ${email}.` : "You are signed in."}
+              </p>
+              <form action={onSignOut}>
+                <button type="submit" className="btn !text-[var(--red)] !bg-[rgba(255,59,48,0.1)] hover:!bg-[rgba(255,59,48,0.16)]">
+                  Sign out
+                </button>
+              </form>
+            </Glass>
+
+            <Glass className="p-6 max-w-xl">
+              <div className="ios-headline mb-1">Export Your Data</div>
+              <p className="text-text-dim ios-subhead mb-4">
+                Download everything you&apos;ve logged — transactions, income, accounts, budgets, goals, and more — as one JSON file.
+              </p>
+              <ExportDataButton />
+            </Glass>
+          </div>
         )}
       </div>
     </div>

@@ -14,7 +14,6 @@ export async function updateSettings(_prevState: SettingsState, formData: FormDa
   const { error } = await supabase
     .from("settings")
     .update({
-      fx_rate: Number(formData.get("fx_rate")),
       tracking_start_date: String(formData.get("tracking_start_date")),
     })
     .eq("user_id", userData.user.id);
@@ -97,4 +96,105 @@ export async function updateCategoryBudgets(_prevState: BudgetsState, formData: 
 
   revalidatePath("/", "layout");
   return { success: true };
+}
+
+export async function addCurrency(formData: FormData) {
+  const supabase = await createClient();
+  const code = String(formData.get("code") ?? "").trim().toUpperCase();
+  const name = String(formData.get("name") ?? "").trim();
+  const rate = Number(formData.get("rate_to_usd"));
+  if (!code) return { error: "Currency code is required." };
+  if (code === "USD") return { error: "USD is already the base currency." };
+  if (!name) return { error: "Name is required." };
+  if (!rate || Number.isNaN(rate) || rate <= 0) return { error: "Rate must be a positive number." };
+
+  const { error } = await supabase.from("currencies").insert({ code, name, rate_to_usd: rate });
+  if (error) return { error: error.message };
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+export async function deleteCurrency(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("currencies").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+export type CurrenciesState = { error?: string; success?: boolean } | undefined;
+
+export async function updateCurrencyRates(_prevState: CurrenciesState, formData: FormData): Promise<CurrenciesState> {
+  const supabase = await createClient();
+
+  const updates: { id: string; rate_to_usd: number }[] = [];
+  for (const [key, value] of formData.entries()) {
+    if (!key.startsWith("currency_")) continue;
+    const id = key.slice("currency_".length);
+    const rate = Number(value);
+    if (!rate || Number.isNaN(rate) || rate <= 0) continue;
+    updates.push({ id, rate_to_usd: rate });
+  }
+
+  for (const u of updates) {
+    const { error } = await supabase.from("currencies").update({ rate_to_usd: u.rate_to_usd }).eq("id", u.id);
+    if (error) return { error: error.message };
+  }
+
+  revalidatePath("/", "layout");
+  return { success: true };
+}
+
+export async function exportAllData() {
+  const supabase = await createClient();
+
+  const [
+    settings,
+    categories,
+    accounts,
+    currencies,
+    transactions,
+    transactionSplits,
+    income,
+    transfers,
+    recurringBills,
+    savingsGoals,
+    netWorthSnapshots,
+    netWorthSnapshotBalances,
+    keyDates,
+    semesters,
+  ] = await Promise.all([
+    supabase.from("settings").select("*").single(),
+    supabase.from("categories").select("*").order("sort_order"),
+    supabase.from("accounts").select("*").order("sort_order"),
+    supabase.from("currencies").select("*").order("code"),
+    supabase.from("transactions").select("*").order("date"),
+    supabase.from("transaction_splits").select("*"),
+    supabase.from("income").select("*").order("date"),
+    supabase.from("transfers").select("*").order("date"),
+    supabase.from("recurring_bills").select("*"),
+    supabase.from("savings_goals").select("*"),
+    supabase.from("net_worth_snapshots").select("*").order("snapshot_date"),
+    supabase.from("net_worth_snapshot_balances").select("*"),
+    supabase.from("key_dates").select("*").order("sort_order"),
+    supabase.from("semesters").select("*").order("start_date"),
+  ]);
+
+  return {
+    exported_at: new Date().toISOString(),
+    settings: settings.data,
+    categories: categories.data ?? [],
+    accounts: accounts.data ?? [],
+    currencies: currencies.data ?? [],
+    transactions: transactions.data ?? [],
+    transaction_splits: transactionSplits.data ?? [],
+    income: income.data ?? [],
+    transfers: transfers.data ?? [],
+    recurring_bills: recurringBills.data ?? [],
+    savings_goals: savingsGoals.data ?? [],
+    net_worth_snapshots: netWorthSnapshots.data ?? [],
+    net_worth_snapshot_balances: netWorthSnapshotBalances.data ?? [],
+    key_dates: keyDates.data ?? [],
+    semesters: semesters.data ?? [],
+  };
 }

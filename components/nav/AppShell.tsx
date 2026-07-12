@@ -5,8 +5,11 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { NAV_LINKS } from "./nav-links";
 import { QuickAddFab } from "../QuickAddFab";
+import { GlobalSearch } from "../GlobalSearch";
 import { NavIcon } from "./NavIcons";
 import { HomeIcon, ListIcon, IncomeIcon, MoreIcon } from "./icons";
+
+type Currency = { code: string; name: string; rate_to_usd: number };
 
 function cx(...classes: Array<string | false | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -22,14 +25,14 @@ export function AppShell({
   children,
   onSignOut,
   categories,
-  fxRate,
+  currencies,
   email,
   accounts,
 }: {
   children: React.ReactNode;
   onSignOut: () => void;
   categories: { id: number; name: string }[];
-  fxRate: number;
+  currencies: Currency[];
   email: string | null;
   accounts: { id: string; name: string }[];
 }) {
@@ -192,7 +195,8 @@ export function AppShell({
         </div>
       )}
 
-      <QuickAddFab categories={categories} fxRate={fxRate} accounts={accounts} />
+      <GlobalSearch />
+      <QuickAddFab categories={categories} currencies={currencies} accounts={accounts} />
     </div>
   );
 }

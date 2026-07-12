@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function TransactionsPage() {
   const supabase = await createClient();
 
-  const [{ data: transactions }, { data: categories }, { data: settings }] = await Promise.all([
+  const [{ data: transactions }, { data: categories }, { data: currencies }] = await Promise.all([
     supabase
       .from("transactions")
       .select(
@@ -13,7 +13,7 @@ export default async function TransactionsPage() {
       )
       .order("date", { ascending: false }),
     supabase.from("categories").select("id, name").order("sort_order"),
-    supabase.from("settings").select("fx_rate").single(),
+    supabase.from("currencies").select("code, name, rate_to_usd").order("code"),
   ]);
 
   return (
@@ -22,7 +22,7 @@ export default async function TransactionsPage() {
         title="Transactions"
         subtitle="Full table — filter, inline edit, CSV export."
       />
-      <TransactionsTable transactions={transactions ?? []} categories={categories ?? []} fxRate={settings?.fx_rate ?? 1} />
+      <TransactionsTable transactions={transactions ?? []} categories={categories ?? []} currencies={currencies ?? []} />
     </div>
   );
 }

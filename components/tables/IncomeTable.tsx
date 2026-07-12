@@ -19,7 +19,9 @@ export type IncomeRow = {
   notes: string | null;
 };
 
-function IncomeEditRow({ row, onDone }: { row: IncomeRow; onDone: () => void }) {
+type Currency = { code: string; name: string; rate_to_usd: number };
+
+function IncomeEditRow({ row, currencies, onDone }: { row: IncomeRow; currencies: Currency[]; onDone: () => void }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -57,7 +59,11 @@ function IncomeEditRow({ row, onDone }: { row: IncomeRow; onDone: () => void }) 
             <label className="stat-label block mb-1 text-[10px]">Currency</label>
             <select name="currency" defaultValue={row.currency} className="select !py-1.5 !px-2 text-sm">
               <option value="USD">USD</option>
-              <option value="ETB">ETB</option>
+              {currencies.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code}
+                </option>
+              ))}
             </select>
           </div>
           <div className="w-24">
@@ -122,7 +128,7 @@ function IncomeRowView({ row, onEdit }: { row: IncomeRow; onEdit: () => void }) 
   );
 }
 
-export function IncomeTable({ income }: { income: IncomeRow[] }) {
+export function IncomeTable({ income, currencies }: { income: IncomeRow[]; currencies: Currency[] }) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
@@ -200,7 +206,7 @@ export function IncomeTable({ income }: { income: IncomeRow[] }) {
             ) : (
               filtered.map((row) =>
                 editingId === row.id ? (
-                  <IncomeEditRow key={row.id} row={row} onDone={() => setEditingId(null)} />
+                  <IncomeEditRow key={row.id} row={row} currencies={currencies} onDone={() => setEditingId(null)} />
                 ) : (
                   <IncomeRowView key={row.id} row={row} onEdit={() => setEditingId(row.id)} />
                 )

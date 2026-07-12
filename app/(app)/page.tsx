@@ -3,6 +3,7 @@ import { Glass } from "@/components/glass/Glass";
 import { AppIcon } from "@/components/ui/AppIcon";
 import { NetWorthHero } from "@/components/dashboard/NetWorthHero";
 import { CashFlowBars, SpendingDonut } from "@/components/charts/DashboardCharts";
+import { OnboardingModal } from "@/components/OnboardingModal";
 import { createClient } from "@/lib/supabase/server";
 import { fmtUsd } from "@/lib/format";
 
@@ -49,6 +50,9 @@ export default async function CommandDeckPage() {
     latestSnapshotRes,
     monthTxRes,
     monthIncomeRes,
+    onboardingRes,
+    txCountRes,
+    incomeCountRes,
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from("account_balance").select("current_balance").single(),
@@ -61,7 +65,13 @@ export default async function CommandDeckPage() {
     supabase.from("net_worth_snapshots").select("id").order("snapshot_date", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("transactions").select("amount_usd, necessity").gte("date", monthStart),
     supabase.from("income").select("amount_usd").gte("date", monthStart),
+    supabase.from("settings").select("onboarding_dismissed").single(),
+    supabase.from("transactions").select("id", { count: "exact", head: true }),
+    supabase.from("income").select("id", { count: "exact", head: true }),
   ]);
+
+  const showOnboarding =
+    !onboardingRes.data?.onboarding_dismissed && (txCountRes.count ?? 0) === 0 && (incomeCountRes.count ?? 0) === 0;
 
   const currentBalance = balanceRes.data?.current_balance ?? 0;
   const firstName = userRes.data.user?.email?.split("@")[0] ?? "there";
@@ -125,6 +135,8 @@ export default async function CommandDeckPage() {
 
   return (
     <div>
+      {showOnboarding && <OnboardingModal />}
+
       {/* Greeting */}
       <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
         <div>

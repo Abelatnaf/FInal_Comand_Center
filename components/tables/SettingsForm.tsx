@@ -6,7 +6,6 @@ import { updateSettings } from "@/app/(app)/settings/actions";
 import { DatePicker } from "@/components/ui/DatePicker";
 
 export type SettingsData = {
-  fx_rate: number;
   tracking_start_date: string;
 };
 
@@ -16,25 +15,6 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
   return (
     <Glass className="p-6 max-w-xl">
       <form action={formAction} className="flex flex-col gap-4">
-        <div>
-          <label className="stat-label block mb-1.5" htmlFor="fx_rate">
-            FX Rate — Secondary Currency per 1 USD
-          </label>
-          <input
-            id="fx_rate"
-            name="fx_rate"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={settings.fx_rate}
-            required
-            className="input w-full num"
-          />
-          <p className="text-text-dim text-xs mt-1.5">
-            Changing this only affects new transactions — past entries keep the rate they were logged at.
-          </p>
-        </div>
-
         <div>
           <label className="stat-label block mb-1.5" htmlFor="tracking_start_date">
             Start Date (Week 1)

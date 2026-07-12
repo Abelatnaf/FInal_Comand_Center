@@ -17,7 +17,7 @@ export default async function RecurringBillsPage() {
     <div>
       <PageHeader
         title="Recurring Bills"
-        subtitle="Monthly burn total, upcoming billing dates."
+        subtitle="Monthly burn total, upcoming billing dates. Active bills auto-post as a transaction on their billing day."
       />
       <RecurringBillsTable bills={bills ?? []} categories={categories ?? []} />
     </div>
