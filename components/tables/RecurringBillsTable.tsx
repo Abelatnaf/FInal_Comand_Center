@@ -213,7 +213,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
             ) : (
               bills.map((b) =>
                 editingId === b.id ? (
-                  <tr key={b.id} className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
+                  <tr key={b.id} className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
                     <td colSpan={7} className="py-3 px-2">
                       <BillForm
                         categories={categories}
@@ -225,7 +225,7 @@ export function RecurringBillsTable({ bills, categories }: { bills: BillRow[]; c
                     </td>
                   </tr>
                 ) : (
-                  <tr key={b.id} className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
+                  <tr key={b.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
                     <td className="py-2.5 px-2 text-text-dim">{b.name}</td>
                     <td className="py-2.5 px-2 text-text-dim">{b.categories?.name ?? "—"}</td>
                     <td className="py-2.5 px-2 text-right num">{fmtUsd(b.monthly_cost_usd)}</td>

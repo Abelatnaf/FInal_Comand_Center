@@ -1,49 +1,65 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Apple iOS design system — values taken from the Human
-   Interface Guidelines (dark appearance). See CLAUDE.md build log.
+   Apple-style light dashboard — values from the Human Interface
+   Guidelines (light appearance). See CLAUDE.md build log.
    ============================================================ */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* Grouped backgrounds (dark) */
-  --bg: #000000;              /* systemGroupedBackground */
-  --bg-elevated: #1c1c1e;     /* secondarySystemGroupedBackground — cards */
-  --bg-elevated-2: #2c2c2e;   /* tertiarySystemGroupedBackground — nested/inputs */
+  /* Backgrounds */
+  --bg: #f5f5f7;             /* page */
+  --bg-elevated: #ffffff;    /* cards */
+  --bg-elevated-2: #f2f2f7;  /* nested / inputs */
+  --bg-sidebar: #fbfbfd;
+  --bg-dark: #0b0b0c;        /* dark hero card */
 
-  /* System grays (dark) */
+  /* System grays (light) */
   --gray: #8e8e93;
-  --gray2: #636366;
-  --gray3: #48484a;
-  --gray4: #3a3a3c;
-  --gray5: #2c2c2e;
-  --gray6: #1c1c1e;
+  --gray2: #aeaeb2;
+  --gray3: #c7c7cc;
+  --gray4: #d1d1d6;
+  --gray5: #e5e5ea;
+  --gray6: #f2f2f7;
 
-  /* Labels — tinted white per iOS dark mode */
-  --label: #ffffff;
-  --label-secondary: rgba(235, 235, 245, 0.6);
-  --label-tertiary: rgba(235, 235, 245, 0.3);
-  --label-quaternary: rgba(235, 235, 245, 0.18);
+  /* Labels (light — near-black, not pure #000) */
+  --label: #1d1d1f;
+  --label-secondary: rgba(60, 60, 67, 0.6);
+  --label-tertiary: rgba(60, 60, 67, 0.3);
+  --label-quaternary: rgba(60, 60, 67, 0.18);
 
   /* Separators */
-  --separator: rgba(84, 84, 88, 0.65);
-  --separator-opaque: #38383a;
+  --separator: rgba(60, 60, 67, 0.14);
+  --separator-strong: rgba(60, 60, 67, 0.22);
+  --hairline: rgba(0, 0, 0, 0.06);
 
-  /* Fills (for controls: segmented tracks, switches-off, chips) */
-  --fill: rgba(120, 120, 128, 0.36);
-  --fill-secondary: rgba(120, 120, 128, 0.32);
-  --fill-tertiary: rgba(118, 118, 128, 0.24);
-  --fill-quaternary: rgba(118, 118, 128, 0.18);
+  /* Fills */
+  --fill: rgba(120, 120, 128, 0.2);
+  --fill-secondary: rgba(120, 120, 128, 0.16);
+  --fill-tertiary: rgba(118, 118, 128, 0.12);
+  --fill-quaternary: rgba(116, 116, 128, 0.08);
 
-  /* System colors (dark variants) */
-  --blue: #0a84ff;
-  --blue-hover: #409cff;
-  --cyan: #64d2ff;
-  --green: #30d158;
-  --red: #ff453a;
-  --indigo: #5e5ce6;
+  /* System colors (light variants) */
+  --blue: #007aff;
+  --blue-hover: #0071e3;
+  --green: #34c759;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --purple: #af52de;
+  --indigo: #5856d6;
+  --teal: #30b0c7;
+  --pink: #ff2d55;
+
+  /* Card shadow */
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.05);
+  --card-border: 1px solid var(--hairline);
+
+  /* Themed surfaces (flip in dark mode) */
+  --material-bg: rgba(255, 255, 255, 0.72);
+  --hero-bg: #0b0b0c;
+  --badge-bg: rgba(52, 199, 89, 0.16);
+  --badge-fg: #248a3d;
 
   /* Aliases kept so existing markup keeps working */
   --surface: var(--bg-elevated);
@@ -51,19 +67,16 @@
   --divider: var(--separator);
   --accent: var(--blue);
   --accent-bright: var(--blue-hover);
-  --accent-dim: #0060c0;
   --text: var(--label);
   --text-dim: var(--label-secondary);
   --text-faint: var(--label-tertiary);
 
-  /* SF system fonts — resolve to SF Pro / SF Mono on Apple platforms */
   --font-body:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial,
     sans-serif;
   --font-display:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial,
     sans-serif;
-  --font-rounded: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, monospace;
 }
 
@@ -92,7 +105,7 @@ select {
 
 html {
   background: var(--bg);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -101,7 +114,7 @@ body {
   font-family: var(--font-body);
   font-size: 17px;
   line-height: 1.29;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.012em;
   min-height: 100vh;
   position: relative;
   text-rendering: optimizeLegibility;
@@ -124,10 +137,10 @@ body {
 
 .ios-large-title {
   font-family: var(--font-display);
-  font-size: 34px;
-  line-height: 1.06;
+  font-size: 32px;
+  line-height: 1.08;
   font-weight: 700;
-  letter-spacing: -0.022em;
+  letter-spacing: -0.024em;
   color: var(--label);
 }
 
@@ -136,16 +149,16 @@ body {
   font-size: 22px;
   line-height: 1.18;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.021em;
   color: var(--label);
 }
 
 .ios-title3 {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.2;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.019em;
   color: var(--label);
 }
 
@@ -153,13 +166,13 @@ body {
   font-size: 17px;
   line-height: 1.29;
   font-weight: 600;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.014em;
   color: var(--label);
 }
 
 .ios-body {
-  font-size: 17px;
-  line-height: 1.29;
+  font-size: 16px;
+  line-height: 1.31;
   font-weight: 400;
   letter-spacing: -0.012em;
 }
@@ -183,12 +196,10 @@ body {
   font-weight: 400;
 }
 
-/* Grouped-list section header — uppercase footnote in secondaryLabel */
 .section-header {
   font-size: 13px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: -0.006em;
   color: var(--label-secondary);
 }
 
@@ -200,50 +211,58 @@ h3,
   letter-spacing: -0.02em;
 }
 
-/* Money and any aligned digits: tabular SF (never SF Mono) */
 .num {
-  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-/* ---------- Cards: solid grouped surfaces ---------- */
+/* semantic money helpers */
+.pos {
+  color: var(--green);
+}
+.neg {
+  color: var(--red);
+}
+
+/* ---------- Cards ---------- */
 
 .glass {
   position: relative;
   background: var(--bg-elevated);
-  border-radius: 16px;
+  border-radius: 18px;
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
 }
 
-/* Nested/inset tier (rows, secondary panels) */
 .glass-dense {
   background: var(--bg-elevated-2);
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
-/* Blur "material" — only for overlay chrome (tab bar, sheets, modals) */
+/* Frosted "liquid glass" overlay chrome (tab bar, top bar, sheets) */
 .material {
-  background: rgba(30, 30, 32, 0.72);
-  backdrop-filter: blur(30px) saturate(1.6);
-  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  background: var(--material-bg);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
 }
 
-/* Command Deck balance hero — elevated card with a soft tint bloom */
+/* The dark hero card (Net Worth) */
 .ledger {
   position: relative;
   background:
-    radial-gradient(130% 130% at 0% 0%, rgba(10, 132, 255, 0.22), transparent 55%),
-    var(--bg-elevated);
+    radial-gradient(120% 140% at 100% 0%, rgba(94, 92, 230, 0.28), transparent 55%),
+    var(--hero-bg);
   border-radius: 20px;
   overflow: hidden;
-  color: var(--label);
+  color: #ffffff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
 }
 
 /* ---------- Small helpers ---------- */
 
 .eyebrow {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 400;
   letter-spacing: -0.006em;
   color: var(--label-secondary);
@@ -271,7 +290,7 @@ h3,
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.022em;
+  letter-spacing: -0.024em;
   color: var(--label);
   font-variant-numeric: tabular-nums;
 }
@@ -279,14 +298,14 @@ h3,
 .hero-value {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 52px;
+  font-size: 44px;
   line-height: 1.02;
   letter-spacing: -0.03em;
-  color: var(--label);
+  color: #ffffff;
   font-variant-numeric: tabular-nums;
 }
 
-/* Status pill (kept subtle) */
+/* Status pill */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -296,8 +315,8 @@ h3,
   letter-spacing: -0.006em;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(10, 132, 255, 0.16);
-  color: var(--blue-hover);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
   border: none;
   width: fit-content;
 }
@@ -307,13 +326,13 @@ h3,
   color: var(--label-secondary);
 }
 
-/* ---------- Progress bar (flat iOS tint) ---------- */
+/* ---------- Progress ---------- */
 
 .liquid-track {
   position: relative;
   height: 6px;
   border-radius: 999px;
-  background: var(--fill-tertiary);
+  background: var(--gray5);
   overflow: hidden;
 }
 
@@ -324,7 +343,7 @@ h3,
   background: var(--blue);
 }
 
-/* ---------- iOS switch (native checkbox restyled) ---------- */
+/* ---------- iOS switch ---------- */
 
 .ios-switch {
   appearance: none;
@@ -333,7 +352,7 @@ h3,
   width: 51px;
   height: 31px;
   border-radius: 999px;
-  background: var(--fill-secondary);
+  background: var(--gray5);
   position: relative;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -369,17 +388,17 @@ h3,
 /* ---------- Segmented control ---------- */
 
 .segmented {
-  display: flex;
+  display: inline-flex;
   padding: 2px;
   gap: 0;
-  background: var(--fill-quaternary);
+  background: var(--fill-tertiary);
   border-radius: 9px;
 }
 
 .segmented > * {
   flex: 1;
   text-align: center;
-  padding: 6px 0;
+  padding: 5px 12px;
   border-radius: 7px;
   font-size: 13px;
   font-weight: 600;
@@ -387,15 +406,29 @@ h3,
   color: var(--label);
   transition: background 0.2s ease;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .segmented > [data-active="true"] {
-  background: var(--gray2);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.16);
+  background: var(--bg-elevated);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .segmented > [data-active="false"] {
   color: var(--label-secondary);
+}
+
+/* dark variant used inside the dark hero */
+.segmented-dark {
+  background: rgba(255, 255, 255, 0.1);
+}
+.segmented-dark > * {
+  color: rgba(255, 255, 255, 0.55);
+}
+.segmented-dark > [data-active="true"] {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  box-shadow: none;
 }
 
 /* ---------- Forms ---------- */
@@ -403,12 +436,12 @@ h3,
 .input,
 .select {
   background: var(--bg-elevated-2);
-  border: none;
+  border: 1px solid var(--separator);
   border-radius: 10px;
   color: var(--label);
   font-family: var(--font-body);
-  padding: 11px 12px;
-  font-size: 17px;
+  padding: 10px 12px;
+  font-size: 16px;
   letter-spacing: -0.012em;
 }
 
@@ -417,7 +450,8 @@ h3,
 button:focus-visible,
 a:focus-visible {
   outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  outline-offset: 1px;
+  border-color: transparent;
 }
 
 .input::placeholder {
@@ -426,7 +460,6 @@ a:focus-visible {
 
 /* ---------- Buttons ---------- */
 
-/* Tinted (secondary action) */
 .btn {
   font-family: var(--font-body);
   font-weight: 600;
@@ -435,14 +468,14 @@ a:focus-visible {
   padding: 9px 16px;
   border-radius: 12px;
   border: none;
-  background: rgba(10, 132, 255, 0.15);
-  color: var(--blue-hover);
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--blue);
   transition: opacity 0.15s ease, background 0.15s ease;
   cursor: pointer;
 }
 
 .btn:hover {
-  background: rgba(10, 132, 255, 0.22);
+  background: rgba(0, 122, 255, 0.16);
 }
 
 .btn:active {
@@ -453,7 +486,6 @@ a:focus-visible {
   opacity: 0.4;
 }
 
-/* Filled (primary action) */
 .btn-primary {
   background: var(--blue);
   color: #ffffff;
@@ -462,18 +494,17 @@ a:focus-visible {
 }
 
 .btn-primary:hover {
-  background: var(--blue);
+  background: var(--blue-hover);
 }
 
 .btn-primary:active {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
-/* Plain text actions */
 .link-action {
   color: var(--blue);
   font-size: 15px;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: -0.012em;
   cursor: pointer;
   transition: opacity 0.15s ease;
@@ -486,7 +517,7 @@ a:focus-visible {
 .link-destructive {
   color: var(--red);
   font-size: 15px;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: -0.012em;
   cursor: pointer;
   transition: opacity 0.15s ease;
@@ -494,4 +525,213 @@ a:focus-visible {
 
 .link-destructive:active {
   opacity: 0.5;
+}
+
+/* ---------- Colored app-style icon badge ---------- */
+
+.app-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: #fff;
+}
+
+/* ============================================================
+   Dark appearance — applied via [data-theme="dark"], or by the
+   system preference unless the user forced light.
+   ============================================================ */
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-elevated: #1c1c1e;
+  --bg-elevated-2: #2c2c2e;
+  --bg-sidebar: #000000;
+  --bg-dark: #1c1c1e;
+
+  --gray: #8e8e93;
+  --gray2: #636366;
+  --gray3: #48484a;
+  --gray4: #3a3a3c;
+  --gray5: #2c2c2e;
+  --gray6: #1c1c1e;
+
+  --label: #ffffff;
+  --label-secondary: rgba(235, 235, 245, 0.6);
+  --label-tertiary: rgba(235, 235, 245, 0.3);
+  --label-quaternary: rgba(235, 235, 245, 0.18);
+
+  --separator: rgba(84, 84, 88, 0.6);
+  --separator-strong: rgba(84, 84, 88, 0.75);
+  --hairline: rgba(255, 255, 255, 0.08);
+
+  --fill: rgba(120, 120, 128, 0.36);
+  --fill-secondary: rgba(120, 120, 128, 0.32);
+  --fill-tertiary: rgba(118, 118, 128, 0.24);
+  --fill-quaternary: rgba(118, 118, 128, 0.18);
+
+  --blue: #0a84ff;
+  --blue-hover: #409cff;
+  --green: #30d158;
+  --red: #ff453a;
+  --orange: #ff9f0a;
+  --purple: #bf5af2;
+  --indigo: #5e5ce6;
+  --teal: #64d2ff;
+  --pink: #ff375f;
+
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --material-bg: rgba(30, 30, 32, 0.72);
+  --hero-bg: #1c1c1e;
+  --badge-bg: rgba(48, 209, 88, 0.18);
+  --badge-fg: #30d158;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #000000;
+    --bg-elevated: #1c1c1e;
+    --bg-elevated-2: #2c2c2e;
+    --bg-sidebar: #000000;
+    --bg-dark: #1c1c1e;
+
+    --gray: #8e8e93;
+    --gray2: #636366;
+    --gray3: #48484a;
+    --gray4: #3a3a3c;
+    --gray5: #2c2c2e;
+    --gray6: #1c1c1e;
+
+    --label: #ffffff;
+    --label-secondary: rgba(235, 235, 245, 0.6);
+    --label-tertiary: rgba(235, 235, 245, 0.3);
+    --label-quaternary: rgba(235, 235, 245, 0.18);
+
+    --separator: rgba(84, 84, 88, 0.6);
+    --separator-strong: rgba(84, 84, 88, 0.75);
+    --hairline: rgba(255, 255, 255, 0.08);
+
+    --fill: rgba(120, 120, 128, 0.36);
+    --fill-secondary: rgba(120, 120, 128, 0.32);
+    --fill-tertiary: rgba(118, 118, 128, 0.24);
+    --fill-quaternary: rgba(118, 118, 128, 0.18);
+
+    --blue: #0a84ff;
+    --blue-hover: #409cff;
+    --green: #30d158;
+    --red: #ff453a;
+    --orange: #ff9f0a;
+    --purple: #bf5af2;
+    --indigo: #5e5ce6;
+    --teal: #64d2ff;
+    --pink: #ff375f;
+
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --material-bg: rgba(30, 30, 32, 0.72);
+    --hero-bg: #1c1c1e;
+    --badge-bg: rgba(48, 209, 88, 0.18);
+    --badge-fg: #30d158;
+  }
+}
+
+/* ---------- Bubbly Apple date picker ---------- */
+
+.datefield {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cal-pop {
+  background: var(--material-bg);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
+  padding: 14px;
+  width: 300px;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--label);
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.1s ease;
+}
+
+.cal-cell:hover {
+  background: var(--fill-tertiary);
+}
+
+.cal-cell:active {
+  transform: scale(0.9);
+}
+
+.cal-cell[data-muted="true"] {
+  color: var(--label-tertiary);
+}
+
+.cal-cell[data-today="true"] {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.cal-cell[data-selected="true"] {
+  background: var(--blue);
+  color: #fff;
+  font-weight: 600;
+}
+
+.cal-dow {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--label-tertiary);
+  text-align: center;
+  padding-bottom: 4px;
+}
+
+.cal-nav {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--blue);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.cal-nav:hover {
+  background: var(--fill-tertiary);
+}
+
+/* The trigger button shows its value/placeholder; keep it looking like an input */
+.datefield {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.datefield[data-empty="true"] {
+  color: var(--label-tertiary);
 }

@@ -1,20 +1,26 @@
 import { PageHeader } from "@/components/glass/Glass";
-import { SettingsForm } from "@/components/tables/SettingsForm";
+import { SettingsShell } from "@/components/settings/SettingsShell";
 import { createClient } from "@/lib/supabase/server";
+import { signOut } from "../actions";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  const { data: settings } = await supabase
-    .from("settings")
-    .select("fx_rate, matriculation_date, starting_sofi, starting_ally, starting_cash")
-    .eq("id", 1)
-    .single();
+  const [{ data: settings }, { data: userData }] = await Promise.all([
+    supabase
+      .from("settings")
+      .select("fx_rate, matriculation_date, starting_sofi, starting_ally, starting_cash")
+      .eq("id", 1)
+      .single(),
+    supabase.auth.getUser(),
+  ]);
 
   return (
     <div>
-      <PageHeader eyebrow="VMI FINANCE" title="Settings" subtitle="FX rate, matriculation date, starting balances." />
-      <SettingsForm
+      <PageHeader title="Settings" subtitle="Appearance, FX rate, matriculation date, and balances." />
+      <SettingsShell
+        email={userData?.user?.email ?? null}
+        onSignOut={signOut}
         settings={
           settings ?? {
             fx_rate: 180,

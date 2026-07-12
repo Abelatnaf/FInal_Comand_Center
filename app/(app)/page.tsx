@@ -1,5 +1,8 @@
+import Link from "next/link";
 import { Glass } from "@/components/glass/Glass";
-import { StatCard } from "@/components/glass/StatCard";
+import { AppIcon } from "@/components/ui/AppIcon";
+import { NetWorthHero } from "@/components/dashboard/NetWorthHero";
+import { CashFlowBars, SpendingDonut } from "@/components/charts/DashboardCharts";
 import { createClient } from "@/lib/supabase/server";
 import { fmtUsd } from "@/lib/format";
 
@@ -7,32 +10,25 @@ function startOfMonthIso() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 }
+function shortMonth(iso: string) {
+  return new Date(iso + (iso.length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-US", { month: "short" });
+}
+function shortDay(iso: string) {
+  return new Date(iso + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
-const FALL_TICKS = ["Matriculation", "Rat Orientation", "Thanksgiving", "Fall Finals"];
-const SPRING_TICKS = ["Spring Begins", "Spring Furlough", "Spring Exams", "New Market Day"];
+const DONUT_COLORS = ["#007aff", "#34c759", "#ff9500", "#af52de", "#ff2d55", "#30b0c7", "#5856d6", "#ff3b30", "#8e8e93", "#a2845e"];
 
-function InsetList({
-  rows,
-}: {
-  rows: { key: string | number; label: string; values: string[] }[];
-}) {
+function MiniRing({ pct, color = "#34c759" }: { pct: number; color?: string }) {
+  const c = 2 * Math.PI * 15;
+  const off = c * (1 - Math.min(100, Math.max(0, pct)) / 100);
   return (
-    <div className="glass px-1.5 py-1">
-      {rows.map((row, i) => (
-        <div key={row.key}>
-          {i > 0 && <div className="h-px bg-[var(--separator)] ml-3.5" />}
-          <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
-            <span className="ios-subhead text-text">{row.label}</span>
-            <span className="flex gap-6">
-              {row.values.map((v, vi) => (
-                <span key={vi} className="ios-subhead num text-text-dim min-w-[64px] text-right">
-                  {v}
-                </span>
-              ))}
-            </span>
-          </div>
-        </div>
-      ))}
+    <div className="relative w-11 h-11 shrink-0">
+      <svg width="44" height="44" viewBox="0 0 40 40" className="-rotate-90">
+        <circle cx="20" cy="20" r="15" fill="none" stroke="var(--gray5)" strokeWidth="4" />
+        <circle cx="20" cy="20" r="15" fill="none" stroke={color} strokeWidth="4" strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round" />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center text-[11px] font-semibold num">{Math.round(pct)}%</div>
     </div>
   );
 }
@@ -44,30 +40,39 @@ export default async function CommandDeckPage() {
   const [
     settingsRes,
     balanceRes,
+    monthlyRes,
+    weeklyRes,
     budgetRes,
-    categoryRes,
-    semestersRes,
     recurringRes,
-    savingsRes,
+    goalsRes,
+    snapshotRes,
     monthTxRes,
     monthIncomeRes,
   ] = await Promise.all([
     supabase.from("settings").select("*").eq("id", 1).single(),
     supabase.from("account_balance").select("current_balance").single(),
+    supabase.from("monthly_rollup").select("month, running_balance").order("month"),
+    supabase.from("weekly_rollup").select("week_start, total_income, total_expenses").order("cadet_week").limit(12),
     supabase.from("budget_vs_actual_this_month").select("*").order("sort_order"),
-    supabase.from("life_to_date_spend_by_category").select("*").order("sort_order"),
-    supabase.from("semester_pacing").select("*").order("start_date"),
-    supabase.from("recurring_bills").select("monthly_cost_usd").eq("active", true),
-    supabase.from("savings_goals").select("saved_so_far_usd"),
+    supabase.from("recurring_bills").select("id, name, monthly_cost_usd, billing_day").eq("active", true),
+    supabase.from("savings_goal_progress").select("*").order("target_date").limit(4),
+    supabase.from("net_worth_snapshots").select("*").order("snapshot_date", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("transactions").select("amount_usd, necessity").gte("date", monthStart),
     supabase.from("income").select("amount_usd").gte("date", monthStart),
   ]);
 
   const settings = settingsRes.data;
   const currentBalance = balanceRes.data?.current_balance ?? 0;
-  const budgetRows = budgetRes.data ?? [];
-  const categoryRows = categoryRes.data ?? [];
-  const semesters = semestersRes.data ?? [];
+
+  const series = (monthlyRes.data ?? [])
+    .filter((r) => r.month && r.running_balance !== null)
+    .map((r) => ({ label: shortMonth(r.month!), value: r.running_balance ?? 0 }));
+
+  const cashFlow = (weeklyRes.data ?? []).map((r) => ({
+    label: r.week_start ? shortDay(r.week_start) : "",
+    income: r.total_income ?? 0,
+    expense: r.total_expenses ?? 0,
+  }));
 
   const thisMonthSpent = (monthTxRes.data ?? []).reduce((s, t) => s + (t.amount_usd ?? 0), 0);
   const thisMonthDiscretionary = (monthTxRes.data ?? [])
@@ -75,138 +80,225 @@ export default async function CommandDeckPage() {
     .reduce((s, t) => s + (t.amount_usd ?? 0), 0);
   const thisMonthIncome = (monthIncomeRes.data ?? []).reduce((s, i) => s + (i.amount_usd ?? 0), 0);
   const netThisMonth = thisMonthIncome - thisMonthSpent;
+  const discretionaryShare = thisMonthSpent > 0 ? Math.round((thisMonthDiscretionary / thisMonthSpent) * 100) : 0;
 
-  const monthlyBurn = (recurringRes.data ?? []).reduce((s, b) => s + b.monthly_cost_usd, 0);
-  const totalSaved = (savingsRes.data ?? []).reduce((s, g) => s + g.saved_so_far_usd, 0);
-  const discretionaryPercent = thisMonthSpent > 0 ? Math.round((thisMonthDiscretionary / thisMonthSpent) * 100) : 0;
+  const donut = (budgetRes.data ?? [])
+    .map((r, i) => ({ name: r.category ?? "—", value: r.actual ?? 0, color: DONUT_COLORS[i % DONUT_COLORS.length] }))
+    .filter((d) => d.value > 0)
+    .sort((a, b) => b.value - a.value);
+  const donutTotal = donut.reduce((s, d) => s + d.value, 0);
+
+  const snap = snapshotRes.data;
+  const accounts = [
+    { name: "SoFi", value: snap?.sofi_actual ?? settings?.starting_sofi ?? 0, color: "#007aff", glyph: "bank" as const },
+    { name: "Ally", value: snap?.ally_actual ?? settings?.starting_ally ?? 0, color: "#5856d6", glyph: "bank" as const },
+    { name: "Cash", value: snap?.cash_actual ?? settings?.starting_cash ?? 0, color: "#34c759", glyph: "cash" as const },
+  ];
+  const accountsTotal = accounts.reduce((s, a) => s + a.value, 0);
 
   const now = new Date();
-  const todayIso = now.toISOString().slice(0, 10);
-  const activeSemester = semesters.find((s) => todayIso >= s.start_date! && todayIso <= s.end_date!);
-  const semesterStatus = activeSemester?.status ?? "Off-Semester";
+  const today = now.getDate();
+  const upcoming = (recurringRes.data ?? [])
+    .filter((b) => b.billing_day)
+    .map((b) => {
+      const day = b.billing_day!;
+      const daysUntil = day >= today ? day - today : new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - today + day;
+      const dateObj = new Date(now.getFullYear(), now.getMonth() + (day >= today ? 0 : 1), day);
+      return { ...b, daysUntil, dateObj };
+    })
+    .sort((a, b) => a.daysUntil - b.daysUntil)
+    .slice(0, 4);
 
-  const matriculationDate = settings?.matriculation_date ? new Date(settings.matriculation_date) : null;
-  const cadetWeek = matriculationDate
-    ? Math.floor((now.getTime() - matriculationDate.getTime()) / (7 * 86400000)) + 1
-    : null;
+  const goals = goalsRes.data ?? [];
 
-  const totalWeeksInSemester = activeSemester ? Math.ceil((activeSemester.total_days ?? 0) / 7) : null;
-  const weekOfSemester = activeSemester ? Math.floor((activeSemester.elapsed_days ?? 0) / 7) + 1 : null;
-  const progressPercent = activeSemester?.elapsed_percent ?? 0;
-  const ticks = activeSemester?.name === "Spring 2027" ? SPRING_TICKS : FALL_TICKS;
-
-  const ringCircumference = 238.7;
-  const ringOffset = ringCircumference * (1 - discretionaryPercent / 100);
+  const hour = now.getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const dateLabel = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
   return (
     <div>
-      <h1 className="ios-large-title">Command Deck</h1>
-      <div className="eyebrow mt-1.5 mb-7">
-        <span className="dot" />
-        {activeSemester?.name ?? "Off-Semester"}
-        {cadetWeek !== null ? ` · Cadet Week ${cadetWeek}${totalWeeksInSemester ? ` of ${totalWeeksInSemester}` : ""}` : ""}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-        <div className="ledger md:col-span-8 p-7 flex flex-col justify-between min-h-[196px]">
-          <div>
-            <div className="stat-label">Current Balance</div>
-            <div className="hero-value mt-1">{fmtUsd(currentBalance)}</div>
-          </div>
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-[var(--separator)]">
-            <div>
-              <div className="stat-label !text-[12px]">FX Rate</div>
-              <div className="num text-[15px] font-semibold mt-0.5">{settings?.fx_rate ?? "—"} ETB/USD</div>
-            </div>
-            <div>
-              <div className="stat-label !text-[12px]">Monthly Burn</div>
-              <div className="num text-[15px] font-semibold mt-0.5">{fmtUsd(monthlyBurn)}</div>
-            </div>
-            <div>
-              <div className="stat-label !text-[12px]">Semester</div>
-              <div className="text-[15px] font-semibold mt-0.5">{semesterStatus}</div>
-            </div>
-          </div>
-        </div>
-
-        <StatCard
-          label="This month income"
-          value={fmtUsd(thisMonthIncome)}
-          delta="Auto-converted from ETB"
-          badge={netThisMonth >= 0 ? "↑ Net positive" : "↓ Net negative"}
-          className="md:col-span-4"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-        <StatCard label="This month spent" value={fmtUsd(thisMonthSpent)} size="small" className="md:col-span-3" />
-        <StatCard label="Total saved" value={fmtUsd(totalSaved)} size="small" className="md:col-span-3" />
-        <Glass className="md:col-span-6 p-6 flex items-center gap-5">
-          <div className="relative w-[84px] h-[84px] shrink-0">
-            <svg width="84" height="84" viewBox="0 0 88 88" className="-rotate-90">
-              <circle cx="44" cy="44" r="38" fill="none" stroke="var(--fill-tertiary)" strokeWidth="8" />
-              <circle
-                cx="44"
-                cy="44"
-                r="38"
-                fill="none"
-                stroke="var(--blue)"
-                strokeWidth="8"
-                strokeDasharray={ringCircumference}
-                strokeDashoffset={ringOffset}
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center num text-lg font-semibold text-tint">
-              {discretionaryPercent}%
-            </div>
-          </div>
-          <div>
-            <div className="ios-headline">Discretionary spend</div>
-            <div className="stat-label mt-1 num">{fmtUsd(thisMonthDiscretionary)} this month</div>
-          </div>
-        </Glass>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      {/* Greeting */}
+      <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
         <div>
-          <div className="section-header mb-2 ml-1">Budget vs Actual — This Month</div>
-          <InsetList
-            rows={budgetRows.map((row) => ({
-              key: row.category_id ?? row.category ?? "",
-              label: row.category ?? "—",
-              values: [fmtUsd(row.budget ?? 0), fmtUsd(row.actual ?? 0)],
-            }))}
-          />
+          <h1 className="ios-large-title">{greeting}, Abel.</h1>
+          <p className="ios-subhead text-text-dim mt-1">Here&apos;s your financial overview for today.</p>
         </div>
-        <div>
-          <div className="section-header mb-2 ml-1">Life-to-Date Spend by Category</div>
-          <InsetList
-            rows={categoryRows.map((row) => ({
-              key: row.category_id ?? row.category ?? "",
-              label: row.category ?? "—",
-              values: [fmtUsd(row.total ?? 0)],
-            }))}
-          />
-        </div>
+        <p className="ios-subhead text-text-dim mt-2">{dateLabel}</p>
       </div>
 
-      <Glass className="p-6">
-        <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-          <div className="ios-headline">Cadet Week Progress</div>
-          <div className="ios-subhead text-text-dim num">
-            Week {weekOfSemester ?? "—"} of {totalWeeksInSemester ?? "—"}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left column */}
+        <div className="lg:col-span-2 flex flex-col gap-5">
+          <NetWorthHero balance={currentBalance} series={series} />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Cash flow */}
+            <Glass className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="ios-headline">Cash Flow</div>
+                  <div className="stat-label">This Month</div>
+                </div>
+                <div className="flex gap-3 items-center text-[12px]">
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "#34c759" }} />Income</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: "#ff3b30" }} />Expenses</span>
+                </div>
+              </div>
+              <div className="flex gap-6 mt-3">
+                <div>
+                  <div className="stat-label">Income</div>
+                  <div className="text-[18px] font-semibold num pos">{fmtUsd(thisMonthIncome)}</div>
+                </div>
+                <div>
+                  <div className="stat-label">Expenses</div>
+                  <div className="text-[18px] font-semibold num neg">{fmtUsd(thisMonthSpent)}</div>
+                </div>
+                <div>
+                  <div className="stat-label">Net</div>
+                  <div className="text-[18px] font-semibold num">{fmtUsd(netThisMonth)}</div>
+                </div>
+              </div>
+              <div className="h-[150px] mt-3">
+                <CashFlowBars data={cashFlow} />
+              </div>
+            </Glass>
+
+            {/* Spending breakdown */}
+            <Glass className="p-5">
+              <div className="flex items-center justify-between mb-1">
+                <div>
+                  <div className="ios-headline">Spending</div>
+                  <div className="stat-label">This Month</div>
+                </div>
+                <Link href="/monthly-rollup" className="link-action text-[13px]">
+                  Details
+                </Link>
+              </div>
+              <SpendingDonut data={donut} centerLabel="Total" centerValue={fmtUsd(donutTotal)} />
+              <div className="flex flex-col gap-1.5 mt-2">
+                {donut.slice(0, 4).map((d) => (
+                  <div key={d.name} className="flex items-center gap-2 text-[13px]">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
+                    <span className="text-text truncate flex-1">{d.name}</span>
+                    <span className="num text-text-dim">{fmtUsd(d.value)}</span>
+                  </div>
+                ))}
+                {donut.length === 0 && <div className="stat-label text-center py-2">No spending logged yet.</div>}
+              </div>
+            </Glass>
           </div>
+
+          {/* Goals */}
+          <Glass className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="ios-headline">Savings Goals</div>
+              <Link href="/savings-goals" className="link-action text-[13px]">
+                View All
+              </Link>
+            </div>
+            {goals.length === 0 ? (
+              <div className="stat-label py-2">No savings goals yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {goals.map((g, i) => (
+                  <div key={g.id} className="flex items-center gap-3">
+                    <MiniRing pct={g.percent_complete ?? 0} color={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                    <div className="min-w-0">
+                      <div className="ios-subhead text-text font-medium truncate">{g.name}</div>
+                      <div className="stat-label num">
+                        {fmtUsd(g.saved_so_far_usd ?? 0)} of {fmtUsd(g.target_amount_usd ?? 0)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Glass>
         </div>
-        <div className="liquid-track">
-          <div className="liquid-fill" style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }} />
+
+        {/* Right column */}
+        <div className="flex flex-col gap-5">
+          {/* Accounts */}
+          <Glass className="p-5">
+            <div className="flex items-center justify-between">
+              <div className="ios-headline">Accounts</div>
+              <Link href="/net-worth" className="link-action text-[13px]">
+                View All
+              </Link>
+            </div>
+            <div className="stat-label mt-2">Total Balance</div>
+            <div className="text-[26px] font-bold num tracking-tight mb-3">{fmtUsd(accountsTotal)}</div>
+            <div className="flex flex-col">
+              {accounts.map((a, i) => (
+                <div key={a.name}>
+                  {i > 0 && <div className="h-px bg-[var(--separator)] ml-[46px]" />}
+                  <div className="flex items-center gap-3 py-2.5">
+                    <AppIcon glyph={a.glyph} color={a.color} />
+                    <span className="ios-subhead text-text font-medium flex-1">{a.name}</span>
+                    <span className="num ios-subhead">{fmtUsd(a.value)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Glass>
+
+          {/* Upcoming */}
+          <Glass className="p-5">
+            <div className="ios-headline mb-2">Upcoming</div>
+            {upcoming.length === 0 ? (
+              <div className="stat-label py-2">Nothing scheduled.</div>
+            ) : (
+              <div className="flex flex-col">
+                {upcoming.map((b, i) => (
+                  <div key={b.id}>
+                    {i > 0 && <div className="h-px bg-[var(--separator)] ml-[52px]" />}
+                    <div className="flex items-center gap-3 py-2.5">
+                      <div className="w-10 h-11 rounded-[10px] bg-[var(--bg-elevated-2)] flex flex-col items-center justify-center shrink-0">
+                        <span className="text-[9px] font-semibold uppercase text-text-dim leading-none">{shortMonth(b.dateObj.toISOString())}</span>
+                        <span className="text-[16px] font-bold leading-tight num">{b.dateObj.getDate()}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="ios-subhead text-text font-medium truncate">{b.name}</div>
+                        <div className="stat-label num">{fmtUsd(b.monthly_cost_usd)}</div>
+                      </div>
+                      <div className="stat-label whitespace-nowrap">
+                        {b.daysUntil === 0 ? "Today" : `In ${b.daysUntil} day${b.daysUntil === 1 ? "" : "s"}`}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Glass>
+
+          {/* Insights */}
+          <Glass className="p-5">
+            <div className="ios-headline mb-3">Insights</div>
+            <div className="flex flex-col gap-3.5">
+              <div className="flex items-start gap-3">
+                <AppIcon glyph="sparkle" color="#af52de" size={30} />
+                <div className="ios-subhead text-text">
+                  {netThisMonth >= 0 ? "You're net positive" : "You're net negative"} this month by{" "}
+                  <span className="font-semibold num">{fmtUsd(Math.abs(netThisMonth))}</span>.
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <AppIcon glyph="chart" color="#34c759" size={30} />
+                <div className="ios-subhead text-text">
+                  <span className="font-semibold num">{discretionaryShare}%</span> of this month&apos;s spending was
+                  discretionary.
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <AppIcon glyph="cash" color="#ff9500" size={30} />
+                <div className="ios-subhead text-text">
+                  Your recurring burn is <span className="font-semibold num">{fmtUsd((recurringRes.data ?? []).reduce((s, b) => s + b.monthly_cost_usd, 0))}</span> / month.
+                </div>
+              </div>
+            </div>
+          </Glass>
         </div>
-        <div className="flex justify-between mt-3 text-[11px] text-text-faint">
-          {ticks.map((t) => (
-            <span key={t}>{t}</span>
-          ))}
-        </div>
-      </Glass>
+      </div>
     </div>
   );
 }

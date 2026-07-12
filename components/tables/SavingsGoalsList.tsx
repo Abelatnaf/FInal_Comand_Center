@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
 import { fmtUsd } from "@/lib/format";
 import { addSavingsGoal, updateSavingsGoal, deleteSavingsGoal } from "@/app/(app)/savings-goals/actions";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export type GoalRow = {
   id: string;
@@ -45,9 +46,9 @@ function GoalForm({
           className="input !py-1.5 !px-2 text-sm num"
         />
       </div>
-      <div>
+      <div className="w-36">
         <label className="stat-label block mb-1 text-[10px]">Target Date</label>
-        <input name="target_date" type="date" defaultValue={defaults?.target_date ?? ""} className="input !py-1.5 !px-2 text-sm" />
+        <DatePicker name="target_date" defaultValue={defaults?.target_date ?? ""} placeholder="Optional" className="!py-1.5 !px-2 text-sm" />
       </div>
       <div className="w-28">
         <label className="stat-label block mb-1 text-[10px]">Saved So Far</label>

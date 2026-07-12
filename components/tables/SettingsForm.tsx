@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Glass } from "@/components/glass/Glass";
 import { updateSettings } from "@/app/(app)/settings/actions";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export type SettingsData = {
   fx_rate: number;
@@ -41,13 +42,12 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
           <label className="stat-label block mb-1.5" htmlFor="matriculation_date">
             Matriculation Date (Cadet Week 1 start)
           </label>
-          <input
+          <DatePicker
             id="matriculation_date"
             name="matriculation_date"
-            type="date"
             defaultValue={settings.matriculation_date}
             required
-            className="input w-full"
+            className="w-full"
           />
         </div>
 

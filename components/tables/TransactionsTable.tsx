@@ -6,6 +6,7 @@ import { fmtUsd } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { updateTransaction, deleteTransaction } from "@/app/(app)/transactions/actions";
 import { PAYMENT_METHODS } from "@/lib/constants";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 type Category = { id: number; name: string };
 
@@ -38,12 +39,12 @@ function TransactionEditRow({ tx, categories, onDone }: { tx: TransactionRow; ca
   }
 
   return (
-    <tr className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
+    <tr className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
       <td colSpan={8} className="py-3 px-2">
         <form action={handleSave} className="flex flex-wrap gap-2 items-end">
-          <div>
+          <div className="w-36">
             <label className="stat-label block mb-1 text-[10px]">Date</label>
-            <input name="date" type="date" defaultValue={tx.date} required className="input !py-1.5 !px-2 text-sm" />
+            <DatePicker name="date" defaultValue={tx.date} required className="!py-1.5 !px-2 text-sm" />
           </div>
           <div>
             <label className="stat-label block mb-1 text-[10px]">Category</label>
@@ -130,7 +131,7 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
   }
 
   return (
-    <tr className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
+    <tr className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{tx.date}</td>
       <td className="py-2.5 px-2 num text-xs text-text-dim">{tx.cadet_week ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{tx.categories?.name ?? "—"}</td>
@@ -226,13 +227,13 @@ export function TransactionsTable({
             <option value="Discretionary">Discretionary</option>
           </select>
         </div>
-        <div>
+        <div className="w-40">
           <label className="stat-label block mb-1 text-xs">From</label>
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="input text-sm" />
+          <DatePicker value={dateFrom} onChange={setDateFrom} placeholder="Any" className="text-sm" />
         </div>
-        <div>
+        <div className="w-40">
           <label className="stat-label block mb-1 text-xs">To</label>
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="input text-sm" />
+          <DatePicker value={dateTo} onChange={setDateTo} placeholder="Any" className="text-sm" />
         </div>
         <button onClick={exportCsv} className="btn text-sm ml-auto">
           Export CSV

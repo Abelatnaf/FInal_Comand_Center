@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
 import { fmtUsd } from "@/lib/format";
 import { addNetWorthSnapshot, updateNetWorthSnapshot, deleteNetWorthSnapshot } from "@/app/(app)/net-worth/actions";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 export type SnapshotRow = {
   id: string;
@@ -30,9 +31,9 @@ function SnapshotForm({
 }) {
   return (
     <form action={onSubmit} className="flex flex-wrap gap-2 items-end">
-      <div>
+      <div className="w-36">
         <label className="stat-label block mb-1 text-[10px]">Date</label>
-        <input name="snapshot_date" type="date" defaultValue={defaults?.snapshot_date ?? ""} required className="input !py-1.5 !px-2 text-sm" />
+        <DatePicker name="snapshot_date" defaultValue={defaults?.snapshot_date ?? ""} required className="!py-1.5 !px-2 text-sm" />
       </div>
       <div className="w-24">
         <label className="stat-label block mb-1 text-[10px]">SoFi</label>
@@ -141,13 +142,13 @@ export function NetWorthTable({ snapshots }: { snapshots: SnapshotRow[] }) {
           ) : (
             snapshots.map((s) =>
               editingId === s.id ? (
-                <tr key={s.id} className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
+                <tr key={s.id} className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
                   <td colSpan={9} className="py-3 px-2">
                     <SnapshotForm defaults={s} onSubmit={(fd) => handleUpdate(s.id, fd)} onCancel={() => setEditingId(null)} pending={pending} />
                   </td>
                 </tr>
               ) : (
-                <tr key={s.id} className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
+                <tr key={s.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
                   <td className="py-2.5 px-2 num text-text-dim whitespace-nowrap">{s.snapshot_date}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.sofi_actual)}</td>
                   <td className="py-2.5 px-2 text-right num">{fmtUsd(s.ally_actual)}</td>

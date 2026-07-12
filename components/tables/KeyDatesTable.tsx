@@ -128,13 +128,13 @@ export function KeyDatesTable({ keyDates }: { keyDates: KeyDateRow[] }) {
           ) : (
             keyDates.map((k) =>
               editingId === k.id ? (
-                <tr key={k.id} className="border-t border-[var(--separator)] bg-[rgba(255,255,255,0.05)]">
+                <tr key={k.id} className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
                   <td colSpan={5} className="py-3 px-2">
                     <KeyDateForm defaults={k} onSubmit={(fd) => handleUpdate(k.id, fd)} onCancel={() => setEditingId(null)} pending={pending} />
                   </td>
                 </tr>
               ) : (
-                <tr key={k.id} className="border-t border-[var(--separator)] hover:bg-[rgba(255,255,255,0.05)]">
+                <tr key={k.id} className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)]">
                   <td className="py-2.5 px-2 text-text-dim">{k.event}</td>
                   <td className="py-2.5 px-2 text-text-dim whitespace-nowrap">{k.window_label}</td>
                   <td className="py-2.5 px-2 text-text-dim text-xs">{k.status}</td>

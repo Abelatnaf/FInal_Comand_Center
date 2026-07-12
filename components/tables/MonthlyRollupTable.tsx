@@ -22,7 +22,7 @@ export function MonthlyRollupTable({
       <table className="w-full text-sm min-w-[1400px]">
         <thead>
           <tr className="text-text-dim text-left text-xs">
-            <th className="py-3 px-2 font-normal sticky left-0 bg-[#1c1c1e]">Month</th>
+            <th className="py-3 px-2 font-normal sticky left-0 bg-[var(--bg-elevated)]">Month</th>
             {categoryNames.map((c) => (
               <th key={c} className="py-3 px-2 font-normal text-right whitespace-nowrap">
                 {c}
@@ -39,7 +39,7 @@ export function MonthlyRollupTable({
             const balance = balanceByMonth.get(row.month);
             return (
               <tr key={row.month} className="border-t border-[var(--separator)]">
-                <td className="py-2 px-2 text-text-dim whitespace-nowrap sticky left-0 bg-[#1c1c1e]">
+                <td className="py-2 px-2 text-text-dim whitespace-nowrap sticky left-0 bg-[var(--bg-elevated)]">
                   {fmtMonth(row.month)}
                 </td>
                 {categoryNames.map((c) => (

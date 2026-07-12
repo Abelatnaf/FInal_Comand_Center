@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { addTransaction, addIncome } from "@/app/(app)/quick-add-actions";
 import { PAYMENT_METHODS, INCOME_SOURCES } from "@/lib/constants";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 type Category = { id: number; name: string };
 
@@ -123,7 +124,7 @@ export function QuickAddFab({
 
               <div>
                 <label className="stat-label block mb-1.5">Date</label>
-                <input name="date" type="date" required defaultValue={todayIso()} className="input w-full" />
+                <DatePicker name="date" required defaultValue={todayIso()} className="w-full" />
               </div>
 
               {mode === "transaction" ? (
