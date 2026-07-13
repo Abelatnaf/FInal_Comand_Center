@@ -12,7 +12,7 @@ import { ExportDataButton } from "@/components/settings/ExportDataButton";
 type Section = "appearance" | "financial" | "account";
 
 const SECTIONS: { id: Section; label: string; caption: string; Icon: (p: { size?: number }) => React.ReactElement }[] = [
-  { id: "appearance", label: "Appearance", caption: "Theme & display", Icon: PaintIcon },
+  { id: "appearance", label: "Appearance", caption: "Liquid glass & motion", Icon: PaintIcon },
   { id: "financial", label: "Financial", caption: "Currencies, dates, accounts, budgets", Icon: DollarIcon },
   { id: "account", label: "Account", caption: "Export, sign out", Icon: PersonIcon },
 ];

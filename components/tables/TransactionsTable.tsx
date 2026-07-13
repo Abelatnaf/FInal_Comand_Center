@@ -11,6 +11,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 
 type Category = { id: number; name: string };
 type Currency = { code: string; name: string; rate_to_usd: number };
+type Account = { id: string; name: string };
 
 export type TransactionRow = {
   id: string;
@@ -26,6 +27,7 @@ export type TransactionRow = {
   payment_method: string | null;
   notes: string | null;
   receipt_path: string | null;
+  account_id: string | null;
   categories: { name: string } | null;
   transaction_splits: { id: string; category_id: number | null; amount_usd: number; categories: { name: string } | null }[] | null;
 };
@@ -53,11 +55,13 @@ function TransactionEditRow({
   tx,
   categories,
   currencies,
+  accounts,
   onDone,
 }: {
   tx: TransactionRow;
   categories: Category[];
   currencies: Currency[];
+  accounts: Account[];
   onDone: () => void;
 }) {
   const [pending, startTransition] = useTransition();
@@ -241,6 +245,15 @@ function TransactionEditRow({
             </div>
           )}
 
+          <div className="w-36">
+            <label className="stat-label block mb-1 text-[10px]">Account</label>
+            <select name="account_id" defaultValue={tx.account_id ?? ""} className="select !py-1.5 !px-2 text-sm w-full">
+              <option value="">No account</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          </div>
           <div>
             <label className="stat-label block mb-1 text-[10px]">Payment</label>
             <input
@@ -335,10 +348,12 @@ export function TransactionsTable({
   transactions,
   categories,
   currencies,
+  accounts,
 }: {
   transactions: TransactionRow[];
   categories: Category[];
   currencies: Currency[];
+  accounts: Account[];
 }) {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [necessityFilter, setNecessityFilter] = useState("");
@@ -446,7 +461,14 @@ export function TransactionsTable({
               ) : (
                 filtered.map((tx) =>
                   editingId === tx.id ? (
-                    <TransactionEditRow key={tx.id} tx={tx} categories={categories} currencies={currencies} onDone={() => setEditingId(null)} />
+                    <TransactionEditRow
+                      key={tx.id}
+                      tx={tx}
+                      categories={categories}
+                      currencies={currencies}
+                      accounts={accounts}
+                      onDone={() => setEditingId(null)}
+                    />
                   ) : (
                     <TransactionRowView key={tx.id} tx={tx} onEdit={() => setEditingId(tx.id)} />
                   )

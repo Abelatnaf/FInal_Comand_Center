@@ -1,68 +1,90 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Apple-style light dashboard — values from the Human Interface
-   Guidelines (light appearance). See CLAUDE.md build log.
+   Wallet — a dark, card-stack finance UI modeled on Apple Wallet's
+   own material language rather than generic Settings-app HIG.
+   Committed to one dark canvas at all times (Wallet itself ignores
+   the system Light/Dark toggle for its own surface). See CLAUDE.md
+   build log, "Apple Wallet redesign".
    ============================================================ */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
   /* Backgrounds */
-  --bg: #f5f5f7;             /* page */
-  --bg-elevated: #ffffff;    /* cards */
-  --bg-elevated-2: #f2f2f7;  /* nested / inputs */
-  --bg-sidebar: #fbfbfd;
-  --bg-dark: #0b0b0c;        /* dark hero card */
+  --bg: #000000;             /* page */
+  --bg-elevated: #1c1c1e;    /* cards, list rows */
+  --bg-elevated-2: #2c2c2e;  /* nested / inputs */
+  --bg-sidebar: #000000;
+  --bg-dark: #1c1c1e;        /* hero surface */
 
-  /* System grays (light) */
+  /* System grays (dark) */
   --gray: #8e8e93;
-  --gray2: #aeaeb2;
-  --gray3: #c7c7cc;
-  --gray4: #d1d1d6;
-  --gray5: #e5e5ea;
-  --gray6: #f2f2f7;
+  --gray2: #636366;
+  --gray3: #48484a;
+  --gray4: #3a3a3c;
+  --gray5: #2c2c2e;
+  --gray6: #1c1c1e;
 
-  /* Labels (light — near-black, not pure #000) */
-  --label: #1d1d1f;
-  --label-secondary: rgba(60, 60, 67, 0.6);
-  --label-tertiary: rgba(60, 60, 67, 0.3);
-  --label-quaternary: rgba(60, 60, 67, 0.18);
+  /* Labels (dark — pure white, per HIG's dark-mode label opacity ramp) */
+  --label: #ffffff;
+  --label-secondary: rgba(235, 235, 245, 0.6);
+  --label-tertiary: rgba(235, 235, 245, 0.3);
+  --label-quaternary: rgba(235, 235, 245, 0.18);
 
   /* Separators */
-  --separator: rgba(60, 60, 67, 0.14);
-  --separator-strong: rgba(60, 60, 67, 0.22);
-  --hairline: rgba(0, 0, 0, 0.06);
+  --separator: rgba(84, 84, 88, 0.6);
+  --separator-strong: rgba(84, 84, 88, 0.75);
+  --hairline: rgba(255, 255, 255, 0.08);
 
   /* Fills */
-  --fill: rgba(120, 120, 128, 0.2);
-  --fill-secondary: rgba(120, 120, 128, 0.16);
-  --fill-tertiary: rgba(118, 118, 128, 0.12);
-  --fill-quaternary: rgba(116, 116, 128, 0.08);
+  --fill: rgba(120, 120, 128, 0.36);
+  --fill-secondary: rgba(120, 120, 128, 0.32);
+  --fill-tertiary: rgba(118, 118, 128, 0.24);
+  --fill-quaternary: rgba(118, 118, 128, 0.18);
 
-  /* System colors (light variants) */
-  --blue: #007aff;
-  --blue-hover: #0071e3;
-  --green: #34c759;
-  --red: #ff3b30;
-  --orange: #ff9500;
-  --purple: #af52de;
-  --indigo: #5856d6;
-  --teal: #30b0c7;
-  --pink: #ff2d55;
+  /* System colors (dark variants) */
+  --blue: #0a84ff;
+  --blue-hover: #409cff;
+  --green: #30d158;
+  --red: #ff453a;
+  --orange: #ff9f0a;
+  --purple: #bf5af2;
+  --indigo: #5e5ce6;
+  --teal: #64d2ff;
+  --pink: #ff375f;
 
-  /* Card shadow */
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.05);
+  /* Card shadow — heavier than a light card needs, since surfaces sit on true black */
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 32px rgba(0, 0, 0, 0.5);
   --card-border: 1px solid var(--hairline);
 
-  /* Themed surfaces (flip in dark mode) */
-  --material-bg: rgba(255, 255, 255, 0.72);
-  --hero-bg: #0b0b0c;
-  --badge-bg: rgba(52, 199, 89, 0.16);
-  --badge-fg: #248a3d;
+  /* Themed surfaces */
+  --material-bg: rgba(30, 30, 32, 0.72);
+  --hero-bg: #1c1c1e;
+  --badge-bg: rgba(48, 209, 88, 0.18);
+  --badge-fg: #30d158;
 
   /* Liquid-glass intensity — driven by the Settings slider (0–40px). */
   --glass-blur: 24px;
+
+  /* Wallet card finishes — deterministically assigned per account (see
+     CardStack), not tied to account type; graphite is reserved for
+     liabilities so a debt card visually reads as different stock. */
+  --finish-titanium-1: #4a4a4d;
+  --finish-titanium-2: #232326;
+  --finish-titanium-3: #131315;
+  --finish-steel-1: #6b7785;
+  --finish-steel-2: #3f4750;
+  --finish-steel-3: #23282e;
+  --finish-gold-1: #e8caa0;
+  --finish-gold-2: #b98d4f;
+  --finish-gold-3: #7c5a2c;
+  --finish-rosegold-1: #e8b8ab;
+  --finish-rosegold-2: #c48576;
+  --finish-rosegold-3: #8a5347;
+  --finish-graphite-1: #3a2e2e;
+  --finish-graphite-2: #1f1616;
+  --finish-graphite-3: #120d0d;
 
   /* Aliases kept so existing markup keeps working */
   --surface: var(--bg-elevated);
@@ -108,7 +130,7 @@ select {
 
 html {
   background: var(--bg);
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -704,103 +726,45 @@ a:focus-visible {
   color: #fff;
 }
 
-/* ============================================================
-   Dark appearance — applied via [data-theme="dark"], or by the
-   system preference unless the user forced light.
-   ============================================================ */
+/* ---------- Wallet card finishes ---------- */
 
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #000000;
-  --bg-elevated: #1c1c1e;
-  --bg-elevated-2: #2c2c2e;
-  --bg-sidebar: #000000;
-  --bg-dark: #1c1c1e;
-
-  --gray: #8e8e93;
-  --gray2: #636366;
-  --gray3: #48484a;
-  --gray4: #3a3a3c;
-  --gray5: #2c2c2e;
-  --gray6: #1c1c1e;
-
-  --label: #ffffff;
-  --label-secondary: rgba(235, 235, 245, 0.6);
-  --label-tertiary: rgba(235, 235, 245, 0.3);
-  --label-quaternary: rgba(235, 235, 245, 0.18);
-
-  --separator: rgba(84, 84, 88, 0.6);
-  --separator-strong: rgba(84, 84, 88, 0.75);
-  --hairline: rgba(255, 255, 255, 0.08);
-
-  --fill: rgba(120, 120, 128, 0.36);
-  --fill-secondary: rgba(120, 120, 128, 0.32);
-  --fill-tertiary: rgba(118, 118, 128, 0.24);
-  --fill-quaternary: rgba(118, 118, 128, 0.18);
-
-  --blue: #0a84ff;
-  --blue-hover: #409cff;
-  --green: #30d158;
-  --red: #ff453a;
-  --orange: #ff9f0a;
-  --purple: #bf5af2;
-  --indigo: #5e5ce6;
-  --teal: #64d2ff;
-  --pink: #ff375f;
-
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --material-bg: rgba(30, 30, 32, 0.72);
-  --hero-bg: #1c1c1e;
-  --badge-bg: rgba(48, 209, 88, 0.18);
-  --badge-fg: #30d158;
+.wallet-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #f2f2f4;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #000000;
-    --bg-elevated: #1c1c1e;
-    --bg-elevated-2: #2c2c2e;
-    --bg-sidebar: #000000;
-    --bg-dark: #1c1c1e;
+.wallet-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 40%);
+  pointer-events: none;
+}
 
-    --gray: #8e8e93;
-    --gray2: #636366;
-    --gray3: #48484a;
-    --gray4: #3a3a3c;
-    --gray5: #2c2c2e;
-    --gray6: #1c1c1e;
+.finish-titanium {
+  background: linear-gradient(135deg, var(--finish-titanium-1) 0%, var(--finish-titanium-2) 55%, var(--finish-titanium-3) 100%);
+}
 
-    --label: #ffffff;
-    --label-secondary: rgba(235, 235, 245, 0.6);
-    --label-tertiary: rgba(235, 235, 245, 0.3);
-    --label-quaternary: rgba(235, 235, 245, 0.18);
+.finish-steel {
+  background: linear-gradient(135deg, var(--finish-steel-1) 0%, var(--finish-steel-2) 55%, var(--finish-steel-3) 100%);
+}
 
-    --separator: rgba(84, 84, 88, 0.6);
-    --separator-strong: rgba(84, 84, 88, 0.75);
-    --hairline: rgba(255, 255, 255, 0.08);
+.finish-gold {
+  background: linear-gradient(135deg, var(--finish-gold-1) 0%, var(--finish-gold-2) 55%, var(--finish-gold-3) 100%);
+  color: #2c1e0c;
+}
 
-    --fill: rgba(120, 120, 128, 0.36);
-    --fill-secondary: rgba(120, 120, 128, 0.32);
-    --fill-tertiary: rgba(118, 118, 128, 0.24);
-    --fill-quaternary: rgba(118, 118, 128, 0.18);
+.finish-rosegold {
+  background: linear-gradient(135deg, var(--finish-rosegold-1) 0%, var(--finish-rosegold-2) 55%, var(--finish-rosegold-3) 100%);
+  color: #2c1712;
+}
 
-    --blue: #0a84ff;
-    --blue-hover: #409cff;
-    --green: #30d158;
-    --red: #ff453a;
-    --orange: #ff9f0a;
-    --purple: #bf5af2;
-    --indigo: #5e5ce6;
-    --teal: #64d2ff;
-    --pink: #ff375f;
-
-    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --material-bg: rgba(30, 30, 32, 0.72);
-    --hero-bg: #1c1c1e;
-    --badge-bg: rgba(48, 209, 88, 0.18);
-    --badge-fg: #30d158;
-  }
+.finish-graphite {
+  background: linear-gradient(135deg, var(--finish-graphite-1) 0%, var(--finish-graphite-2) 55%, var(--finish-graphite-3) 100%);
+  box-shadow: 0 18px 30px -14px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 69, 58, 0.18);
 }
 
 /* ---------- Bubbly Apple date picker ---------- */

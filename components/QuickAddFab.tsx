@@ -240,6 +240,16 @@ export function QuickAddFab({
                   <DatePicker name="date" required defaultValue={todayIso()} className="w-full" />
                 </div>
 
+                <div>
+                  <label className="stat-label block mb-1.5">Account (optional)</label>
+                  <select name="account_id" className="select w-full" defaultValue="">
+                    <option value="">No account</option>
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 {mode === "transaction" ? (
                   <>
                     {!splitOn && (

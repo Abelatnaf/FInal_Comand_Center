@@ -6,11 +6,14 @@ import { createClient } from "@/lib/supabase/server";
 export async function updateTransaction(id: string, formData: FormData) {
   const supabase = await createClient();
 
+  const accountId = String(formData.get("account_id") ?? "") || null;
+
   const { error } = await supabase
     .from("transactions")
     .update({
       date: String(formData.get("date")),
       category_id: Number(formData.get("category_id")),
+      account_id: accountId,
       description: String(formData.get("description") ?? "") || null,
       necessity: String(formData.get("necessity")),
       is_recurring: formData.get("is_recurring") === "on",
@@ -60,6 +63,7 @@ export async function updateTransaction(id: string, formData: FormData) {
 
   revalidatePath("/transactions");
   revalidatePath("/");
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
   return { success: true };
 }
 

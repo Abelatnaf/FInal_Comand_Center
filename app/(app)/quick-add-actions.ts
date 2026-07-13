@@ -46,11 +46,14 @@ export async function addTransaction(
     }
   }
 
+  const accountId = String(formData.get("account_id") ?? "") || null;
+
   const { data: tx, error } = await supabase
     .from("transactions")
     .insert({
       date,
       category_id: categoryId,
+      account_id: accountId,
       description: String(formData.get("description") ?? "") || null,
       necessity: String(formData.get("necessity")),
       is_recurring: formData.get("is_recurring") === "on",
@@ -86,6 +89,7 @@ export async function addTransaction(
 
   revalidatePath("/");
   revalidatePath("/transactions");
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
   return { success: true };
 }
 
@@ -109,9 +113,12 @@ export async function addIncome(
     }
   }
 
+  const accountId = String(formData.get("account_id") ?? "") || null;
+
   const { error } = await supabase.from("income").insert({
     date,
     source,
+    account_id: accountId,
     currency: String(formData.get("currency")),
     amount_original: amount,
     notes: String(formData.get("notes") ?? "") || null,
@@ -121,6 +128,7 @@ export async function addIncome(
 
   revalidatePath("/");
   revalidatePath("/income");
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
   return { success: true };
 }
 

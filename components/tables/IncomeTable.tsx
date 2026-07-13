@@ -18,11 +18,23 @@ export type IncomeRow = {
   amount_original: number;
   amount_usd: number | null;
   notes: string | null;
+  account_id: string | null;
 };
 
 type Currency = { code: string; name: string; rate_to_usd: number };
+type Account = { id: string; name: string };
 
-function IncomeEditRow({ row, currencies, onDone }: { row: IncomeRow; currencies: Currency[]; onDone: () => void }) {
+function IncomeEditRow({
+  row,
+  currencies,
+  accounts,
+  onDone,
+}: {
+  row: IncomeRow;
+  currencies: Currency[];
+  accounts: Account[];
+  onDone: () => void;
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -78,6 +90,15 @@ function IncomeEditRow({ row, currencies, onDone }: { row: IncomeRow; currencies
               className="input !py-1.5 !px-2 text-sm num"
             />
           </div>
+          <div className="w-36">
+            <label className="stat-label block mb-1 text-[10px]">Account</label>
+            <select name="account_id" defaultValue={row.account_id ?? ""} className="select !py-1.5 !px-2 text-sm w-full">
+              <option value="">No account</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex-1 min-w-[140px]">
             <label className="stat-label block mb-1 text-[10px]">Notes</label>
             <input name="notes" defaultValue={row.notes ?? ""} className="input !py-1.5 !px-2 text-sm w-full" />
@@ -129,7 +150,15 @@ function IncomeRowView({ row, onEdit }: { row: IncomeRow; onEdit: () => void }) 
   );
 }
 
-export function IncomeTable({ income, currencies }: { income: IncomeRow[]; currencies: Currency[] }) {
+export function IncomeTable({
+  income,
+  currencies,
+  accounts,
+}: {
+  income: IncomeRow[];
+  currencies: Currency[];
+  accounts: Account[];
+}) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
@@ -208,7 +237,13 @@ export function IncomeTable({ income, currencies }: { income: IncomeRow[]; curre
               ) : (
                 filtered.map((row) =>
                   editingId === row.id ? (
-                    <IncomeEditRow key={row.id} row={row} currencies={currencies} onDone={() => setEditingId(null)} />
+                    <IncomeEditRow
+                      key={row.id}
+                      row={row}
+                      currencies={currencies}
+                      accounts={accounts}
+                      onDone={() => setEditingId(null)}
+                    />
                   ) : (
                     <IncomeRowView key={row.id} row={row} onEdit={() => setEditingId(row.id)} />
                   )

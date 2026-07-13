@@ -4,6 +4,7 @@ import { AppIcon } from "@/components/ui/AppIcon";
 import { NetWorthHero } from "@/components/dashboard/NetWorthHero";
 import { CashFlowBars, SpendingDonut } from "@/components/charts/DashboardCharts";
 import { OnboardingModal } from "@/components/OnboardingModal";
+import { CardStack, type StackAccount } from "@/components/wallet/CardStack";
 import { createClient } from "@/lib/supabase/server";
 import { fmtUsd } from "@/lib/format";
 
@@ -113,6 +114,13 @@ export default async function CommandDeckPage() {
     glyph: "bank" as const,
   }));
   const accountsTotal = accounts.reduce((s, a) => s + (a.isLiability ? -a.value : a.value), 0);
+
+  const stackAccounts: StackAccount[] = (accountsRes.data ?? []).map((a) => ({
+    id: a.id,
+    name: a.name,
+    balance: detailByAccount.get(a.id) ?? a.starting_balance,
+    kind: a.kind === "liability" ? "liability" : "asset",
+  }));
 
   const now = new Date();
   const today = now.getDate();
@@ -238,32 +246,20 @@ export default async function CommandDeckPage() {
 
         {/* Right column */}
         <div className="flex flex-col gap-5">
-          {/* Accounts */}
-          <Glass className="p-5">
-            <div className="flex items-center justify-between">
+          {/* Accounts — card stack */}
+          <div>
+            <div className="flex items-center justify-between mb-3 px-1">
               <div className="ios-headline">Accounts</div>
               <Link href="/net-worth" className="link-action text-[13px]">
                 View All
               </Link>
             </div>
-            <div className="stat-label mt-2">Net Balance</div>
-            <div className="text-[26px] font-bold num tracking-tight mb-3">{fmtUsd(accountsTotal)}</div>
-            <div className="flex flex-col">
-              {accounts.map((a, i) => (
-                <div key={a.name}>
-                  {i > 0 && <div className="h-px bg-[var(--separator)] ml-[46px]" />}
-                  <div className="flex items-center gap-3 py-2.5">
-                    <AppIcon glyph={a.glyph} color={a.isLiability ? "#8e8e93" : a.color} />
-                    <span className="ios-subhead text-text font-medium flex-1">
-                      {a.name}
-                      {a.isLiability && <span className="badge badge-dim !text-[10px] !py-0.5 ml-2">Liability</span>}
-                    </span>
-                    <span className="num ios-subhead">{a.isLiability ? `-${fmtUsd(a.value)}` : fmtUsd(a.value)}</span>
-                  </div>
-                </div>
-              ))}
+            <CardStack accounts={stackAccounts} />
+            <div className="flex items-baseline justify-between px-1 pt-3 mt-1 border-t border-[var(--separator)]">
+              <span className="stat-label">Net Worth</span>
+              <span className="text-[17px] font-bold num">{fmtUsd(accountsTotal)}</span>
             </div>
-          </Glass>
+          </div>
 
           {/* Upcoming */}
           <Glass className="p-5">

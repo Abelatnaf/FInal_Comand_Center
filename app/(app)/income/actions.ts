@@ -6,11 +6,14 @@ import { createClient } from "@/lib/supabase/server";
 export async function updateIncome(id: string, formData: FormData) {
   const supabase = await createClient();
 
+  const accountId = String(formData.get("account_id") ?? "") || null;
+
   const { error } = await supabase
     .from("income")
     .update({
       date: String(formData.get("date")),
       source: String(formData.get("source") ?? "") || null,
+      account_id: accountId,
       currency: String(formData.get("currency")),
       amount_original: Number(formData.get("amount")),
       notes: String(formData.get("notes") ?? "") || null,
@@ -21,6 +24,7 @@ export async function updateIncome(id: string, formData: FormData) {
 
   revalidatePath("/income");
   revalidatePath("/");
+  if (accountId) revalidatePath(`/accounts/${accountId}`);
   return { success: true };
 }
 

@@ -2,17 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Glass } from "@/components/glass/Glass";
-import { ThemeToggle } from "@/components/ThemeToggle";
-
-/* Keep these two maps in sync with the pre-paint script in app/layout.tsx. */
-const ACCENTS: { name: string; key: string; base: string; hover: string }[] = [
-  { name: "Blue", key: "blue", base: "#007aff", hover: "#0071e3" },
-  { name: "Purple", key: "purple", base: "#af52de", hover: "#9a3fc8" },
-  { name: "Indigo", key: "indigo", base: "#5856d6", hover: "#4a48c4" },
-  { name: "Teal", key: "teal", base: "#30b0c7", hover: "#2a9cb0" },
-  { name: "Pink", key: "pink", base: "#ff2d55", hover: "#e02648" },
-  { name: "Orange", key: "orange", base: "#ff9500", hover: "#e68600" },
-];
 
 const DEFAULT_GLASS = 60;
 
@@ -22,17 +11,14 @@ function glassToPx(v: number) {
 
 export function AppearanceSettings() {
   const [glass, setGlass] = useState(DEFAULT_GLASS);
-  const [accent, setAccent] = useState("blue");
   const [reduceMotion, setReduceMotion] = useState(false);
 
   // Hydrate the controls from persisted preferences on mount (external state).
   useEffect(() => {
     const g = localStorage.getItem("glass");
-    const a = localStorage.getItem("accent");
     const r = localStorage.getItem("reduceMotion");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (g !== null && !Number.isNaN(+g)) setGlass(+g);
-    if (a) setAccent(a);
     if (r === "true") setReduceMotion(true);
   }, []);
 
@@ -40,14 +26,6 @@ export function AppearanceSettings() {
     setGlass(v);
     localStorage.setItem("glass", String(v));
     document.documentElement.style.setProperty("--glass-blur", `${glassToPx(v)}px`);
-  }
-
-  function changeAccent(key: string) {
-    setAccent(key);
-    const a = ACCENTS.find((x) => x.key === key)!;
-    localStorage.setItem("accent", key);
-    document.documentElement.style.setProperty("--blue", a.base);
-    document.documentElement.style.setProperty("--blue-hover", a.hover);
   }
 
   function changeReduceMotion(on: boolean) {
@@ -63,13 +41,6 @@ export function AppearanceSettings() {
 
   return (
     <div className="flex flex-col gap-4 max-w-xl">
-      {/* Theme */}
-      <Glass className="p-6">
-        <div className="ios-headline mb-1">Theme</div>
-        <p className="text-text-dim ios-subhead mb-4">Choose Light, Dark, or Auto to follow your device.</p>
-        <ThemeToggle />
-      </Glass>
-
       {/* Liquid glass */}
       <Glass className="p-6">
         <div className="flex items-baseline justify-between mb-1">
@@ -107,36 +78,6 @@ export function AppearanceSettings() {
         <div className="flex justify-between mt-1.5">
           <span className="stat-label">Solid</span>
           <span className="stat-label">Frosted</span>
-        </div>
-      </Glass>
-
-      {/* Accent color */}
-      <Glass className="p-6">
-        <div className="ios-headline mb-1">Accent Color</div>
-        <p className="text-text-dim ios-subhead mb-4">
-          The tint used for buttons, links, and selected states across the app.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {ACCENTS.map((a) => {
-            const on = accent === a.key;
-            return (
-              <button
-                key={a.key}
-                type="button"
-                onClick={() => changeAccent(a.key)}
-                aria-label={a.name}
-                aria-pressed={on}
-                className="w-9 h-9 rounded-full flex items-center justify-center transition-transform active:scale-90"
-                style={{ background: a.base, boxShadow: on ? `0 0 0 2px var(--bg-elevated), 0 0 0 4px ${a.base}` : "none" }}
-              >
-                {on && (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
         </div>
       </Glass>
 

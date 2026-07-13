@@ -133,6 +133,7 @@ export type Database = {
       }
       income: {
         Row: {
+          account_id: string | null
           amount_original: number
           amount_usd: number | null
           created_at: string
@@ -146,6 +147,7 @@ export type Database = {
           week_number: number | null
         }
         Insert: {
+          account_id?: string | null
           amount_original: number
           amount_usd?: number | null
           created_at?: string
@@ -159,6 +161,7 @@ export type Database = {
           week_number?: number | null
         }
         Update: {
+          account_id?: string | null
           amount_original?: number
           amount_usd?: number | null
           created_at?: string
@@ -171,7 +174,15 @@ export type Database = {
           user_id?: string
           week_number?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "income_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       key_dates: {
         Row: {
@@ -475,6 +486,7 @@ export type Database = {
       }
       transactions: {
         Row: {
+          account_id: string | null
           amount_original: number
           amount_usd: number | null
           category_id: number | null
@@ -493,6 +505,7 @@ export type Database = {
           week_number: number | null
         }
         Insert: {
+          account_id?: string | null
           amount_original: number
           amount_usd?: number | null
           category_id?: number | null
@@ -511,6 +524,7 @@ export type Database = {
           week_number?: number | null
         }
         Update: {
+          account_id?: string | null
           amount_original?: number
           amount_usd?: number | null
           category_id?: number | null
@@ -529,6 +543,13 @@ export type Database = {
           week_number?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transactions_category_id_fkey"
             columns: ["category_id"]
