@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { Glass } from "@/components/glass/Glass";
 import { fmtUsd } from "@/lib/format";
 import { addSavingsGoal, updateSavingsGoal, deleteSavingsGoal } from "@/app/(app)/savings-goals/actions";
 import { DatePicker } from "@/components/ui/DatePicker";
+
+type Account = { id: string; name: string };
 
 export type GoalRow = {
   id: string;
@@ -15,19 +18,24 @@ export type GoalRow = {
   remaining: number;
   percent_complete: number;
   monthly_needed: number | null;
+  account_id: string | null;
 };
 
 function GoalForm({
   defaults,
+  accounts,
   onSubmit,
   onCancel,
   pending,
 }: {
   defaults?: Partial<GoalRow>;
+  accounts: Account[];
   onSubmit: (formData: FormData) => void;
   onCancel?: () => void;
   pending: boolean;
 }) {
+  const [accountId, setAccountId] = useState(defaults?.account_id ?? "");
+
   return (
     <form action={onSubmit} className="flex flex-wrap gap-2 items-end">
       <div className="flex-1 min-w-[140px]">
@@ -50,17 +58,37 @@ function GoalForm({
         <label className="stat-label block mb-1 text-[10px]">Target Date</label>
         <DatePicker name="target_date" defaultValue={defaults?.target_date ?? ""} placeholder="Optional" className="!py-1.5 !px-2 text-sm" />
       </div>
-      <div className="w-28">
-        <label className="stat-label block mb-1 text-[10px]">Saved So Far</label>
-        <input
-          name="saved_so_far_usd"
-          type="number"
-          step="0.01"
-          min="0"
-          defaultValue={defaults?.saved_so_far_usd ?? 0}
-          className="input !py-1.5 !px-2 text-sm num"
-        />
+      <div className="w-40">
+        <label className="stat-label block mb-1 text-[10px]">Track via Account</label>
+        <select
+          name="account_id"
+          value={accountId}
+          onChange={(e) => setAccountId(e.target.value)}
+          className="select !py-1.5 !px-2 text-sm w-full"
+        >
+          <option value="">Manual entry</option>
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>{a.name}</option>
+          ))}
+        </select>
       </div>
+      {accountId ? (
+        <p className="text-text-dim text-[12px] w-full -mt-1">
+          Saved-so-far will track this account&apos;s real balance automatically.
+        </p>
+      ) : (
+        <div className="w-28">
+          <label className="stat-label block mb-1 text-[10px]">Saved So Far</label>
+          <input
+            name="saved_so_far_usd"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={defaults?.saved_so_far_usd ?? 0}
+            className="input !py-1.5 !px-2 text-sm num"
+          />
+        </div>
+      )}
       <div className="flex gap-1.5">
         <button type="submit" disabled={pending} className="btn btn-primary !py-1.5 !px-3 text-xs">
           {pending ? "Saving…" : "Save"}
@@ -75,10 +103,11 @@ function GoalForm({
   );
 }
 
-function GoalCard({ goal }: { goal: GoalRow }) {
+function GoalCard({ goal, accounts }: { goal: GoalRow; accounts: Account[] }) {
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const linkedAccount = accounts.find((a) => a.id === goal.account_id);
 
   function handleUpdate(formData: FormData) {
     startTransition(async () => {
@@ -102,7 +131,7 @@ function GoalCard({ goal }: { goal: GoalRow }) {
   if (editing) {
     return (
       <Glass className="p-5">
-        <GoalForm defaults={goal} onSubmit={handleUpdate} onCancel={() => setEditing(false)} pending={pending} />
+        <GoalForm defaults={goal} accounts={accounts} onSubmit={handleUpdate} onCancel={() => setEditing(false)} pending={pending} />
         {error && <p className="text-text-dim text-xs mt-2">{error}</p>}
       </Glass>
     );
@@ -113,7 +142,14 @@ function GoalCard({ goal }: { goal: GoalRow }) {
   return (
     <Glass className="p-5">
       <div className="flex justify-between items-baseline mb-4">
-        <div className="ios-headline">{goal.name}</div>
+        <div>
+          <div className="ios-headline">{goal.name}</div>
+          {linkedAccount && (
+            <Link href={`/accounts/${linkedAccount.id}`} className="link-action text-[12px]">
+              🔗 Tracking {linkedAccount.name}
+            </Link>
+          )}
+        </div>
         <div className="flex gap-4">
           <button onClick={() => setEditing(true)} className="link-action text-[13px]">
             Edit
@@ -152,7 +188,7 @@ function GoalCard({ goal }: { goal: GoalRow }) {
   );
 }
 
-export function SavingsGoalsList({ goals }: { goals: GoalRow[] }) {
+export function SavingsGoalsList({ goals, accounts }: { goals: GoalRow[]; accounts: Account[] }) {
   const [adding, setAdding] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -181,7 +217,7 @@ export function SavingsGoalsList({ goals }: { goals: GoalRow[] }) {
         </div>
         {adding && (
           <div className="mt-4">
-            <GoalForm onSubmit={handleAdd} onCancel={() => setAdding(false)} pending={pending} />
+            <GoalForm accounts={accounts} onSubmit={handleAdd} onCancel={() => setAdding(false)} pending={pending} />
             {error && <p className="text-text-dim text-xs mt-2">{error}</p>}
           </div>
         )}
@@ -192,7 +228,7 @@ export function SavingsGoalsList({ goals }: { goals: GoalRow[] }) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {goals.map((g) => (
-            <GoalCard key={g.id} goal={g} />
+            <GoalCard key={g.id} goal={g} accounts={accounts} />
           ))}
         </div>
       )}

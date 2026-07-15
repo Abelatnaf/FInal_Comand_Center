@@ -7,6 +7,7 @@ import { NAV_LINKS } from "./nav-links";
 import { QuickAddFab } from "../QuickAddFab";
 import { GlobalSearch } from "../GlobalSearch";
 import { InstallPrompt } from "../InstallPrompt";
+import { AlertsBanner, type Alert } from "../AlertsBanner";
 import { NavIcon } from "./NavIcons";
 import { HomeIcon, ListIcon, IncomeIcon, MoreIcon } from "./icons";
 import { PullToRefresh } from "../ui/PullToRefresh";
@@ -30,6 +31,7 @@ export function AppShell({
   currencies,
   email,
   accounts,
+  alerts,
 }: {
   children: React.ReactNode;
   onSignOut: () => void;
@@ -37,6 +39,7 @@ export function AppShell({
   currencies: Currency[];
   email: string | null;
   accounts: { id: string; name: string }[];
+  alerts: Alert[];
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -125,6 +128,7 @@ export function AppShell({
         </div>
 
         <main className="max-w-[1240px] mx-auto px-5 md:px-8 pt-6 md:pt-8 pb-32 md:pb-12">
+          <AlertsBanner alerts={alerts} />
           <PullToRefresh>{children}</PullToRefresh>
         </main>
       </div>

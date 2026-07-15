@@ -83,3 +83,25 @@ export async function deleteTransaction(id: string) {
   revalidatePath("/");
   return { success: true };
 }
+
+export async function bulkRecategorizeTransactions(ids: string[], categoryId: number) {
+  if (ids.length === 0) return { success: true };
+  const supabase = await createClient();
+  const { error } = await supabase.from("transactions").update({ category_id: categoryId }).in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/transactions");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function bulkDeleteTransactions(ids: string[]) {
+  if (ids.length === 0) return { success: true };
+  const supabase = await createClient();
+  const { error } = await supabase.from("transactions").delete().in("id", ids);
+  if (error) return { error: error.message };
+
+  revalidatePath("/transactions");
+  revalidatePath("/");
+  return { success: true };
+}

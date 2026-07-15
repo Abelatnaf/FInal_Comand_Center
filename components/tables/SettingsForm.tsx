@@ -7,6 +7,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 
 export type SettingsData = {
   tracking_start_date: string;
+  low_balance_threshold: number | null;
 };
 
 export function SettingsForm({ settings }: { settings: SettingsData }) {
@@ -28,6 +29,25 @@ export function SettingsForm({ settings }: { settings: SettingsData }) {
           />
           <p className="text-text-dim text-xs mt-1.5">
             The date your weekly rollup and week numbers count from.
+          </p>
+        </div>
+
+        <div>
+          <label className="stat-label block mb-1.5" htmlFor="low_balance_threshold">
+            Low Balance Alert (optional)
+          </label>
+          <input
+            id="low_balance_threshold"
+            name="low_balance_threshold"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={settings.low_balance_threshold ?? ""}
+            placeholder="e.g. 200"
+            className="input w-full num"
+          />
+          <p className="text-text-dim text-xs mt-1.5">
+            Get a banner when your current balance drops below this amount. Leave blank to turn it off.
           </p>
         </div>
 

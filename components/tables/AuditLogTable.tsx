@@ -25,6 +25,7 @@ const TABLE_LABELS: Record<string, string> = {
   income: "Income",
   transfers: "Transfer",
   recurring_bills: "Recurring Bill",
+  recurring_income: "Recurring Income",
   savings_goals: "Savings Goal",
   net_worth_snapshots: "Net Worth Snapshot",
   accounts: "Account",

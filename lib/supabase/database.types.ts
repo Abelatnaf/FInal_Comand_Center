@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          interest_rate_pct: number | null
           kind: string
           name: string
           sort_order: number
@@ -27,6 +28,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          interest_rate_pct?: number | null
           kind?: string
           name: string
           sort_order?: number
@@ -36,6 +38,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          interest_rate_pct?: number | null
           kind?: string
           name?: string
           sort_order?: number
@@ -179,6 +182,13 @@ export type Database = {
             foreignKeyName: "income_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "income_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
@@ -234,6 +244,13 @@ export type Database = {
           snapshot_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "net_worth_snapshot_balances_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
           {
             foreignKeyName: "net_worth_snapshot_balances_account_id_fkey"
             columns: ["account_id"]
@@ -346,8 +363,60 @@ export type Database = {
           },
         ]
       }
+      recurring_income: {
+        Row: {
+          account_id: string | null
+          active: boolean
+          amount_usd: number
+          billing_day: number | null
+          created_at: string
+          id: string
+          last_posted_date: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          active?: boolean
+          amount_usd: number
+          billing_day?: number | null
+          created_at?: string
+          id?: string
+          last_posted_date?: string | null
+          source: string
+          user_id?: string
+        }
+        Update: {
+          account_id?: string | null
+          active?: boolean
+          amount_usd?: number
+          billing_day?: number | null
+          created_at?: string
+          id?: string
+          last_posted_date?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_income_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "recurring_income_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       savings_goals: {
         Row: {
+          account_id: string | null
           created_at: string
           id: string
           name: string
@@ -357,6 +426,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id?: string | null
           created_at?: string
           id?: string
           name: string
@@ -366,6 +436,7 @@ export type Database = {
           user_id?: string
         }
         Update: {
+          account_id?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -374,7 +445,22 @@ export type Database = {
           target_date?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "savings_goals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "savings_goals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       semesters: {
         Row: {
@@ -403,6 +489,7 @@ export type Database = {
       settings: {
         Row: {
           id: number
+          low_balance_threshold: number | null
           onboarding_dismissed: boolean
           tracking_start_date: string
           updated_at: string
@@ -410,6 +497,7 @@ export type Database = {
         }
         Insert: {
           id?: number
+          low_balance_threshold?: number | null
           onboarding_dismissed?: boolean
           tracking_start_date?: string
           updated_at?: string
@@ -417,6 +505,7 @@ export type Database = {
         }
         Update: {
           id?: number
+          low_balance_threshold?: number | null
           onboarding_dismissed?: boolean
           tracking_start_date?: string
           updated_at?: string
@@ -547,6 +636,13 @@ export type Database = {
             foreignKeyName: "transactions_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
@@ -616,8 +712,22 @@ export type Database = {
             foreignKeyName: "transfers_from_account_id_fkey"
             columns: ["from_account_id"]
             isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transfers_from_account_id_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_to_account_id_fkey"
+            columns: ["to_account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
           },
           {
             foreignKeyName: "transfers_to_account_id_fkey"
@@ -636,6 +746,24 @@ export type Database = {
           starting_total: number | null
           total_expenses: number | null
           total_income: number | null
+        }
+        Relationships: []
+      }
+      account_balances: {
+        Row: {
+          account_id: string | null
+          balance: number | null
+          user_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          balance?: never
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          balance?: never
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -691,6 +819,13 @@ export type Database = {
             foreignKeyName: "net_worth_snapshot_balances_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "net_worth_snapshot_balances_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
@@ -723,6 +858,7 @@ export type Database = {
       }
       savings_goal_progress: {
         Row: {
+          account_id: string | null
           id: string | null
           monthly_needed: number | null
           name: string | null
@@ -732,27 +868,22 @@ export type Database = {
           target_amount_usd: number | null
           target_date: string | null
         }
-        Insert: {
-          id?: string | null
-          monthly_needed?: never
-          name?: string | null
-          percent_complete?: never
-          remaining?: never
-          saved_so_far_usd?: number | null
-          target_amount_usd?: number | null
-          target_date?: string | null
-        }
-        Update: {
-          id?: string | null
-          monthly_needed?: never
-          name?: string | null
-          percent_complete?: never
-          remaining?: never
-          saved_so_far_usd?: number | null
-          target_amount_usd?: number | null
-          target_date?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "savings_goals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "savings_goals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       semester_pacing: {
         Row: {
@@ -799,6 +930,7 @@ export type Database = {
     }
     Functions: {
       post_due_recurring_bills: { Args: never; Returns: undefined }
+      post_due_recurring_income: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

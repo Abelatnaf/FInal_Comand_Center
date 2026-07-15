@@ -5,7 +5,8 @@ import { Glass } from "@/components/glass/Glass";
 import { HScroll } from "@/components/ui/HScroll";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { fmtUsd } from "@/lib/format";
-import { downloadCsv } from "@/lib/csv";
+import { downloadCsv, downloadText } from "@/lib/csv";
+import { toQif, toOfx } from "@/lib/financial-export";
 import { updateIncome, deleteIncome } from "@/app/(app)/income/actions";
 import { INCOME_SOURCES } from "@/lib/constants";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -207,16 +208,19 @@ export function IncomeTable({
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
+  const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
     return income.filter((r) => {
       if (sourceFilter && r.source !== sourceFilter) return false;
       if (dateFrom && r.date < dateFrom) return false;
       if (dateTo && r.date > dateTo) return false;
+      if (q && !`${r.source ?? ""} ${r.notes ?? ""}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [income, sourceFilter, dateFrom, dateTo]);
+  }, [income, sourceFilter, dateFrom, dateTo, query]);
 
   function exportCsv() {
     const header = ["Date", "Week", "Source", "Currency", "Amount (Original)", "Amount (USD)", "Notes"];
@@ -232,9 +236,35 @@ export function IncomeTable({
     downloadCsv([header, ...rows], "income.csv");
   }
 
+  function ledgerEntries() {
+    return filtered.map((r) => ({
+      date: r.date,
+      amount: r.amount_usd ?? 0,
+      payee: r.source || "Income",
+      memo: r.notes ?? undefined,
+    }));
+  }
+
+  function exportQif() {
+    downloadText(toQif(ledgerEntries()), "income.qif", "application/qif");
+  }
+
+  function exportOfx() {
+    downloadText(toOfx(ledgerEntries(), "Income"), "income.ofx", "application/x-ofx");
+  }
+
   return (
     <div>
       <Glass className="p-4 mb-4 flex flex-wrap gap-3 items-end">
+        <div className="flex-1 min-w-[180px]">
+          <label className="stat-label block mb-1 text-xs">Search</label>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Source, notes…"
+            className="input text-sm w-full"
+          />
+        </div>
         <div>
           <label className="stat-label block mb-1 text-xs">Source</label>
           <select value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} className="select text-sm">
@@ -254,9 +284,17 @@ export function IncomeTable({
           <label className="stat-label block mb-1 text-xs">To</label>
           <DatePicker value={dateTo} onChange={setDateTo} placeholder="Any" className="text-sm" />
         </div>
-        <button onClick={exportCsv} className="btn text-sm ml-auto">
-          Export CSV
-        </button>
+        <div className="flex gap-2 ml-auto">
+          <button onClick={exportCsv} className="btn text-sm">
+            CSV
+          </button>
+          <button onClick={exportQif} className="btn text-sm">
+            QIF
+          </button>
+          <button onClick={exportOfx} className="btn text-sm">
+            OFX
+          </button>
+        </div>
       </Glass>
 
       <Glass className="hidden md:block">

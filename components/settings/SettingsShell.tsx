@@ -18,7 +18,7 @@ const SECTIONS: { id: Section; label: string; caption: string; Icon: (p: { size?
 ];
 
 type Category = { id: number; name: string; monthly_budget: number };
-type Account = { id: string; name: string; starting_balance: number; kind: string };
+type Account = { id: string; name: string; starting_balance: number; kind: string; interest_rate_pct: number | null };
 
 export function SettingsShell({
   settings,

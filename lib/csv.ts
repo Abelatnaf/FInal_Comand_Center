@@ -29,6 +29,18 @@ export function downloadJson(data: unknown, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+export function downloadText(content: string, filename: string, mimeType: string) {
+  const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 // Minimal RFC 4180-ish CSV parser: handles quoted fields (with embedded
 // commas/newlines) and "" as an escaped quote. Good enough for bank-export
 // CSVs, which is the only source this is used against.

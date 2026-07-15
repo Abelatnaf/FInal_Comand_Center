@@ -5,12 +5,15 @@ import { Glass } from "@/components/glass/Glass";
 import { fmtUsd } from "@/lib/format";
 import { updateAccountBalances, addAccount, deleteAccount } from "@/app/(app)/settings/actions";
 
-type Account = { id: string; name: string; starting_balance: number; kind: string };
+type Account = { id: string; name: string; starting_balance: number; kind: string; interest_rate_pct: number | null };
 
 export function AccountsForm({ accounts }: { accounts: Account[] }) {
   const [state, formAction, pending] = useActionState(updateAccountBalances, undefined);
   const [values, setValues] = useState<Record<string, string>>(
     Object.fromEntries(accounts.map((a) => [a.id, String(a.starting_balance)]))
+  );
+  const [rates, setRates] = useState<Record<string, string>>(
+    Object.fromEntries(accounts.map((a) => [a.id, a.interest_rate_pct != null ? String(a.interest_rate_pct) : ""]))
   );
   const [adding, setAdding] = useState(false);
   const [addPending, startAddTransition] = useTransition();
@@ -86,7 +89,7 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
         {accounts.map((a, i) => (
           <div
             key={a.id}
-            className={`flex items-center justify-between gap-3 py-2.5 ${i > 0 ? "border-t border-[var(--separator)]" : ""}`}
+            className={`flex items-center justify-between gap-3 py-2.5 flex-wrap ${i > 0 ? "border-t border-[var(--separator)]" : ""}`}
           >
             <label htmlFor={`acct_${a.id}`} className="ios-body flex items-center gap-2">
               {a.name}
@@ -105,6 +108,21 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
                   className="input !py-1.5 !px-2 text-sm num w-full text-right"
                 />
               </div>
+              {a.kind === "liability" && (
+                <div className="flex items-center gap-1 w-24">
+                  <input
+                    name={`rate_${a.id}`}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="APR"
+                    value={rates[a.id]}
+                    onChange={(e) => setRates((v) => ({ ...v, [a.id]: e.target.value }))}
+                    className="input !py-1.5 !px-2 text-sm num w-full text-right"
+                  />
+                  <span className="text-text-dim text-xs">%</span>
+                </div>
+              )}
               <button type="button" onClick={() => handleDelete(a.id)} className="link-destructive text-[13px]">
                 Delete
               </button>

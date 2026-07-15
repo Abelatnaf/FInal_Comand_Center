@@ -1,7 +1,10 @@
-import { PageHeader } from "@/components/glass/Glass";
+import { PageHeader, Glass } from "@/components/glass/Glass";
 import { StatCard } from "@/components/glass/StatCard";
+import { YearOverYearChart, type YearOverYearPoint } from "@/components/charts/YearOverYearChart";
 import { fmtUsd } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 function startOfMonth(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
@@ -22,7 +25,7 @@ export default async function InsightsPage() {
   ] = await Promise.all([
     supabase.from("settings").select("tracking_start_date").single(),
     supabase.from("transactions").select("amount_usd, necessity, date"),
-    supabase.from("income").select("amount_usd"),
+    supabase.from("income").select("amount_usd, date"),
     supabase.from("life_to_date_spend_by_category").select("*").order("total", { ascending: false }),
     supabase.from("weekly_rollup").select("week_number, total_expenses").order("total_expenses", { ascending: false }),
     supabase.from("account_balance").select("current_balance").single(),
@@ -93,6 +96,26 @@ export default async function InsightsPage() {
     .reduce((s, t) => s + (t.amount_usd ?? 0), 0);
   const lastMonthDiscretionaryShare = lastMonthSpend > 0 ? (lastMonthDiscretionary / lastMonthSpend) * 100 : 0;
   const discretionaryTrendDelta = thisMonthDiscretionaryShare - lastMonthDiscretionaryShare;
+
+  // ---- Year-over-year ----
+  const years = Array.from(new Set((allTx ?? []).map((t) => t.date.slice(0, 4)))).sort();
+  const yoyData: YearOverYearPoint[] = MONTH_NAMES.map((label, i) => {
+    const monthStr = String(i + 1).padStart(2, "0");
+    const row: YearOverYearPoint = { month: label };
+    for (const y of years) {
+      row[y] = (allTx ?? [])
+        .filter((t) => t.date.slice(0, 4) === y && t.date.slice(5, 7) === monthStr)
+        .reduce((s, t) => s + (t.amount_usd ?? 0), 0);
+    }
+    return row;
+  });
+  const yearTotals = years
+    .map((y) => {
+      const spend = (allTx ?? []).filter((t) => t.date.slice(0, 4) === y).reduce((s, t) => s + (t.amount_usd ?? 0), 0);
+      const income = (allIncome ?? []).filter((inc) => inc.date.slice(0, 4) === y).reduce((s, inc) => s + (inc.amount_usd ?? 0), 0);
+      return { year: y, spend, income, net: income - spend };
+    })
+    .reverse();
 
   return (
     <div>
@@ -166,6 +189,36 @@ export default async function InsightsPage() {
           size="small"
         />
       </div>
+
+      {years.length > 0 && (
+        <>
+          <div className="section-header mt-8 mb-3">Year over Year</div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <YearOverYearChart data={yoyData} years={years} />
+            </div>
+            <Glass className="p-5">
+              <div className="ios-headline mb-3">By Year</div>
+              <div className="flex flex-col">
+                {yearTotals.map((yt, i) => (
+                  <div key={yt.year}>
+                    {i > 0 && <div className="h-px bg-[var(--separator)]" />}
+                    <div className="py-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="ios-subhead text-text font-medium">{yt.year}</span>
+                        <span className={`num text-[14px] font-semibold ${yt.net >= 0 ? "pos" : "neg"}`}>{fmtUsd(yt.net)}</span>
+                      </div>
+                      <div className="stat-label num mt-0.5">
+                        {fmtUsd(yt.income)} in · {fmtUsd(yt.spend)} out
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Glass>
+          </div>
+        </>
+      )}
     </div>
   );
 }

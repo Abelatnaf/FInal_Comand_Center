@@ -9,6 +9,7 @@ function goalFromForm(formData: FormData) {
     target_amount_usd: Number(formData.get("target_amount_usd")),
     target_date: String(formData.get("target_date") ?? "") || null,
     saved_so_far_usd: Number(formData.get("saved_so_far_usd") ?? 0),
+    account_id: String(formData.get("account_id") ?? "") || null,
   };
 }
 

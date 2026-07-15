@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccountCard } from "@/components/wallet/AccountCard";
+import { PayoffCalculator } from "@/components/wallet/PayoffCalculator";
 import { AppIcon } from "@/components/ui/AppIcon";
 import { createClient } from "@/lib/supabase/server";
 import { fmtUsd } from "@/lib/format";
@@ -16,7 +17,7 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
   const supabase = await createClient();
 
   const [accountRes, latestSnapshotRes, txRes, incomeRes] = await Promise.all([
-    supabase.from("accounts").select("id, name, starting_balance, kind").eq("id", id).single(),
+    supabase.from("accounts").select("id, name, starting_balance, kind, interest_rate_pct").eq("id", id).single(),
     supabase.from("net_worth_snapshots").select("id").order("snapshot_date", { ascending: false }).limit(1).maybeSingle(),
     supabase
       .from("transactions")
@@ -110,6 +111,10 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
           variant="expanded"
         />
       </div>
+
+      {account.kind === "liability" && (
+        <PayoffCalculator balance={displayBalance} interestRatePct={account.interest_rate_pct} />
+      )}
 
       <div className="section-header uppercase mb-2 px-1">Activity tagged to this account</div>
 

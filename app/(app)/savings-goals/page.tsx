@@ -5,7 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 export default async function SavingsGoalsPage() {
   const supabase = await createClient();
 
-  const { data: goals } = await supabase.from("savings_goal_progress").select("*").order("target_date");
+  const [{ data: goals }, { data: accounts }] = await Promise.all([
+    supabase.from("savings_goal_progress").select("*").order("target_date"),
+    supabase.from("accounts").select("id, name").eq("kind", "asset").order("sort_order"),
+  ]);
 
   const typedGoals = (goals ?? [])
     .filter((g) => g.id !== null)
@@ -18,15 +21,16 @@ export default async function SavingsGoalsPage() {
       remaining: g.remaining ?? 0,
       percent_complete: g.percent_complete ?? 0,
       monthly_needed: g.monthly_needed,
+      account_id: g.account_id,
     }));
 
   return (
     <div>
       <PageHeader
         title="Savings Goals"
-        subtitle="Progress bars, computed remaining / monthly needed."
+        subtitle="Progress bars, computed remaining / monthly needed. Link a goal to an account to track it automatically."
       />
-      <SavingsGoalsList goals={typedGoals} />
+      <SavingsGoalsList goals={typedGoals} accounts={accounts ?? []} />
     </div>
   );
 }

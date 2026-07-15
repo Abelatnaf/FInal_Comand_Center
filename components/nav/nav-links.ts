@@ -5,7 +5,7 @@ export const NAV_LINKS = [
   { href: "/transfers", label: "Transfers" },
   { href: "/weekly-rollup", label: "Weekly Rollup" },
   { href: "/monthly-rollup", label: "Monthly Rollup" },
-  { href: "/recurring-bills", label: "Recurring Bills" },
+  { href: "/recurring-bills", label: "Recurring" },
   { href: "/savings-goals", label: "Savings Goals" },
   { href: "/net-worth", label: "Net Worth" },
   { href: "/semester-planner", label: "Budget Periods" },

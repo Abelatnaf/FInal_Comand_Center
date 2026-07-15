@@ -5,8 +5,15 @@ import { Glass } from "@/components/glass/Glass";
 import { HScroll } from "@/components/ui/HScroll";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { fmtUsd } from "@/lib/format";
-import { downloadCsv } from "@/lib/csv";
-import { updateTransaction, deleteTransaction, getReceiptUrl } from "@/app/(app)/transactions/actions";
+import { downloadCsv, downloadText } from "@/lib/csv";
+import { toQif, toOfx } from "@/lib/financial-export";
+import {
+  updateTransaction,
+  deleteTransaction,
+  getReceiptUrl,
+  bulkRecategorizeTransactions,
+  bulkDeleteTransactions,
+} from "@/app/(app)/transactions/actions";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import { DatePicker } from "@/components/ui/DatePicker";
 
@@ -307,14 +314,24 @@ function TransactionEditRow(props: {
 }) {
   return (
     <tr className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
-      <td colSpan={8} className="py-3 px-2">
+      <td colSpan={9} className="py-3 px-2">
         <TransactionEditFields {...props} />
       </td>
     </tr>
   );
 }
 
-function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => void }) {
+function TransactionRowView({
+  tx,
+  onEdit,
+  selected,
+  onToggleSelect,
+}: {
+  tx: TransactionRow;
+  onEdit: () => void;
+  selected: boolean;
+  onToggleSelect: () => void;
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -337,6 +354,9 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
 
   return (
     <tr className="border-t border-[var(--separator)] hover:bg-[rgba(0,0,0,0.03)] transition-colors">
+      <td className="py-2.5 px-2">
+        <input type="checkbox" checked={selected} onChange={onToggleSelect} className="accent-tint" aria-label="Select row" />
+      </td>
       <td className="py-2.5 px-2 num text-xs text-text-dim whitespace-nowrap">{tx.date}</td>
       <td className="py-2.5 px-2 num text-xs text-text-dim">{tx.week_number ?? "—"}</td>
       <td className="py-2.5 px-2 text-text-dim whitespace-nowrap" title={categoryTitle}>{categoryLabel}</td>
@@ -421,17 +441,64 @@ export function TransactionsTable({
   const [necessityFilter, setNecessityFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkCategoryId, setBulkCategoryId] = useState("");
+  const [bulkPending, startBulkTransition] = useTransition();
+  const [bulkError, setBulkError] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
     return transactions.filter((t) => {
       if (categoryFilter && String(t.category_id) !== categoryFilter) return false;
       if (necessityFilter && t.necessity !== necessityFilter) return false;
       if (dateFrom && t.date < dateFrom) return false;
       if (dateTo && t.date > dateTo) return false;
+      if (q && !`${t.description ?? ""} ${t.notes ?? ""} ${t.payment_method ?? ""}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [transactions, categoryFilter, necessityFilter, dateFrom, dateTo]);
+  }, [transactions, categoryFilter, necessityFilter, dateFrom, dateTo, query]);
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelected((prev) => (prev.size === filtered.length ? new Set() : new Set(filtered.map((t) => t.id))));
+  }
+
+  function handleBulkRecategorize() {
+    if (!bulkCategoryId) return;
+    const ids = Array.from(selected);
+    startBulkTransition(async () => {
+      const res = await bulkRecategorizeTransactions(ids, Number(bulkCategoryId));
+      if (res?.error) setBulkError(res.error);
+      else {
+        setBulkError(null);
+        setSelected(new Set());
+        setBulkCategoryId("");
+      }
+    });
+  }
+
+  function handleBulkDelete() {
+    const ids = Array.from(selected);
+    if (!confirm(`Delete ${ids.length} transaction${ids.length === 1 ? "" : "s"}?`)) return;
+    startBulkTransition(async () => {
+      const res = await bulkDeleteTransactions(ids);
+      if (res?.error) setBulkError(res.error);
+      else {
+        setBulkError(null);
+        setSelected(new Set());
+      }
+    });
+  }
 
   function exportCsv() {
     const header = [
@@ -463,9 +530,36 @@ export function TransactionsTable({
     downloadCsv([header, ...rows], "transactions.csv");
   }
 
+  function ledgerEntries() {
+    return filtered.map((t) => ({
+      date: t.date,
+      amount: -(t.amount_usd ?? 0),
+      payee: t.description || t.categories?.name || "Transaction",
+      category: t.categories?.name,
+      memo: t.notes ?? undefined,
+    }));
+  }
+
+  function exportQif() {
+    downloadText(toQif(ledgerEntries()), "transactions.qif", "application/qif");
+  }
+
+  function exportOfx() {
+    downloadText(toOfx(ledgerEntries(), "Transactions"), "transactions.ofx", "application/x-ofx");
+  }
+
   return (
     <div>
       <Glass className="p-4 mb-4 flex flex-wrap gap-3 items-end">
+        <div className="flex-1 min-w-[180px]">
+          <label className="stat-label block mb-1 text-xs">Search</label>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Description, notes, payment…"
+            className="input text-sm w-full"
+          />
+        </div>
         <div>
           <label className="stat-label block mb-1 text-xs">Category</label>
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="select text-sm">
@@ -493,16 +587,57 @@ export function TransactionsTable({
           <label className="stat-label block mb-1 text-xs">To</label>
           <DatePicker value={dateTo} onChange={setDateTo} placeholder="Any" className="text-sm" />
         </div>
-        <button onClick={exportCsv} className="btn text-sm ml-auto">
-          Export CSV
-        </button>
+        <div className="flex gap-2 ml-auto">
+          <button onClick={exportCsv} className="btn text-sm">
+            CSV
+          </button>
+          <button onClick={exportQif} className="btn text-sm">
+            QIF
+          </button>
+          <button onClick={exportOfx} className="btn text-sm">
+            OFX
+          </button>
+        </div>
       </Glass>
+
+      {selected.size > 0 && (
+        <Glass className="hidden md:flex p-3 mb-4 items-center gap-3">
+          <span className="text-[13px] text-text-dim">{selected.size} selected</span>
+          <select value={bulkCategoryId} onChange={(e) => setBulkCategoryId(e.target.value)} className="select text-sm">
+            <option value="">Recategorize to…</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <button onClick={handleBulkRecategorize} disabled={bulkPending || !bulkCategoryId} className="btn text-sm">
+            {bulkPending ? "Working…" : "Apply"}
+          </button>
+          <button onClick={handleBulkDelete} disabled={bulkPending} className="link-destructive text-[13px]">
+            Delete Selected
+          </button>
+          <button onClick={() => setSelected(new Set())} className="link-action text-[13px] ml-auto">
+            Clear
+          </button>
+          {bulkError && <p className="text-text-dim text-xs">{bulkError}</p>}
+        </Glass>
+      )}
 
       <Glass className="hidden md:block">
         <HScroll>
           <table className="w-full text-sm min-w-[900px]">
             <thead>
               <tr className="text-text-dim text-left text-xs">
+                <th className="py-3 px-2 font-normal">
+                  <input
+                    type="checkbox"
+                    checked={filtered.length > 0 && selected.size === filtered.length}
+                    onChange={toggleSelectAll}
+                    className="accent-tint"
+                    aria-label="Select all"
+                  />
+                </th>
                 <th className="py-3 px-2 font-normal">Date</th>
                 <th className="py-3 px-2 font-normal">Wk</th>
                 <th className="py-3 px-2 font-normal">Category</th>
@@ -516,7 +651,7 @@ export function TransactionsTable({
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-10 text-center text-text-dim text-sm">
+                  <td colSpan={9} className="py-10 text-center text-text-dim text-sm">
                     No transactions yet — use Quick Add to log your first one.
                   </td>
                 </tr>
@@ -532,7 +667,13 @@ export function TransactionsTable({
                       onDone={() => setEditingId(null)}
                     />
                   ) : (
-                    <TransactionRowView key={tx.id} tx={tx} onEdit={() => setEditingId(tx.id)} />
+                    <TransactionRowView
+                      key={tx.id}
+                      tx={tx}
+                      onEdit={() => setEditingId(tx.id)}
+                      selected={selected.has(tx.id)}
+                      onToggleSelect={() => toggleSelect(tx.id)}
+                    />
                   )
                 )
               )}

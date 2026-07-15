@@ -11,10 +11,13 @@ export async function updateSettings(_prevState: SettingsState, formData: FormDa
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { error: "Not signed in." };
 
+  const thresholdRaw = String(formData.get("low_balance_threshold") ?? "").trim();
+
   const { error } = await supabase
     .from("settings")
     .update({
       tracking_start_date: String(formData.get("tracking_start_date")),
+      low_balance_threshold: thresholdRaw ? Number(thresholdRaw) : null,
     })
     .eq("user_id", userData.user.id);
 
@@ -29,17 +32,21 @@ export type AccountsState = { error?: string; success?: boolean } | undefined;
 export async function updateAccountBalances(_prevState: AccountsState, formData: FormData): Promise<AccountsState> {
   const supabase = await createClient();
 
-  const updates: { id: string; starting_balance: number }[] = [];
+  const updates: { id: string; starting_balance: number; interest_rate_pct: number | null }[] = [];
   for (const [key, value] of formData.entries()) {
     if (!key.startsWith("account_")) continue;
     const id = key.slice("account_".length);
     const amount = Number(value);
     if (Number.isNaN(amount)) continue;
-    updates.push({ id, starting_balance: amount });
+    const rateRaw = String(formData.get(`rate_${id}`) ?? "").trim();
+    updates.push({ id, starting_balance: amount, interest_rate_pct: rateRaw ? Number(rateRaw) : null });
   }
 
   for (const u of updates) {
-    const { error } = await supabase.from("accounts").update({ starting_balance: u.starting_balance }).eq("id", u.id);
+    const { error } = await supabase
+      .from("accounts")
+      .update({ starting_balance: u.starting_balance, interest_rate_pct: u.interest_rate_pct })
+      .eq("id", u.id);
     if (error) return { error: error.message };
   }
 
