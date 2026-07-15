@@ -6,8 +6,10 @@ import { useState } from "react";
 import { NAV_LINKS } from "./nav-links";
 import { QuickAddFab } from "../QuickAddFab";
 import { GlobalSearch } from "../GlobalSearch";
+import { InstallPrompt } from "../InstallPrompt";
 import { NavIcon } from "./NavIcons";
 import { HomeIcon, ListIcon, IncomeIcon, MoreIcon } from "./icons";
+import { PullToRefresh } from "../ui/PullToRefresh";
 
 type Currency = { code: string; name: string; rate_to_usd: number };
 
@@ -122,7 +124,9 @@ export function AppShell({
           </Link>
         </div>
 
-        <main className="max-w-[1240px] mx-auto px-5 md:px-8 pt-6 md:pt-8 pb-32 md:pb-12">{children}</main>
+        <main className="max-w-[1240px] mx-auto px-5 md:px-8 pt-6 md:pt-8 pb-32 md:pb-12">
+          <PullToRefresh>{children}</PullToRefresh>
+        </main>
       </div>
 
       {/* Bottom tab bar (mobile) */}
@@ -203,6 +207,7 @@ export function AppShell({
       )}
 
       <GlobalSearch />
+      <InstallPrompt />
       <QuickAddFab categories={categories} currencies={currencies} accounts={accounts} />
     </div>
   );

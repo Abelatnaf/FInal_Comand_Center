@@ -132,6 +132,82 @@ export async function addIncome(
   return { success: true };
 }
 
+export type MerchantMemory = {
+  category_id: number | null;
+  account_id: string | null;
+  payment_method: string | null;
+  necessity: string | null;
+} | null;
+
+// Exact (case-insensitive) match on the free-text description/source the
+// user just typed, most recent first — used to prefill the rest of the
+// form the way a real teammate would remember "oh, this is always Groceries."
+export async function lookupMerchantMemory(
+  kind: "transaction" | "income",
+  text: string
+): Promise<MerchantMemory> {
+  const supabase = await createClient();
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  if (kind === "transaction") {
+    const { data } = await supabase
+      .from("transactions")
+      .select("category_id, account_id, payment_method, necessity")
+      .ilike("description", trimmed)
+      .order("date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return data ?? null;
+  }
+
+  const { data } = await supabase
+    .from("income")
+    .select("account_id")
+    .ilike("source", trimmed)
+    .order("date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ? { category_id: null, account_id: data.account_id, payment_method: null, necessity: null } : null;
+}
+
+export type LastEntry = {
+  amount_original: number;
+  currency: string;
+  category_id?: number | null;
+  account_id: string | null;
+  payment_method?: string | null;
+  necessity?: string | null;
+  description?: string | null;
+  source?: string | null;
+} | null;
+
+// Powers "Repeat last entry" — clones the most recent entry of this kind so
+// the user only has to confirm the date and submit.
+export async function getLastEntry(kind: "transaction" | "income"): Promise<LastEntry> {
+  const supabase = await createClient();
+
+  if (kind === "transaction") {
+    const { data } = await supabase
+      .from("transactions")
+      .select("amount_original, currency, category_id, account_id, payment_method, necessity, description")
+      .order("date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return data ?? null;
+  }
+
+  const { data } = await supabase
+    .from("income")
+    .select("amount_original, currency, account_id, source")
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ?? null;
+}
+
 export type TransferState = { error?: string; success?: boolean } | undefined;
 
 export async function addTransfer(_prevState: TransferState, formData: FormData): Promise<TransferState> {

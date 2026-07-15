@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
 import { HScroll } from "@/components/ui/HScroll";
+import { SwipeRow } from "@/components/ui/SwipeRow";
 import { fmtUsd } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { updateTransaction, deleteTransaction, getReceiptUrl } from "@/app/(app)/transactions/actions";
@@ -51,7 +52,7 @@ function ReceiptLink({ path }: { path: string }) {
   );
 }
 
-function TransactionEditRow({
+function TransactionEditFields({
   tx,
   categories,
   currencies,
@@ -122,9 +123,8 @@ function TransactionEditRow({
   }
 
   return (
-    <tr className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
-      <td colSpan={8} className="py-3 px-2">
-        <form action={handleSave} className="flex flex-wrap gap-2 items-end">
+    <>
+      <form action={handleSave} className="flex flex-wrap gap-2 items-end">
           <div className="w-36">
             <label className="stat-label block mb-1 text-[10px]">Date</label>
             <DatePicker name="date" defaultValue={tx.date} required className="!py-1.5 !px-2 text-sm" />
@@ -194,6 +194,9 @@ function TransactionEditRow({
             />
             Split into categories
           </label>
+          {!splitOn && (
+            <p className="text-text-dim text-[12px] -mt-2.5 w-full">One purchase, multiple budget categories — e.g. a Target run that&apos;s part groceries, part household.</p>
+          )}
 
           {splitOn && (
             <div className="flex flex-col gap-2 rounded-[12px] p-3 w-full" style={{ background: "var(--fill-quaternary)" }}>
@@ -289,8 +292,23 @@ function TransactionEditRow({
               Cancel
             </button>
           </div>
-        </form>
-        {error && <p className="text-text-dim text-xs mt-1.5">{error}</p>}
+      </form>
+      {error && <p className="text-text-dim text-xs mt-1.5">{error}</p>}
+    </>
+  );
+}
+
+function TransactionEditRow(props: {
+  tx: TransactionRow;
+  categories: Category[];
+  currencies: Currency[];
+  accounts: Account[];
+  onDone: () => void;
+}) {
+  return (
+    <tr className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
+      <td colSpan={8} className="py-3 px-2">
+        <TransactionEditFields {...props} />
       </td>
     </tr>
   );
@@ -341,6 +359,50 @@ function TransactionRowView({ tx, onEdit }: { tx: TransactionRow; onEdit: () => 
         {error && <div className="text-text-dim text-[10px] mt-1">{error}</div>}
       </td>
     </tr>
+  );
+}
+
+function TransactionMobileRow({ tx, onEdit }: { tx: TransactionRow; onEdit: () => void }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function handleDelete() {
+    if (!confirm("Delete this transaction?")) return;
+    startTransition(async () => {
+      const res = await deleteTransaction(tx.id);
+      if (res?.error) setError(res.error);
+    });
+  }
+
+  const splits = tx.transaction_splits ?? [];
+  const isSplit = splits.length > 1;
+  const categoryLabel = isSplit ? `Split (${splits.length})` : tx.categories?.name ?? "—";
+
+  return (
+    <SwipeRow onDelete={handleDelete}>
+      <div className="p-3.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-[15px] font-medium text-text truncate">{tx.description || categoryLabel}</div>
+            <div className="text-[12px] text-text-dim mt-0.5 truncate">
+              {categoryLabel} · {tx.date}
+              {tx.payment_method ? ` · ${tx.payment_method}` : ""}
+            </div>
+          </div>
+          <div className="num text-[15px] font-semibold shrink-0">{fmtUsd(tx.amount_usd ?? 0)}</div>
+        </div>
+        <div className="flex items-center gap-4 mt-2">
+          <button onClick={onEdit} className="link-action text-[13px]">
+            Edit
+          </button>
+          <button onClick={handleDelete} disabled={pending} className="link-destructive text-[13px]">
+            {pending ? "…" : "Delete"}
+          </button>
+          {tx.receipt_path && <ReceiptLink path={tx.receipt_path} />}
+        </div>
+        {error && <div className="text-text-dim text-[10px] mt-1">{error}</div>}
+      </div>
+    </SwipeRow>
   );
 }
 
@@ -436,7 +498,7 @@ export function TransactionsTable({
         </button>
       </Glass>
 
-      <Glass>
+      <Glass className="hidden md:block">
         <HScroll>
           <table className="w-full text-sm min-w-[900px]">
             <thead>
@@ -478,6 +540,31 @@ export function TransactionsTable({
           </table>
         </HScroll>
       </Glass>
+
+      {/* Mobile: swipeable card list instead of a cramped horizontally-scrolled table */}
+      <div className="md:hidden flex flex-col gap-2.5">
+        {filtered.length === 0 ? (
+          <Glass className="py-10 text-center text-text-dim text-sm">No transactions yet — use Quick Add to log your first one.</Glass>
+        ) : (
+          filtered.map((tx) =>
+            editingId === tx.id ? (
+              <Glass key={tx.id} className="p-4">
+                <TransactionEditFields
+                  tx={tx}
+                  categories={categories}
+                  currencies={currencies}
+                  accounts={accounts}
+                  onDone={() => setEditingId(null)}
+                />
+              </Glass>
+            ) : (
+              <Glass key={tx.id} className="!p-0">
+                <TransactionMobileRow tx={tx} onEdit={() => setEditingId(tx.id)} />
+              </Glass>
+            )
+          )
+        )}
+      </div>
     </div>
   );
 }

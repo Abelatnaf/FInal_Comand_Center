@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { Glass } from "@/components/glass/Glass";
 import { HScroll } from "@/components/ui/HScroll";
+import { SwipeRow } from "@/components/ui/SwipeRow";
 import { fmtUsd } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { updateIncome, deleteIncome } from "@/app/(app)/income/actions";
@@ -24,7 +25,7 @@ export type IncomeRow = {
 type Currency = { code: string; name: string; rate_to_usd: number };
 type Account = { id: string; name: string };
 
-function IncomeEditRow({
+function IncomeEditFields({
   row,
   currencies,
   accounts,
@@ -47,9 +48,8 @@ function IncomeEditRow({
   }
 
   return (
-    <tr className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
-      <td colSpan={6} className="py-3 px-2">
-        <form action={handleSave} className="flex flex-wrap gap-2 items-end">
+    <>
+      <form action={handleSave} className="flex flex-wrap gap-2 items-end">
           <div className="w-36">
             <label className="stat-label block mb-1 text-[10px]">Date</label>
             <DatePicker name="date" defaultValue={row.date} required className="!py-1.5 !px-2 text-sm" />
@@ -111,8 +111,17 @@ function IncomeEditRow({
               Cancel
             </button>
           </div>
-        </form>
-        {error && <p className="text-text-dim text-xs mt-1.5">{error}</p>}
+      </form>
+      {error && <p className="text-text-dim text-xs mt-1.5">{error}</p>}
+    </>
+  );
+}
+
+function IncomeEditRow(props: { row: IncomeRow; currencies: Currency[]; accounts: Account[]; onDone: () => void }) {
+  return (
+    <tr className="border-t border-[var(--separator)] bg-[rgba(0,0,0,0.03)]">
+      <td colSpan={6} className="py-3 px-2">
+        <IncomeEditFields {...props} />
       </td>
     </tr>
   );
@@ -147,6 +156,42 @@ function IncomeRowView({ row, onEdit }: { row: IncomeRow; onEdit: () => void }) 
         {error && <div className="text-text-dim text-[10px] mt-1">{error}</div>}
       </td>
     </tr>
+  );
+}
+
+function IncomeMobileRow({ row, onEdit }: { row: IncomeRow; onEdit: () => void }) {
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function handleDelete() {
+    if (!confirm("Delete this income entry?")) return;
+    startTransition(async () => {
+      const res = await deleteIncome(row.id);
+      if (res?.error) setError(res.error);
+    });
+  }
+
+  return (
+    <SwipeRow onDelete={handleDelete}>
+      <div className="p-3.5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-[15px] font-medium text-text truncate">{row.source || "Income"}</div>
+            <div className="text-[12px] text-text-dim mt-0.5 truncate">{row.date}</div>
+          </div>
+          <div className="num text-[15px] font-semibold pos shrink-0">+{fmtUsd(row.amount_usd ?? 0)}</div>
+        </div>
+        <div className="flex items-center gap-4 mt-2">
+          <button onClick={onEdit} className="link-action text-[13px]">
+            Edit
+          </button>
+          <button onClick={handleDelete} disabled={pending} className="link-destructive text-[13px]">
+            {pending ? "…" : "Delete"}
+          </button>
+        </div>
+        {error && <div className="text-text-dim text-[10px] mt-1">{error}</div>}
+      </div>
+    </SwipeRow>
   );
 }
 
@@ -214,7 +259,7 @@ export function IncomeTable({
         </button>
       </Glass>
 
-      <Glass>
+      <Glass className="hidden md:block">
         <HScroll>
           <table className="w-full text-sm min-w-[700px]">
             <thead>
@@ -253,6 +298,25 @@ export function IncomeTable({
           </table>
         </HScroll>
       </Glass>
+
+      {/* Mobile: swipeable card list instead of a cramped horizontally-scrolled table */}
+      <div className="md:hidden flex flex-col gap-2.5">
+        {filtered.length === 0 ? (
+          <Glass className="py-10 text-center text-text-dim text-sm">No income logged yet — use Quick Add to log your first entry.</Glass>
+        ) : (
+          filtered.map((row) =>
+            editingId === row.id ? (
+              <Glass key={row.id} className="p-4">
+                <IncomeEditFields row={row} currencies={currencies} accounts={accounts} onDone={() => setEditingId(null)} />
+              </Glass>
+            ) : (
+              <Glass key={row.id} className="!p-0">
+                <IncomeMobileRow row={row} onEdit={() => setEditingId(row.id)} />
+              </Glass>
+            )
+          )
+        )}
+      </div>
     </div>
   );
 }

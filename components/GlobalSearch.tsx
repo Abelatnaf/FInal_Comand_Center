@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { globalSearch, type SearchResult } from "@/app/(app)/search-actions";
+import { NAV_LINKS } from "@/components/nav/nav-links";
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -12,6 +13,20 @@ export function GlobalSearch() {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // ⌘K / Ctrl+K opens (or closes) the launcher from anywhere in the app —
+  // a global shortcut always wins over whatever's focused, matching how
+  // command palettes behave everywhere else.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setOpen((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function close() {
     setOpen(false);
@@ -56,6 +71,11 @@ export function GlobalSearch() {
     return acc;
   }, {});
 
+  const q = query.trim().toLowerCase();
+  const pageMatches = NAV_LINKS.filter((l) => l.label.toLowerCase().includes(q));
+  const showEmptyState = !loading && q.length < 2 && pageMatches.length === 0;
+  const showNoResults = !loading && q.length >= 2 && results.length === 0 && pageMatches.length === 0;
+
   return (
     <>
       <button
@@ -65,6 +85,7 @@ export function GlobalSearch() {
       >
         <SearchIcon size={16} />
         <span className="text-[13px]">Search</span>
+        <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-[5px] bg-[var(--fill-tertiary)] text-text-dim">⌘K</span>
       </button>
 
       <button
@@ -99,12 +120,28 @@ export function GlobalSearch() {
             </div>
 
             <div className="overflow-y-auto">
+              {pageMatches.length > 0 && (
+                <div>
+                  <div className="px-4 pt-3 pb-1 stat-label">Pages</div>
+                  {pageMatches.map((l) => (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      onClick={() => goTo(l.href)}
+                      className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-[var(--fill-quaternary)] transition-colors active:bg-[var(--fill-tertiary)]"
+                    >
+                      <span className="text-[15px] text-text truncate">{l.label}</span>
+                      <span className="text-[12px] text-text-dim whitespace-nowrap">Go to</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
               {loading && <div className="px-4 py-6 text-center text-text-dim text-sm">Searching…</div>}
-              {!loading && query.trim().length >= 2 && results.length === 0 && (
+              {showNoResults && (
                 <div className="px-4 py-6 text-center text-text-dim text-sm">No matches for &quot;{query}&quot;.</div>
               )}
-              {!loading && query.trim().length < 2 && (
-                <div className="px-4 py-6 text-center text-text-dim text-sm">Type at least 2 characters to search.</div>
+              {showEmptyState && (
+                <div className="px-4 py-6 text-center text-text-dim text-sm">Type at least 2 characters to search, or a page name to jump straight there.</div>
               )}
               {Object.entries(grouped).map(([type, items]) => (
                 <div key={type}>
