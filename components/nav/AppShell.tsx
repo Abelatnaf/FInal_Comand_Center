@@ -89,16 +89,19 @@ export function AppShell({
           {/* Promo card */}
           <div
             className="rounded-[14px] p-4 mb-3 text-white overflow-hidden relative"
-            style={{ background: "radial-gradient(120% 130% at 100% 0%, rgba(94,92,230,0.55), transparent 60%), #0b0b0c" }}
+            style={{
+              background:
+                "radial-gradient(120% 130% at 100% 0%, rgba(78,222,163,0.35), transparent 60%), radial-gradient(90% 120% at 0% 100%, rgba(59,130,246,0.22), transparent 55%), var(--hero-bg)",
+            }}
           >
             <div className="text-[15px] font-semibold">Command Center</div>
-            <div className="text-[12px] mt-0.5" style={{ color: "rgba(255,255,255,0.65)" }}>
+            <div className="text-[12px] mt-0.5" style={{ color: "rgba(218,226,253,0.65)" }}>
               Every dollar, in one place.
             </div>
             <Link
               href="/insights"
               className="inline-block text-[13px] font-medium mt-3 transition-opacity hover:opacity-80"
-              style={{ color: "#5ac8fa" }}
+              style={{ color: "var(--blue-hover)" }}
             >
               View insights →
             </Link>

@@ -1,71 +1,76 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Wallet — a dark, card-stack finance UI modeled on Apple Wallet's
-   own material language rather than generic Settings-app HIG.
-   Committed to one dark canvas at all times (Wallet itself ignores
-   the system Light/Dark toggle for its own surface). See CLAUDE.md
-   build log, "Apple Wallet redesign".
+   Ethical Horizon — an "All-Out Glassmorphism" finance UI: deep
+   charcoal-navy void, translucent blurred glass at every layer,
+   Ethical Emerald as the one primary tint with Trust Blue as a
+   secondary data accent, Montserrat for display type and Geist
+   Mono for data/labels. Adapted from a Stitch design export (see
+   CLAUDE.md build log, "Ethical Horizon reskin").
    ============================================================ */
 
 :root {
   color-scheme: dark;
 
   /* Backgrounds */
-  --bg: #000000;             /* page */
-  --bg-elevated: #1c1c1e;    /* cards, list rows */
-  --bg-elevated-2: #2c2c2e;  /* nested / inputs */
-  --bg-sidebar: #000000;
-  --bg-dark: #1c1c1e;        /* hero surface */
+  --bg: #0b1326;              /* page — deep charcoal-navy void */
+  --bg-elevated: #131b2e;     /* cards, list rows (surface-container-low) */
+  --bg-elevated-2: #171f33;   /* nested / inputs (surface-container) */
+  --bg-sidebar: #0b1326;
+  --bg-dark: #060e20;         /* hero surface (surface-container-lowest) */
 
   /* System grays (dark) */
-  --gray: #8e8e93;
-  --gray2: #636366;
-  --gray3: #48484a;
-  --gray4: #3a3a3c;
-  --gray5: #2c2c2e;
-  --gray6: #1c1c1e;
+  --gray: #86948a;
+  --gray2: #5c6a72;
+  --gray3: #3c4a42;
+  --gray4: #2d3449;
+  --gray5: #222a3d;
+  --gray6: #171f33;
 
-  /* Labels (dark — pure white, per HIG's dark-mode label opacity ramp) */
-  --label: #ffffff;
-  --label-secondary: rgba(235, 235, 245, 0.6);
-  --label-tertiary: rgba(235, 235, 245, 0.3);
-  --label-quaternary: rgba(235, 235, 245, 0.18);
+  /* Labels (soft lavender-white, not pure white — on-surface / on-surface-variant) */
+  --label: #dae2fd;
+  --label-secondary: rgba(218, 226, 253, 0.65);
+  --label-tertiary: rgba(218, 226, 253, 0.35);
+  --label-quaternary: rgba(218, 226, 253, 0.18);
 
   /* Separators */
-  --separator: rgba(84, 84, 88, 0.6);
-  --separator-strong: rgba(84, 84, 88, 0.75);
-  --hairline: rgba(255, 255, 255, 0.08);
+  --separator: rgba(255, 255, 255, 0.1);
+  --separator-strong: rgba(255, 255, 255, 0.18);
+  --hairline: rgba(255, 255, 255, 0.1);
 
   /* Fills */
-  --fill: rgba(120, 120, 128, 0.36);
-  --fill-secondary: rgba(120, 120, 128, 0.32);
-  --fill-tertiary: rgba(118, 118, 128, 0.24);
-  --fill-quaternary: rgba(118, 118, 128, 0.18);
+  --fill: rgba(218, 226, 253, 0.16);
+  --fill-secondary: rgba(218, 226, 253, 0.12);
+  --fill-tertiary: rgba(218, 226, 253, 0.09);
+  --fill-quaternary: rgba(218, 226, 253, 0.06);
 
-  /* System colors (dark variants) */
-  --blue: #0a84ff;
-  --blue-hover: #409cff;
-  --green: #30d158;
-  --red: #ff453a;
+  /* System colors — Ethical Emerald is the one primary tint everywhere
+     the app previously used systemBlue; Trust Blue becomes the secondary
+     data-accent (charts, links-within-data), matching the source spec. */
+  --blue: #10b981;
+  --blue-hover: #4edea3;
+  --accent-blue: #3b82f6;
+  --accent-purple: #b090ff;
+  --green: #4edea3;
+  --red: #ffb4ab;
   --orange: #ff9f0a;
-  --purple: #bf5af2;
+  --purple: #d0bcff;
   --indigo: #5e5ce6;
   --teal: #64d2ff;
   --pink: #ff375f;
 
-  /* Card shadow — heavier than a light card needs, since surfaces sit on true black */
+  /* Card shadow */
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 32px rgba(0, 0, 0, 0.5);
   --card-border: 1px solid var(--hairline);
 
   /* Themed surfaces */
-  --material-bg: rgba(30, 30, 32, 0.72);
-  --hero-bg: #1c1c1e;
-  --badge-bg: rgba(48, 209, 88, 0.18);
-  --badge-fg: #30d158;
+  --material-bg: rgba(11, 19, 38, 0.55);
+  --hero-bg: #060e20;
+  --badge-bg: rgba(78, 222, 163, 0.16);
+  --badge-fg: #4edea3;
 
   /* Liquid-glass intensity — driven by the Settings slider (0–40px). */
-  --glass-blur: 24px;
+  --glass-blur: 20px;
 
   /* Wallet card finishes — deterministically assigned per account (see
      CardStack), not tied to account type; graphite is reserved for
@@ -96,13 +101,9 @@
   --text-dim: var(--label-secondary);
   --text-faint: var(--label-tertiary);
 
-  --font-body:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial,
-    sans-serif;
-  --font-display:
-    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial,
-    sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, monospace;
+  --font-body: var(--font-montserrat), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: var(--font-montserrat), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 @theme inline {
@@ -134,7 +135,13 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(120% 90% at 15% -10%, rgba(78, 222, 163, 0.1), transparent 55%),
+    radial-gradient(100% 80% at 100% 0%, rgba(59, 130, 246, 0.1), transparent 55%),
+    radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: auto, auto, 40px 40px;
+  background-attachment: fixed, fixed, fixed;
   color: var(--label);
   font-family: var(--font-body);
   font-size: 17px;
@@ -263,8 +270,10 @@ h3,
 
 .glass {
   position: relative;
-  background: var(--bg-elevated);
-  border-radius: 18px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02) 60%);
+  backdrop-filter: blur(var(--glass-blur, 20px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px));
+  border-radius: 16px;
   border: var(--card-border);
   box-shadow: var(--card-shadow);
 }
@@ -282,8 +291,18 @@ h3,
 }
 
 .glass-dense {
-  background: var(--bg-elevated-2);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(calc(var(--glass-blur, 20px) * 0.6));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 20px) * 0.6));
   border-radius: 12px;
+}
+
+/* Neon glow accents, per the "Ethical Horizon" glass spec */
+.neon-glow-emerald {
+  box-shadow: 0 0 20px rgba(78, 222, 163, 0.25);
+}
+.neon-glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
 }
 
 /* ---------- Horizontal-scroll affordance (wide tables) ---------- */
@@ -396,12 +415,13 @@ h3,
 .ledger {
   position: relative;
   background:
-    radial-gradient(120% 140% at 100% 0%, rgba(94, 92, 230, 0.28), transparent 55%),
+    radial-gradient(120% 140% at 100% 0%, rgba(78, 222, 163, 0.22), transparent 55%),
+    radial-gradient(90% 120% at 0% 100%, rgba(59, 130, 246, 0.16), transparent 55%),
     var(--hero-bg);
   border-radius: 20px;
   overflow: hidden;
   color: #ffffff;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), 0 0 30px rgba(78, 222, 163, 0.08);
 }
 
 /* ---------- Small helpers ---------- */
@@ -613,14 +633,14 @@ a:focus-visible {
   padding: 9px 16px;
   border-radius: 12px;
   border: none;
-  background: rgba(0, 122, 255, 0.1);
-  color: var(--blue);
+  background: rgba(78, 222, 163, 0.1);
+  color: var(--blue-hover);
   transition: opacity 0.15s ease, background 0.15s ease, transform 0.1s ease;
   cursor: pointer;
 }
 
 .btn:hover {
-  background: rgba(0, 122, 255, 0.16);
+  background: rgba(78, 222, 163, 0.18);
 }
 
 .btn:active {
@@ -633,18 +653,21 @@ a:focus-visible {
 }
 
 .btn-primary {
-  background: var(--blue);
+  background: linear-gradient(120deg, var(--blue) 0%, var(--accent-blue) 100%);
   color: #ffffff;
-  border: none;
-  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  box-shadow: 0 0 16px rgba(78, 222, 163, 0.25);
 }
 
 .btn-primary:hover {
-  background: var(--blue-hover);
+  box-shadow: 0 0 24px rgba(78, 222, 163, 0.4);
 }
 
 .btn-primary:active {
-  opacity: 0.8;
+  opacity: 0.85;
   transform: scale(0.97);
 }
 

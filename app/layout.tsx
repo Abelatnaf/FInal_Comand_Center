@@ -1,6 +1,20 @@
 import type { Metadata, Viewport } from "next";
+import { Montserrat, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "900"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Command Deck — Finance Command Center",
@@ -8,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#0b1326",
 };
 
 export default function RootLayout({
@@ -17,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${montserrat.variable} ${geistMono.variable}`}>
       <head>
         {/* Resolve saved appearance preferences before first paint so there is
             no flash of the wrong look. Reads localStorage: glass (0–100 →

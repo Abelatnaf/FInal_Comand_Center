@@ -81,7 +81,7 @@ export function MonthlyRollupCharts({
                 stroke={CHART_LINE_COLOR}
                 strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 4, stroke: "#000000", strokeWidth: 2 }}
+                activeDot={{ r: 4, stroke: "#0b1326", strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>

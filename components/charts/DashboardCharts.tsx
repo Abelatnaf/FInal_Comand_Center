@@ -35,19 +35,19 @@ export function NetWorthArea({ data }: { data: { label: string; value: number }[
       <AreaChart data={data} margin={{ top: 8, right: 4, left: 4, bottom: 0 }}>
         <defs>
           <linearGradient id="nwStroke" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#bf5af2" />
-            <stop offset="55%" stopColor="#5e5ce6" />
-            <stop offset="100%" stopColor="#32ade6" />
+            <stop offset="0%" stopColor="#4edea3" />
+            <stop offset="55%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="#3b82f6" />
           </linearGradient>
           <linearGradient id="nwFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#7d5cf0" stopOpacity={0.35} />
-            <stop offset="100%" stopColor="#7d5cf0" stopOpacity={0} />
+            <stop offset="0%" stopColor="#4edea3" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="#4edea3" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+        <CartesianGrid stroke="rgba(218,226,253,0.08)" vertical={false} />
         <XAxis
           dataKey="label"
-          tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 11 }}
+          tick={{ fill: "rgba(218,226,253,0.45)", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
           interval="preserveStartEnd"
@@ -55,7 +55,7 @@ export function NetWorthArea({ data }: { data: { label: string; value: number }[
         />
         <YAxis
           orientation="right"
-          tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 11 }}
+          tick={{ fill: "rgba(218,226,253,0.45)", fontSize: 11 }}
           tickLine={false}
           axisLine={false}
           width={44}
@@ -63,16 +63,16 @@ export function NetWorthArea({ data }: { data: { label: string; value: number }[
           domain={["dataMin - 2000", "dataMax + 2000"]}
         />
         <Tooltip
-          cursor={{ stroke: "rgba(255,255,255,0.2)" }}
+          cursor={{ stroke: "rgba(218,226,253,0.2)" }}
           contentStyle={{
-            background: "#1c1c1e",
-            border: "none",
+            background: "#131b2e",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: 10,
-            color: "#fff",
+            color: "#dae2fd",
             fontSize: 12,
             boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
           }}
-          labelStyle={{ color: "rgba(255,255,255,0.5)" }}
+          labelStyle={{ color: "rgba(218,226,253,0.5)" }}
           formatter={(v) => [fmtUsd(Number(v)), "Net Worth"] as [string, string]}
         />
         <Area
@@ -82,7 +82,7 @@ export function NetWorthArea({ data }: { data: { label: string; value: number }[
           strokeWidth={2.5}
           fill="url(#nwFill)"
           dot={false}
-          activeDot={{ r: 4, fill: "#fff", stroke: "#5e5ce6", strokeWidth: 2 }}
+          activeDot={{ r: 4, fill: "#fff", stroke: "#10b981", strokeWidth: 2 }}
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -114,13 +114,14 @@ export function CashFlowBars({ data }: { data: { label: string; income: number; 
           tickFormatter={compact}
         />
         <Tooltip
-          cursor={{ fill: "rgba(0,0,0,0.04)" }}
+          cursor={{ fill: "rgba(218,226,253,0.06)" }}
           contentStyle={{
-            background: "#fff",
-            border: "1px solid var(--hairline)",
+            background: "#131b2e",
+            border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: 10,
             fontSize: 12,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+            color: "#dae2fd",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
           }}
           formatter={(v, name) => [fmtUsd(Number(v)), name === "income" ? "Income" : "Expenses"] as [string, string]}
         />
@@ -164,11 +165,12 @@ export function SpendingDonut({
             </Pie>
             <Tooltip
               contentStyle={{
-                background: "#fff",
-                border: "1px solid var(--hairline)",
+                background: "#131b2e",
+                border: "1px solid rgba(255,255,255,0.1)",
                 borderRadius: 10,
                 fontSize: 12,
-                boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+                color: "#dae2fd",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
               }}
               formatter={(v, n) => [fmtUsd(Number(v)), String(n)] as [string, string]}
             />
