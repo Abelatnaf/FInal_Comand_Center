@@ -114,7 +114,15 @@ export function AppShell({
               Sign out
             </button>
           </form>
-          <div className="stat-label px-3 pt-3">© 2026 Command Deck</div>
+          <div className="stat-label px-3 pt-3 flex items-center gap-2 flex-wrap">
+            <span>© 2026 Command Deck</span>
+            <Link href="/privacy" className="hover:text-text-dim transition-colors">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-text-dim transition-colors">
+              Terms
+            </Link>
+          </div>
         </div>
       </aside>
 

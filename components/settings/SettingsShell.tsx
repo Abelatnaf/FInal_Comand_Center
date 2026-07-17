@@ -8,6 +8,10 @@ import { CategoryBudgetsForm } from "@/components/settings/CategoryBudgetsForm";
 import { AccountsForm } from "@/components/settings/AccountsForm";
 import { CurrenciesForm, type Currency } from "@/components/settings/CurrenciesForm";
 import { ExportDataButton } from "@/components/settings/ExportDataButton";
+import { MfaSettings } from "@/components/settings/MfaSettings";
+import { DeleteAccountForm } from "@/components/settings/DeleteAccountForm";
+import { NotificationsForm } from "@/components/settings/NotificationsForm";
+import { BackupsForm, type BackupRow } from "@/components/settings/BackupsForm";
 
 type Section = "appearance" | "financial" | "account";
 
@@ -27,6 +31,9 @@ export function SettingsShell({
   currencies,
   email,
   onSignOut,
+  mfaFactors,
+  notificationPrefs,
+  backups,
 }: {
   settings: SettingsData;
   categories: Category[];
@@ -34,6 +41,9 @@ export function SettingsShell({
   currencies: Currency[];
   email: string | null;
   onSignOut: () => void;
+  mfaFactors: { id: string; status: string }[];
+  notificationPrefs: { notify_weekly_digest: boolean; notify_budget_alerts: boolean; notify_bill_reminders: boolean };
+  backups: BackupRow[];
 }) {
   const [active, setActive] = useState<Section>("appearance");
 
@@ -98,12 +108,26 @@ export function SettingsShell({
               </form>
             </Glass>
 
+            <MfaSettings initialFactors={mfaFactors} />
+
+            <NotificationsForm initialPrefs={notificationPrefs} />
+
+            <BackupsForm initialBackups={backups} />
+
             <Glass className="p-6 max-w-xl">
               <div className="ios-headline mb-1">Export Your Data</div>
               <p className="text-text-dim ios-subhead mb-4">
                 Download everything you&apos;ve logged — transactions, income, accounts, budgets, goals, and more — as one JSON file.
               </p>
               <ExportDataButton />
+            </Glass>
+
+            <Glass className="p-6 max-w-xl">
+              <div className="ios-headline mb-1 text-[var(--red)]">Danger Zone</div>
+              <p className="text-text-dim ios-subhead mb-4">
+                Permanently delete your account and everything in it. This cannot be undone.
+              </p>
+              <DeleteAccountForm email={email} />
             </Glass>
           </div>
         )}

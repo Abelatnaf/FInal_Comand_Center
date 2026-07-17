@@ -9,7 +9,7 @@ export default async function TransactionsPage() {
     supabase
       .from("transactions")
       .select(
-        "id, date, week_number, category_id, description, necessity, is_recurring, currency, amount_original, amount_usd, payment_method, notes, receipt_path, account_id, categories(name), transaction_splits(id, category_id, amount_usd, categories(name))"
+        "id, date, week_number, category_id, description, necessity, is_recurring, is_tax_deductible, currency, amount_original, amount_usd, payment_method, notes, receipt_path, account_id, categories(name), transaction_splits(id, category_id, amount_usd, categories(name))"
       )
       .order("date", { ascending: false }),
     supabase.from("categories").select("id, name").order("sort_order"),

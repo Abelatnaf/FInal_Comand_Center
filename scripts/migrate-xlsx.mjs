@@ -2,10 +2,10 @@
 /**
  * One-time importer for real historical data out of Expense_Tracker.xlsx.
  *
- * Scope: Transactions, Income, and Savings Goals only. Recurring Bills, Net
- * Worth, and Key Dates were already seeded with their real rows directly in
- * the Phase 2 migration (supabase/migrations/20260711090100_seed_reference_data.sql)
- * — running this script against those tabs would create duplicates, so it
+ * Scope: Transactions, Income, and Savings Goals only. Recurring Bills and
+ * Net Worth were already seeded with their real rows directly in the Phase 2
+ * migration (supabase/migrations/20260711090100_seed_reference_data.sql) —
+ * running this script against those tabs would create duplicates, so it
  * intentionally does not touch them.
  *
  * Skips the literal "example row — delete or overwrite" placeholder rows,

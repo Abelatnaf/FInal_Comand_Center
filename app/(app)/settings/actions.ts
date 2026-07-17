@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type SettingsState = { error?: string; success?: boolean } | undefined;
@@ -24,6 +25,22 @@ export async function updateSettings(_prevState: SettingsState, formData: FormDa
   if (error) return { error: error.message };
 
   revalidatePath("/", "layout");
+  return { success: true };
+}
+
+export async function updateNotificationPrefs(prefs: {
+  notify_weekly_digest: boolean;
+  notify_budget_alerts: boolean;
+  notify_bill_reminders: boolean;
+}) {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return { error: "Not signed in." };
+
+  const { error } = await supabase.from("settings").update(prefs).eq("user_id", userData.user.id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/settings");
   return { success: true };
 }
 
@@ -168,8 +185,6 @@ export async function exportAllData() {
     savingsGoals,
     netWorthSnapshots,
     netWorthSnapshotBalances,
-    keyDates,
-    semesters,
   ] = await Promise.all([
     supabase.from("settings").select("*").single(),
     supabase.from("categories").select("*").order("sort_order"),
@@ -183,8 +198,6 @@ export async function exportAllData() {
     supabase.from("savings_goals").select("*"),
     supabase.from("net_worth_snapshots").select("*").order("snapshot_date"),
     supabase.from("net_worth_snapshot_balances").select("*"),
-    supabase.from("key_dates").select("*").order("sort_order"),
-    supabase.from("semesters").select("*").order("start_date"),
   ]);
 
   return {
@@ -201,7 +214,47 @@ export async function exportAllData() {
     savings_goals: savingsGoals.data ?? [],
     net_worth_snapshots: netWorthSnapshots.data ?? [],
     net_worth_snapshot_balances: netWorthSnapshotBalances.data ?? [],
-    key_dates: keyDates.data ?? [],
-    semesters: semesters.data ?? [],
   };
+}
+
+// Self-serve account deletion. Two steps, in this order:
+//
+// 1. Empty the user's folder in the `receipts` bucket via the Storage API.
+//    This has to go through the API (not a raw SQL delete) — this Supabase
+//    project has a storage.protect_delete() guard rejecting direct SQL
+//    deletes on storage.objects, discovered while testing the RPC below.
+//    The existing per-user-folder RLS policy on the bucket already scopes
+//    this call to the caller's own files.
+// 2. Call public.delete_own_account(), a security-definer RPC that deletes
+//    the auth.users row. Every table in the schema cascades from
+//    auth.users (verified with a rollback-only SQL test — see the
+//    migrations from this pass for the two real bugs that test caught:
+//    an audit-log trigger firing mid-cascade, and a NO ACTION category FK
+//    racing the cascade), so this one call is sufficient for the DB side.
+//
+// Both are best-effort past the point of no return: once the RPC succeeds
+// the account is gone, so a failure signing out afterward shouldn't be
+// reported as the deletion having failed.
+export async function deleteMyAccount() {
+  const supabase = await createClient();
+
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return { error: "Not signed in." };
+  const uid = userData.user.id;
+
+  const { data: files } = await supabase.storage.from("receipts").list(uid);
+  if (files && files.length > 0) {
+    await supabase.storage.from("receipts").remove(files.map((f) => `${uid}/${f.name}`));
+  }
+
+  const { error } = await supabase.rpc("delete_own_account");
+  if (error) return { error: error.message };
+
+  try {
+    await supabase.auth.signOut();
+  } catch {
+    // Best-effort — the account is already gone either way.
+  }
+
+  redirect("/login?deleted=1");
 }

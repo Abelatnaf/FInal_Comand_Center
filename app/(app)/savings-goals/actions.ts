@@ -8,14 +8,15 @@ function goalFromForm(formData: FormData) {
     name: String(formData.get("name")),
     target_amount_usd: Number(formData.get("target_amount_usd")),
     target_date: String(formData.get("target_date") ?? "") || null,
-    saved_so_far_usd: Number(formData.get("saved_so_far_usd") ?? 0),
     account_id: String(formData.get("account_id") ?? "") || null,
   };
 }
 
 export async function addSavingsGoal(formData: FormData) {
+  const goal = goalFromForm(formData);
+  if (!goal.account_id) return { error: "Choose an account to track this goal." };
   const supabase = await createClient();
-  const { error } = await supabase.from("savings_goals").insert(goalFromForm(formData));
+  const { error } = await supabase.from("savings_goals").insert(goal);
   if (error) return { error: error.message };
   revalidatePath("/savings-goals");
   revalidatePath("/");
@@ -23,8 +24,10 @@ export async function addSavingsGoal(formData: FormData) {
 }
 
 export async function updateSavingsGoal(id: string, formData: FormData) {
+  const goal = goalFromForm(formData);
+  if (!goal.account_id) return { error: "Choose an account to track this goal." };
   const supabase = await createClient();
-  const { error } = await supabase.from("savings_goals").update(goalFromForm(formData)).eq("id", id);
+  const { error } = await supabase.from("savings_goals").update(goal).eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/savings-goals");
   revalidatePath("/");

@@ -20,7 +20,6 @@ export default async function InsightsPage() {
     { data: categorySpend },
     { data: weeklyRows },
     { data: balanceRow },
-    { data: periods },
     { data: activeBills },
   ] = await Promise.all([
     supabase.from("settings").select("tracking_start_date").single(),
@@ -29,7 +28,6 @@ export default async function InsightsPage() {
     supabase.from("life_to_date_spend_by_category").select("*").order("total", { ascending: false }),
     supabase.from("weekly_rollup").select("week_number, total_expenses").order("total_expenses", { ascending: false }),
     supabase.from("account_balance").select("current_balance").single(),
-    supabase.from("semesters").select("name, end_date").order("end_date", { ascending: false }).limit(1),
     supabase.from("recurring_bills").select("monthly_cost_usd, billing_day").eq("active", true),
   ]);
 
@@ -65,12 +63,7 @@ export default async function InsightsPage() {
     .reduce((s, t) => s + (t.amount_usd ?? 0), 0);
   const momChange = lastMonthSpend > 0 ? ((thisMonthSpend - lastMonthSpend) / lastMonthSpend) * 100 : 0;
 
-  const lastPeriod = periods?.[0];
-  const weeksRemaining = lastPeriod
-    ? Math.max(0, (new Date(lastPeriod.end_date).getTime() - now.getTime()) / (7 * 86400000))
-    : 0;
   const currentBalance = balanceRow?.current_balance ?? 0;
-  const projectedBalance = currentBalance + avgWeeklyNet * weeksRemaining;
 
   // ---- Cash flow forecast: projected end-of-month balance ----
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -146,20 +139,6 @@ export default async function InsightsPage() {
         <StatCard label="This Month Spend" value={fmtUsd(thisMonthSpend)} size="small" />
         <StatCard label="Last Month Spend" value={fmtUsd(lastMonthSpend)} size="small" />
         <StatCard label="Month-over-Month Change" value={`${momChange >= 0 ? "↑" : "↓"} ${Math.abs(momChange).toFixed(0)}%`} size="small" />
-        {lastPeriod && (
-          <StatCard
-            label={`Weeks Remaining Until ${lastPeriod.name} Ends`}
-            value={weeksRemaining.toFixed(1)}
-            size="small"
-          />
-        )}
-        {lastPeriod && (
-          <StatCard
-            label={`Projected Balance — End of ${lastPeriod.name}`}
-            value={fmtUsd(projectedBalance)}
-            size="small"
-          />
-        )}
       </div>
 
       <div className="section-header mt-8 mb-3">Financial Health</div>
