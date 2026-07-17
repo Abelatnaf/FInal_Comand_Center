@@ -16,7 +16,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
   const supabase = await createClient();
   const like = `%${q}%`;
 
-  const [tx, inc, cats, bills, goals, dates, accts] = await Promise.all([
+  const [tx, inc, cats, bills, goals, accts] = await Promise.all([
     supabase
       .from("transactions")
       .select("id, date, description, notes, amount_usd")
@@ -32,7 +32,6 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
     supabase.from("categories").select("id, name, monthly_budget").ilike("name", like).limit(4),
     supabase.from("recurring_bills").select("id, name, monthly_cost_usd").ilike("name", like).limit(4),
     supabase.from("savings_goals").select("id, name, target_amount_usd").ilike("name", like).limit(4),
-    supabase.from("key_dates").select("id, event, window_label").ilike("event", like).limit(4),
     supabase.from("accounts").select("id, name, starting_balance").ilike("name", like).limit(4),
   ]);
 
@@ -81,15 +80,6 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       label: g.name,
       sublabel: `Target $${Number(g.target_amount_usd ?? 0).toFixed(0)}`,
       href: "/savings-goals",
-    });
-  }
-  for (const d of dates.data ?? []) {
-    results.push({
-      type: "Key Date",
-      id: String(d.id),
-      label: d.event,
-      sublabel: d.window_label,
-      href: "/key-dates",
     });
   }
   for (const a of accts.data ?? []) {

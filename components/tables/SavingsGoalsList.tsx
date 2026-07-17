@@ -35,6 +35,8 @@ function GoalForm({
   pending: boolean;
 }) {
   const [accountId, setAccountId] = useState(defaults?.account_id ?? "");
+  const isLegacyUnlinked = defaults != null && !defaults.account_id;
+  const noAccounts = accounts.length === 0;
 
   return (
     <form action={onSubmit} className="flex flex-wrap gap-2 items-end">
@@ -64,33 +66,30 @@ function GoalForm({
           name="account_id"
           value={accountId}
           onChange={(e) => setAccountId(e.target.value)}
+          required
+          disabled={noAccounts}
           className="select !py-1.5 !px-2 text-sm w-full"
         >
-          <option value="">Manual entry</option>
+          <option value="" disabled>
+            {noAccounts ? "Add an account first" : "Choose an account…"}
+          </option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>{a.name}</option>
           ))}
         </select>
       </div>
-      {accountId ? (
+      {isLegacyUnlinked && (
         <p className="text-text-dim text-[12px] w-full -mt-1">
-          Saved-so-far will track this account&apos;s real balance automatically.
+          Currently tracked manually at {defaults?.saved_so_far_usd != null ? `$${defaults.saved_so_far_usd.toFixed(2)}` : "$0.00"} — pick an account above to link it and track automatically from here on.
         </p>
-      ) : (
-        <div className="w-28">
-          <label className="stat-label block mb-1 text-[10px]">Saved So Far</label>
-          <input
-            name="saved_so_far_usd"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={defaults?.saved_so_far_usd ?? 0}
-            className="input !py-1.5 !px-2 text-sm num"
-          />
-        </div>
+      )}
+      {noAccounts && (
+        <p className="text-text-dim text-[12px] w-full -mt-1">
+          Every goal needs an account to track — add one in Settings → Financial → Accounts first.
+        </p>
       )}
       <div className="flex gap-1.5">
-        <button type="submit" disabled={pending} className="btn btn-primary !py-1.5 !px-3 text-xs">
+        <button type="submit" disabled={pending || noAccounts} className="btn btn-primary !py-1.5 !px-3 text-xs">
           {pending ? "Saving…" : "Save"}
         </button>
         {onCancel && (

@@ -5,8 +5,7 @@ import { Glass } from "@/components/glass/Glass";
 import { HScroll } from "@/components/ui/HScroll";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { fmtUsd } from "@/lib/format";
-import { downloadCsv, downloadText } from "@/lib/csv";
-import { toQif, toOfx } from "@/lib/financial-export";
+import { downloadCsv } from "@/lib/csv";
 import {
   updateTransaction,
   deleteTransaction,
@@ -29,6 +28,7 @@ export type TransactionRow = {
   description: string | null;
   necessity: string | null;
   is_recurring: boolean;
+  is_tax_deductible: boolean;
   currency: string;
   amount_original: number;
   amount_usd: number | null;
@@ -287,6 +287,10 @@ function TransactionEditFields({
             Recurring
             <input name="is_recurring" type="checkbox" defaultChecked={tx.is_recurring} className="ios-switch" />
           </label>
+          <label className="flex items-center gap-2 ios-footnote text-text pb-1.5">
+            Tax deductible
+            <input name="is_tax_deductible" type="checkbox" defaultChecked={tx.is_tax_deductible} className="ios-switch" />
+          </label>
           <div>
             <label className="stat-label block mb-1 text-[10px]">{tx.receipt_path ? "Replace Receipt" : "Add Receipt"}</label>
             <input name="receipt" type="file" accept="image/*,application/pdf" className="input !py-1.5 text-xs" style={{ maxWidth: 160 }} />
@@ -508,6 +512,7 @@ export function TransactionsTable({
       "Description",
       "Necessary/Discretionary",
       "Recurring",
+      "Tax Deductible",
       "Currency",
       "Amount (Original)",
       "Amount (USD)",
@@ -521,6 +526,7 @@ export function TransactionsTable({
       t.description ?? "",
       t.necessity ?? "",
       t.is_recurring ? "Yes" : "No",
+      t.is_tax_deductible ? "Yes" : "No",
       t.currency,
       t.amount_original,
       t.amount_usd ?? "",
@@ -528,24 +534,6 @@ export function TransactionsTable({
       t.notes ?? "",
     ]);
     downloadCsv([header, ...rows], "transactions.csv");
-  }
-
-  function ledgerEntries() {
-    return filtered.map((t) => ({
-      date: t.date,
-      amount: -(t.amount_usd ?? 0),
-      payee: t.description || t.categories?.name || "Transaction",
-      category: t.categories?.name,
-      memo: t.notes ?? undefined,
-    }));
-  }
-
-  function exportQif() {
-    downloadText(toQif(ledgerEntries()), "transactions.qif", "application/qif");
-  }
-
-  function exportOfx() {
-    downloadText(toOfx(ledgerEntries(), "Transactions"), "transactions.ofx", "application/x-ofx");
   }
 
   return (
@@ -590,12 +578,6 @@ export function TransactionsTable({
         <div className="flex gap-2 ml-auto">
           <button onClick={exportCsv} className="btn text-sm">
             CSV
-          </button>
-          <button onClick={exportQif} className="btn text-sm">
-            QIF
-          </button>
-          <button onClick={exportOfx} className="btn text-sm">
-            OFX
           </button>
         </div>
       </Glass>

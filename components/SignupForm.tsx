@@ -63,6 +63,18 @@ export function SignupForm() {
       <button disabled={signUpPending} type="submit" className="btn btn-primary w-full !py-3 !text-[17px] mt-2">
         {signUpPending ? "Creating…" : "Create Account"}
       </button>
+
+      <p className="ios-footnote text-text-faint text-center -mt-1">
+        By creating an account, you agree to the{" "}
+        <Link href="/terms" className="link-action">
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="link-action">
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </form>
   );
 }

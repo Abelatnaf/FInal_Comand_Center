@@ -134,6 +134,30 @@ export type Database = {
         }
         Relationships: []
       }
+      data_backups: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id?: string
+          source?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       income: {
         Row: {
           account_id: string | null
@@ -193,36 +217,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      key_dates: {
-        Row: {
-          budget_note: string | null
-          event: string
-          id: number
-          sort_order: number
-          status: string
-          user_id: string
-          window_label: string
-        }
-        Insert: {
-          budget_note?: string | null
-          event: string
-          id?: number
-          sort_order: number
-          status: string
-          user_id?: string
-          window_label: string
-        }
-        Update: {
-          budget_note?: string | null
-          event?: string
-          id?: number
-          sort_order?: number
-          status?: string
-          user_id?: string
-          window_label?: string
-        }
-        Relationships: []
       }
       net_worth_snapshot_balances: {
         Row: {
@@ -294,6 +288,88 @@ export type Database = {
           id?: string
           notes?: string | null
           snapshot_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      period_close_accounts: {
+        Row: {
+          account_id: string
+          computed_balance: number | null
+          id: string
+          period_close_id: string
+          reconciled: boolean
+          statement_balance: number | null
+        }
+        Insert: {
+          account_id: string
+          computed_balance?: number | null
+          id?: string
+          period_close_id: string
+          reconciled?: boolean
+          statement_balance?: number | null
+        }
+        Update: {
+          account_id?: string
+          computed_balance?: number | null
+          id?: string
+          period_close_id?: string
+          reconciled?: boolean
+          statement_balance?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "period_close_accounts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "period_close_accounts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "period_close_accounts_period_close_id_fkey"
+            columns: ["period_close_id"]
+            isOneToOne: false
+            referencedRelation: "period_closes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      period_closes: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          id: string
+          period_month: string
+          reopen_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          period_month: string
+          reopen_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          period_month?: string
+          reopen_reason?: string | null
+          status?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -462,34 +538,13 @@ export type Database = {
           },
         ]
       }
-      semesters: {
-        Row: {
-          end_date: string
-          id: number
-          name: string
-          start_date: string
-          user_id: string
-        }
-        Insert: {
-          end_date: string
-          id?: number
-          name: string
-          start_date: string
-          user_id?: string
-        }
-        Update: {
-          end_date?: string
-          id?: number
-          name?: string
-          start_date?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       settings: {
         Row: {
           id: number
           low_balance_threshold: number | null
+          notify_bill_reminders: boolean
+          notify_budget_alerts: boolean
+          notify_weekly_digest: boolean
           onboarding_dismissed: boolean
           tracking_start_date: string
           updated_at: string
@@ -498,6 +553,9 @@ export type Database = {
         Insert: {
           id?: number
           low_balance_threshold?: number | null
+          notify_bill_reminders?: boolean
+          notify_budget_alerts?: boolean
+          notify_weekly_digest?: boolean
           onboarding_dismissed?: boolean
           tracking_start_date?: string
           updated_at?: string
@@ -506,6 +564,9 @@ export type Database = {
         Update: {
           id?: number
           low_balance_threshold?: number | null
+          notify_bill_reminders?: boolean
+          notify_budget_alerts?: boolean
+          notify_weekly_digest?: boolean
           onboarding_dismissed?: boolean
           tracking_start_date?: string
           updated_at?: string
@@ -586,6 +647,7 @@ export type Database = {
           fx_rate_used: number | null
           id: string
           is_recurring: boolean
+          is_tax_deductible: boolean
           necessity: string | null
           notes: string | null
           payment_method: string | null
@@ -605,6 +667,7 @@ export type Database = {
           fx_rate_used?: number | null
           id?: string
           is_recurring?: boolean
+          is_tax_deductible?: boolean
           necessity?: string | null
           notes?: string | null
           payment_method?: string | null
@@ -624,6 +687,7 @@ export type Database = {
           fx_rate_used?: number | null
           id?: string
           is_recurring?: boolean
+          is_tax_deductible?: boolean
           necessity?: string | null
           notes?: string | null
           payment_method?: string | null
@@ -885,23 +949,6 @@ export type Database = {
           },
         ]
       }
-      semester_pacing: {
-        Row: {
-          actual_spend: number | null
-          budget: number | null
-          elapsed_days: number | null
-          elapsed_percent: number | null
-          end_date: string | null
-          id: number | null
-          income: number | null
-          name: string | null
-          spend_percent: number | null
-          start_date: string | null
-          status: string | null
-          total_days: number | null
-        }
-        Relationships: []
-      }
       transaction_category_breakdown: {
         Row: {
           amount_usd: number | null
@@ -929,8 +976,15 @@ export type Database = {
       }
     }
     Functions: {
+      account_balance_as_of: {
+        Args: { p_account_id: string; p_as_of: string }
+        Returns: number
+      }
+      create_backup_for_user: { Args: never; Returns: string }
+      delete_own_account: { Args: never; Returns: undefined }
       post_due_recurring_bills: { Args: never; Returns: undefined }
       post_due_recurring_income: { Args: never; Returns: undefined }
+      restore_from_backup: { Args: { p_backup_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

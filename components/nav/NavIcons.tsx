@@ -56,18 +56,28 @@ const P: Record<string, React.ReactNode> = {
       <path d="M8 15l3-3 2.5 2L18 8" />
     </>
   ),
-  "/semester-planner": (
+  "/close": (
     <>
-      <path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z" />
-      <path d="M5 16h13" />
+      <rect x="4" y="5" width="16" height="15" rx="2.5" />
+      <path d="M4 10h16" />
+      <path d="M9 14.5l2 2 4-4.5" />
+    </>
+  ),
+  "/forecast": (
+    <>
+      <path d="M4 17l4.5-5 3.5 3 5.5-7" />
+      <path d="M14 8h4v4" />
+    </>
+  ),
+  "/tax-report": (
+    <>
+      <path d="M7 3h7l4 4v14H7Z" />
+      <path d="M14 3v4h4" />
+      <path d="M9.5 13.5c0-1 .8-1.5 2-1.5s2 .6 2 1.5-1 1.3-2 1.5c-1.2.2-2 .6-2 1.5s.9 1.5 2 1.5 2-.5 2-1.5" />
+      <path d="M11.5 11.5v1M11.5 17.5v1" />
     </>
   ),
   "/insights": <path d="M12 4l1.8 4.7L18.5 10l-4.7 1.3L12 16l-1.8-4.7L5.5 10l4.7-1.3L12 4Z" />,
-  "/key-dates": (
-    <>
-      <path d="M6 4v16M6 5h11l-2 3 2 3H6" />
-    </>
-  ),
   "/settings": (
     <>
       <circle cx="12" cy="12" r="3" />

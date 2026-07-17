@@ -5,8 +5,7 @@ import { Glass } from "@/components/glass/Glass";
 import { HScroll } from "@/components/ui/HScroll";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { fmtUsd } from "@/lib/format";
-import { downloadCsv, downloadText } from "@/lib/csv";
-import { toQif, toOfx } from "@/lib/financial-export";
+import { downloadCsv } from "@/lib/csv";
 import { updateIncome, deleteIncome } from "@/app/(app)/income/actions";
 import { INCOME_SOURCES } from "@/lib/constants";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -236,23 +235,6 @@ export function IncomeTable({
     downloadCsv([header, ...rows], "income.csv");
   }
 
-  function ledgerEntries() {
-    return filtered.map((r) => ({
-      date: r.date,
-      amount: r.amount_usd ?? 0,
-      payee: r.source || "Income",
-      memo: r.notes ?? undefined,
-    }));
-  }
-
-  function exportQif() {
-    downloadText(toQif(ledgerEntries()), "income.qif", "application/qif");
-  }
-
-  function exportOfx() {
-    downloadText(toOfx(ledgerEntries(), "Income"), "income.ofx", "application/x-ofx");
-  }
-
   return (
     <div>
       <Glass className="p-4 mb-4 flex flex-wrap gap-3 items-end">
@@ -287,12 +269,6 @@ export function IncomeTable({
         <div className="flex gap-2 ml-auto">
           <button onClick={exportCsv} className="btn text-sm">
             CSV
-          </button>
-          <button onClick={exportQif} className="btn text-sm">
-            QIF
-          </button>
-          <button onClick={exportOfx} className="btn text-sm">
-            OFX
           </button>
         </div>
       </Glass>

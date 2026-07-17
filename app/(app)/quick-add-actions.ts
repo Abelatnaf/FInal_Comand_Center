@@ -57,6 +57,7 @@ export async function addTransaction(
       description: String(formData.get("description") ?? "") || null,
       necessity: String(formData.get("necessity")),
       is_recurring: formData.get("is_recurring") === "on",
+      is_tax_deductible: formData.get("is_tax_deductible") === "on",
       currency: String(formData.get("currency")),
       amount_original: amount,
       payment_method: String(formData.get("payment_method")),

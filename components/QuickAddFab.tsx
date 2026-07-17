@@ -519,6 +519,11 @@ export function QuickAddFab({
                       <input name="is_recurring" type="checkbox" className="ios-switch" />
                     </label>
 
+                    <label className="flex items-center justify-between ios-body py-0.5">
+                      <span>Tax deductible</span>
+                      <input name="is_tax_deductible" type="checkbox" className="ios-switch" />
+                    </label>
+
                     <div>
                       <label className="stat-label block mb-1.5">Receipt (optional)</label>
                       <input name="receipt" type="file" accept="image/*,application/pdf" className="input w-full !py-1.5 text-sm" />
