@@ -30,7 +30,7 @@ export default async function NetWorthPage() {
 
   return (
     <div>
-      <PageHeader title="Net Worth Tracker" subtitle="Snapshot log + variance vs. computed balance." />
+      <PageHeader title="Net Worth" subtitle="Everything you own, added up into one number — and a check that it matches what your accounts actually say." />
       <NetWorthTable snapshots={typedSnapshots} accounts={accounts ?? []} />
     </div>
   );

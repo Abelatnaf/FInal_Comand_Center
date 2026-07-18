@@ -164,7 +164,7 @@ export default async function CommandDeckPage() {
             <Glass className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="ios-headline">Cash Flow</div>
+                  <div className="ios-headline">Money In &amp; Out</div>
                   <div className="stat-label">This Month</div>
                 </div>
                 <div className="flex gap-3 items-center text-[12px]">
@@ -182,7 +182,7 @@ export default async function CommandDeckPage() {
                   <div className="text-[18px] font-semibold num neg">{fmtUsd(thisMonthSpent)}</div>
                 </div>
                 <div>
-                  <div className="stat-label">Net</div>
+                  <div className="stat-label">Left Over</div>
                   <div className="text-[18px] font-semibold num">{fmtUsd(netThisMonth)}</div>
                 </div>
               </div>

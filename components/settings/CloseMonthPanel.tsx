@@ -99,10 +99,10 @@ export function CloseMonthPanel({
       <Glass className={`p-4 flex items-center justify-between gap-4 ${isClosed ? "border border-[var(--green)]/30" : ""}`}>
         <div>
           <div className="ios-subhead text-text font-medium">
-            {isClosed ? `Closed${closedAt ? ` — ${new Date(closedAt).toLocaleDateString()}` : ""}` : "Reconciling"}
+            {isClosed ? `Locked${closedAt ? ` — ${new Date(closedAt).toLocaleDateString()}` : ""}` : "Checking"}
           </div>
           {reopenReason && (
-            <div className="ios-footnote text-text-dim mt-0.5">Last reopened: &ldquo;{reopenReason}&rdquo;</div>
+            <div className="ios-footnote text-text-dim mt-0.5">Last unlocked: &ldquo;{reopenReason}&rdquo;</div>
           )}
         </div>
         {isClosed ? (
@@ -111,11 +111,11 @@ export function CloseMonthPanel({
               <input
                 value={reopenText}
                 onChange={(e) => setReopenText(e.target.value)}
-                placeholder="Why reopen this month?"
+                placeholder="Why unlock it?"
                 className="input !py-1.5 !px-2 text-sm w-56"
               />
               <button onClick={handleReopen} disabled={pending || !reopenText.trim()} className="btn text-sm">
-                Confirm Reopen
+                Yes, Unlock It
               </button>
               <button onClick={() => setReopenOpen(false)} className="btn text-sm">
                 Cancel
@@ -123,11 +123,11 @@ export function CloseMonthPanel({
             </div>
           ) : (
             <button onClick={() => setReopenOpen(true)} className="link-destructive text-sm">
-              Reopen Month
+              Unlock This Month
             </button>
           )
         ) : (
-          <span className="stat-label">Unlocked — edits allowed</span>
+          <span className="stat-label">Unlocked — you can still make changes</span>
         )}
       </Glass>
 
@@ -136,10 +136,10 @@ export function CloseMonthPanel({
           <thead>
             <tr className="text-text-dim text-left text-xs border-b border-[var(--separator)]">
               <th className="px-4 py-3 font-medium">Account</th>
-              <th className="px-4 py-3 font-medium">Computed (as of month end)</th>
-              <th className="px-4 py-3 font-medium">Statement Balance</th>
+              <th className="px-4 py-3 font-medium">What We Show</th>
+              <th className="px-4 py-3 font-medium">What Your Bank Says</th>
               <th className="px-4 py-3 font-medium">Difference</th>
-              <th className="px-4 py-3 font-medium text-center">Reconciled</th>
+              <th className="px-4 py-3 font-medium text-center">Matches?</th>
             </tr>
           </thead>
           <tbody>
@@ -151,7 +151,7 @@ export function CloseMonthPanel({
                 <tr key={a.id} className={i > 0 ? "border-t border-[var(--separator)]" : ""}>
                   <td className="px-4 py-3">
                     <div className="text-text">{a.name}</div>
-                    {a.kind === "liability" && <div className="stat-label mt-0.5">Liability — statement only</div>}
+                    {a.kind === "liability" && <div className="stat-label mt-0.5">Debt account — type it in from your statement</div>}
                   </td>
                   <td className="px-4 py-3 num text-text-dim">
                     {a.computedBalance != null ? fmtUsd(a.computedBalance) : "—"}
@@ -199,10 +199,10 @@ export function CloseMonthPanel({
             {pending ? "Saving…" : "Save Progress"}
           </button>
           <button onClick={handleClose} disabled={pending || !allReconciled} className="btn btn-primary text-sm">
-            {pending ? "Closing…" : "Close Month"}
+            {pending ? "Locking…" : "Lock This Month"}
           </button>
           {!allReconciled && accounts.length > 0 && (
-            <span className="ios-footnote text-text-dim self-center">Mark every account reconciled to close.</span>
+            <span className="ios-footnote text-text-dim self-center">Check off every account first — then you can lock the month.</span>
           )}
         </div>
       )}

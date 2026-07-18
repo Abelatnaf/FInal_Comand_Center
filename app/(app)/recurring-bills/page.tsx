@@ -19,8 +19,8 @@ export default async function RecurringBillsPage() {
   return (
     <div>
       <PageHeader
-        title="Recurring"
-        subtitle="Bills auto-post as a transaction, income auto-posts as a deposit — both on their day of the month."
+        title="Bills &amp; Paychecks"
+        subtitle="Things that happen every month like clockwork — a bill or a paycheck gets added for you automatically."
       />
       <div className="flex flex-col gap-5">
         <RecurringBillsTable bills={bills ?? []} categories={categories ?? []} />

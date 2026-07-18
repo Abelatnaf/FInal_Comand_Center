@@ -22,7 +22,7 @@ export default async function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Appearance, currencies, accounts, and budgets." />
+      <PageHeader title="Settings" subtitle="Your look, your accounts, your money — all in your control." />
       <SettingsShell
         email={userData?.user?.email ?? null}
         onSignOut={signOut}

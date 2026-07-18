@@ -73,8 +73,8 @@ export default async function CloseMonthPage({
   return (
     <div>
       <PageHeader
-        title="Month-End Close"
-        subtitle="Reconcile each account against your real statement, then lock the period so past history can't be silently edited."
+        title="Monthly Checkup"
+        subtitle="Double-check last month's numbers match your real bank statement, then lock it in so it can't change by accident."
       />
 
       <div className="flex items-center justify-between mb-5">

@@ -37,8 +37,8 @@ export default async function MonthlyRollupPage() {
   return (
     <div>
       <PageHeader
-        title="Monthly Rollup"
-        subtitle="Category breakdown per month, plus running balance."
+        title="Monthly Summary"
+        subtitle="How much you spent and earned, month by month — broken down by category."
       />
       <MonthlyRollupCharts categoryData={categoryData} categoryNames={categoryNames} balanceData={balanceData} />
       <MonthlyRollupTable categoryData={categoryData} categoryNames={categoryNames} balanceData={balanceData} />

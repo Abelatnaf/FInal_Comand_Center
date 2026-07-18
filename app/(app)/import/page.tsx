@@ -12,7 +12,7 @@ export default async function ImportPage() {
 
   return (
     <div>
-      <PageHeader title="Import" subtitle="Bring in transactions from your Bank of America CSV export." />
+      <PageHeader title="Add from Bank" subtitle="Upload a file from your bank and we'll add everything for you — no typing required." />
       <ImportForm categories={categories ?? []} currencies={currencies ?? []} />
     </div>
   );

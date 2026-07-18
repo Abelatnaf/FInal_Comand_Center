@@ -27,7 +27,7 @@ export async function saveReconciliation(
     .select("id, status")
     .single();
   if (pcError) return { error: pcError.message };
-  if (pc.status === "closed") return { error: "This month is closed. Reopen it before editing reconciliation." };
+  if (pc.status === "closed") return { error: "This month is locked. Unlock it first to make changes." };
 
   for (const row of rows) {
     const { error } = await supabase.from("period_close_accounts").upsert(
@@ -57,11 +57,11 @@ export async function closeMonth(periodMonth: string): Promise<CloseActionState>
     .select("id, period_close_accounts(reconciled)")
     .eq("period_month", monthStart(periodMonth))
     .single();
-  if (pcError || !pc) return { error: "Save reconciliation progress for every account before closing." };
+  if (pcError || !pc) return { error: "Save your progress for every account first." };
 
   const rows = pc.period_close_accounts as { reconciled: boolean }[];
   if (rows.length === 0 || rows.some((r) => !r.reconciled)) {
-    return { error: "Every account must be marked reconciled before closing the month." };
+    return { error: "Check off every account before locking the month." };
   }
 
   const { error } = await supabase
@@ -78,7 +78,7 @@ export async function reopenMonth(periodMonth: string, reason: string): Promise<
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return { error: "Not signed in." };
-  if (!reason.trim()) return { error: "A reason is required to reopen a closed month." };
+  if (!reason.trim()) return { error: "Tell us why you're unlocking it first." };
 
   const { error } = await supabase
     .from("period_closes")

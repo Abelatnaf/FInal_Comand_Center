@@ -114,7 +114,7 @@ export default async function InsightsPage() {
     <div>
       <PageHeader
         title="Insights"
-        subtitle="Life-to-date totals — all computed, no manual entry."
+        subtitle="Fun facts and totals about your money, all calculated for you."
       />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Total Logged Spend (Life-to-Date)" value={fmtUsd(totalSpend)} size="small" />

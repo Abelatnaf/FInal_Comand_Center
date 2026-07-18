@@ -107,7 +107,7 @@ export function AuditLogTable({ entries }: { entries: AuditRow[] }) {
     <div>
       <Glass className="p-4 mb-4 flex flex-wrap gap-3 items-end">
         <div>
-          <label className="stat-label block mb-1 text-xs">Table</label>
+          <label className="stat-label block mb-1 text-xs">Type</label>
           <select value={tableFilter} onChange={(e) => setTableFilter(e.target.value)} className="select text-sm">
             <option value="">All</option>
             {tables.map((t) => (
@@ -118,7 +118,7 @@ export function AuditLogTable({ entries }: { entries: AuditRow[] }) {
           </select>
         </div>
         <div>
-          <label className="stat-label block mb-1 text-xs">Action</label>
+          <label className="stat-label block mb-1 text-xs">What Happened</label>
           <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} className="select text-sm">
             <option value="">All</option>
             <option value="INSERT">Created</option>
@@ -134,9 +134,9 @@ export function AuditLogTable({ entries }: { entries: AuditRow[] }) {
             <thead>
               <tr className="text-text-dim text-left text-xs">
                 <th className="py-3 px-2 font-normal whitespace-nowrap">When</th>
-                <th className="py-3 px-2 font-normal">Table</th>
-                <th className="py-3 px-2 font-normal">Action</th>
-                <th className="py-3 px-2 font-normal">Record</th>
+                <th className="py-3 px-2 font-normal">Type</th>
+                <th className="py-3 px-2 font-normal">What Happened</th>
+                <th className="py-3 px-2 font-normal">Item</th>
                 <th className="py-3 px-2 font-normal">What changed</th>
               </tr>
             </thead>
