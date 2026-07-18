@@ -12,7 +12,7 @@ export default async function TransfersPage() {
 
   return (
     <div>
-      <PageHeader title="Transfers" subtitle="Money moved between your own accounts." />
+      <PageHeader title="Transfers" subtitle="Moving your own money between your own accounts — this never counts as spending or income." />
       <TransfersTable transfers={transfers ?? []} accounts={accounts ?? []} />
     </div>
   );

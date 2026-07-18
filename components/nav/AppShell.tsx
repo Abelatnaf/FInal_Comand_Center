@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { NAV_LINKS } from "./nav-links";
+import { NAV_LINKS, NAV_GROUP_LABELS, type NavGroup } from "./nav-links";
 import { QuickAddFab } from "../QuickAddFab";
 import { GlobalSearch } from "../GlobalSearch";
 import { InstallPrompt } from "../InstallPrompt";
@@ -62,27 +62,35 @@ export function AppShell({
           <div className="ios-headline">Command Deck</div>
         </div>
 
-        <nav className="flex flex-col gap-0.5">
-          {NAV_LINKS.map((link) => {
-            const active = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cx(
-                  "flex items-center gap-3 px-3 py-2 rounded-[9px] text-[15px] transition-colors",
-                  active
-                    ? "bg-[var(--blue)] text-white font-medium"
-                    : "text-text hover:bg-[var(--fill-quaternary)]"
-                )}
-              >
-                <span className={active ? "text-white" : "text-text-dim"}>
-                  <NavIcon href={link.href} />
-                </span>
-                {link.label}
-              </Link>
-            );
-          })}
+        <nav className="flex flex-col gap-3.5 overflow-y-auto">
+          {(Object.keys(NAV_GROUP_LABELS) as NavGroup[]).map((group) => (
+            <div key={group}>
+              <div className="stat-label px-3 pb-1">{NAV_GROUP_LABELS[group]}</div>
+              <div className="flex flex-col gap-0.5">
+                {NAV_LINKS.filter((l) => l.group === group).map((link) => {
+                  const active = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      title={link.blurb}
+                      className={cx(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[15px] transition-colors",
+                        active
+                          ? "bg-[var(--blue)] text-white font-medium"
+                          : "text-text hover:bg-[var(--fill-quaternary)]"
+                      )}
+                    >
+                      <span className={active ? "text-white" : "text-text-dim"}>
+                        <NavIcon href={link.href} />
+                      </span>
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className="mt-auto pt-4">
@@ -189,25 +197,35 @@ export function AppShell({
           >
             <div className="w-9 h-1 rounded-full bg-[var(--gray3)] mx-auto mt-2 mb-3" />
             <div className="flex flex-col">
-              {moreLinks.map((link, i) => (
-                <div key={link.href}>
-                  {i > 0 && <div className="h-px bg-[var(--separator)] ml-4" />}
-                  <Link
-                    href={link.href}
-                    onClick={() => setMoreOpen(false)}
-                    className={cx(
-                      "flex items-center gap-3 px-4 py-3 text-[17px] transition-colors active:bg-[var(--fill-quaternary)]",
-                      pathname === link.href ? "text-tint font-medium" : "text-text"
-                    )}
-                  >
-                    <span className={pathname === link.href ? "text-tint" : "text-text-dim"}>
-                      <NavIcon href={link.href} size={20} />
-                    </span>
-                    {link.label}
-                  </Link>
-                </div>
-              ))}
-              <div className="h-px bg-[var(--separator)] ml-4" />
+              {(Object.keys(NAV_GROUP_LABELS) as NavGroup[]).map((group) => {
+                const links = moreLinks.filter((l) => l.group === group);
+                if (links.length === 0) return null;
+                return (
+                  <div key={group}>
+                    <div className="stat-label px-4 pt-3 pb-1">{NAV_GROUP_LABELS[group]}</div>
+                    {links.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setMoreOpen(false)}
+                        className={cx(
+                          "flex items-center gap-3 px-4 py-3 transition-colors active:bg-[var(--fill-quaternary)]",
+                          pathname === link.href ? "text-tint" : "text-text"
+                        )}
+                      >
+                        <span className={pathname === link.href ? "text-tint" : "text-text-dim"}>
+                          <NavIcon href={link.href} size={20} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[17px] font-medium leading-tight">{link.label}</span>
+                          <span className="block text-[13px] text-text-dim leading-tight">{link.blurb}</span>
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                );
+              })}
+              <div className="h-px bg-[var(--separator)] ml-4 mt-2" />
               <form action={onSignOut}>
                 <button
                   type="submit"

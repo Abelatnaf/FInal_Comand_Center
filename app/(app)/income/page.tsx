@@ -16,7 +16,7 @@ export default async function IncomePage() {
 
   return (
     <div>
-      <PageHeader title="Income" subtitle="Full table — filter, inline edit, CSV export." />
+      <PageHeader title="Income" subtitle="Every time money came in. Tap any row to fix a mistake." />
       <IncomeTable income={income ?? []} currencies={currencies ?? []} accounts={accounts ?? []} />
     </div>
   );

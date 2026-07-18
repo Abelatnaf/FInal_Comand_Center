@@ -28,8 +28,8 @@ export default async function WeeklyRollupPage() {
   return (
     <div>
       <PageHeader
-        title="Weekly Rollup"
-        subtitle="Computed live from transactions, grouped by week."
+        title="Weekly Summary"
+        subtitle="How much you spent and earned, week by week."
       />
       <WeeklyRollupCharts rows={typedRows} />
       <WeeklyRollupTable rows={typedRows} />

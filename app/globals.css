@@ -605,7 +605,7 @@ h3,
   border-radius: 10px;
   color: var(--label);
   font-family: var(--font-body);
-  padding: 10px 12px;
+  padding: 13px 14px;
   font-size: 16px;
   letter-spacing: -0.012em;
 }
@@ -628,9 +628,9 @@ a:focus-visible {
 .btn {
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: -0.012em;
-  padding: 9px 16px;
+  padding: 12px 20px;
   border-radius: 12px;
   border: none;
   background: rgba(78, 222, 163, 0.1);

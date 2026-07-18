@@ -60,8 +60,8 @@ export default async function TaxReportPage({
   return (
     <div>
       <PageHeader
-        title="Tax Report"
-        subtitle="Year-end totals by category, plus everything you've flagged as tax deductible."
+        title="Taxes"
+        subtitle="Everything you'll need when it's time to do your taxes, already added up for you."
       />
 
       <div className="flex items-center gap-2 mb-5 flex-wrap">

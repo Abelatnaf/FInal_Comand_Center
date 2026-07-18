@@ -50,7 +50,7 @@ export default async function ForecastPage() {
     <div>
       <PageHeader
         title="Forecast"
-        subtitle="Project your balance 3–12 months out from recurring flows and recent spending pace, then try what-if scenarios."
+        subtitle="A best guess at where your money is headed over the next few months. Try a 'what if' idea and see how it changes."
       />
       <ForecastPanel
         currentBalance={currentBalance}

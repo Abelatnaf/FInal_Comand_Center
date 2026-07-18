@@ -28,7 +28,7 @@ export default async function SavingsGoalsPage() {
     <div>
       <PageHeader
         title="Savings Goals"
-        subtitle="Progress bars, computed remaining / monthly needed. Link a goal to an account to track it automatically."
+        subtitle="Saving up for something? Set a goal and watch your progress fill in automatically."
       />
       <SavingsGoalsList goals={typedGoals} accounts={accounts ?? []} />
     </div>

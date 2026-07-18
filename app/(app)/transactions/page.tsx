@@ -21,7 +21,7 @@ export default async function TransactionsPage() {
     <div>
       <PageHeader
         title="Transactions"
-        subtitle="Full table — filter, inline edit, CSV export."
+        subtitle="Every time you spent money. Tap any row to fix a mistake."
       />
       <TransactionsTable
         transactions={transactions ?? []}

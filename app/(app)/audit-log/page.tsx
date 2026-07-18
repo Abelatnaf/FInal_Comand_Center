@@ -13,7 +13,7 @@ export default async function AuditLogPage() {
 
   return (
     <div>
-      <PageHeader title="Audit Log" subtitle="Every change to your transactions, income, transfers, bills, goals, and accounts." />
+      <PageHeader title="History" subtitle="A record of every change ever made, so nothing gets lost or forgotten." />
       <AuditLogTable entries={entries ?? []} />
     </div>
   );
