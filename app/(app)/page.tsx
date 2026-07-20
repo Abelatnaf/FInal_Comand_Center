@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Glass } from "@/components/glass/Glass";
 import { createClient } from "@/lib/supabase/server";
 import { fmtMoney, fmtDate } from "@/lib/format";
+import { getExchangeRate } from "@/lib/fx";
 
 function monthStartIso() {
   const d = new Date();
@@ -16,7 +17,7 @@ export default async function HomePage() {
   } = await supabase.auth.getUser();
 
   const [{ data: settings }, { data: balances }, { data: monthEntries }, { data: recent }] = await Promise.all([
-    supabase.from("settings").select("currency_code").single(),
+    supabase.from("settings").select("currency_code, secondary_currency_code").single(),
     supabase.from("account_balance").select("*"),
     supabase.from("entries").select("type, amount").gte("date", monthStartIso()),
     supabase
@@ -28,12 +29,24 @@ export default async function HomePage() {
   ]);
 
   const currency = settings?.currency_code ?? "USD";
+  const secondaryCurrency = settings?.secondary_currency_code || null;
+  const fxRate = secondaryCurrency ? await getExchangeRate(currency, secondaryCurrency) : null;
+
   const netWorth = (balances ?? []).reduce((sum, a) => sum + (a.balance ?? 0), 0);
 
   const spent = (monthEntries ?? []).filter((e) => e.type === "expense").reduce((s, e) => s + e.amount, 0);
   const income = (monthEntries ?? []).filter((e) => e.type === "income").reduce((s, e) => s + e.amount, 0);
 
   const name = user?.email?.split("@")[0] ?? "there";
+
+  function secondaryLine(amountInBase: number) {
+    if (!secondaryCurrency || !fxRate) return null;
+    return (
+      <div className="ios-footnote text-text-dim num mt-0.5">
+        ≈ {fmtMoney(amountInBase * fxRate, secondaryCurrency)}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -42,16 +55,19 @@ export default async function HomePage() {
       <Glass className="p-6 mb-4">
         <div className="stat-label mb-1">Net Worth</div>
         <div className="hero-value">{fmtMoney(netWorth, currency)}</div>
+        {secondaryLine(netWorth)}
       </Glass>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
         <Glass className="p-5">
           <div className="stat-label mb-1">Spent This Month</div>
           <div className="stat-value">{fmtMoney(spent, currency)}</div>
+          {secondaryLine(spent)}
         </Glass>
         <Glass className="p-5">
           <div className="stat-label mb-1">Income This Month</div>
           <div className="stat-value">{fmtMoney(income, currency)}</div>
+          {secondaryLine(income)}
         </Glass>
       </div>
 

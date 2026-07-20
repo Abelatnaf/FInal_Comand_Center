@@ -213,6 +213,7 @@ export type Database = {
           currency_code: string
           id: number
           low_balance_threshold: number | null
+          secondary_currency_code: string | null
           user_id: string
         }
         Insert: {
@@ -220,6 +221,7 @@ export type Database = {
           currency_code?: string
           id?: never
           low_balance_threshold?: number | null
+          secondary_currency_code?: string | null
           user_id: string
         }
         Update: {
@@ -227,6 +229,7 @@ export type Database = {
           currency_code?: string
           id?: never
           low_balance_threshold?: number | null
+          secondary_currency_code?: string | null
           user_id?: string
         }
         Relationships: []

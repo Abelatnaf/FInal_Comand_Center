@@ -13,10 +13,11 @@ export default async function SettingsPage() {
     supabase.auth.getUser(),
     supabase.from("accounts").select("id, name, kind, starting_balance").order("sort_order"),
     supabase.from("categories").select("id, name").order("sort_order"),
-    supabase.from("settings").select("currency_code").single(),
+    supabase.from("settings").select("currency_code, secondary_currency_code").single(),
   ]);
 
   const currency = settings?.currency_code ?? "USD";
+  const secondaryCurrency = settings?.secondary_currency_code ?? "";
 
   return (
     <div>
@@ -34,19 +35,35 @@ export default async function SettingsPage() {
 
       <Glass className="p-5 mb-4">
         <div className="section-header mb-2">Currency</div>
-        <form action={updateCurrencyCode} className="flex gap-2.5">
-          <input
-            name="currencyCode"
-            defaultValue={currency}
-            maxLength={3}
-            className="input text-sm !py-2 !px-3 w-24 uppercase"
-            placeholder="USD"
-          />
-          <button type="submit" className="btn text-[13px] !py-1.5 !px-3">
+        <form action={updateCurrencyCode} className="flex flex-col gap-3">
+          <div>
+            <label className="stat-label block mb-1.5">Main currency</label>
+            <input
+              name="currencyCode"
+              defaultValue={currency}
+              maxLength={3}
+              className="input text-sm !py-2 !px-3 w-24 uppercase"
+              placeholder="USD"
+            />
+          </div>
+          <div>
+            <label className="stat-label block mb-1.5">Show a second currency alongside it (optional)</label>
+            <input
+              name="secondaryCurrencyCode"
+              defaultValue={secondaryCurrency}
+              maxLength={3}
+              className="input text-sm !py-2 !px-3 w-24 uppercase"
+              placeholder="ETB"
+            />
+          </div>
+          <button type="submit" className="btn text-[13px] !py-1.5 !px-3 w-fit">
             Save
           </button>
         </form>
-        <p className="ios-footnote text-text-faint mt-2">3-letter currency code, e.g. USD, EUR, GBP.</p>
+        <p className="ios-footnote text-text-faint mt-2">
+          3-letter currency codes, e.g. USD, ETB, EUR. When a second currency is set, Home shows a live-converted
+          amount underneath your net worth and monthly totals. Rates update roughly once a day.
+        </p>
       </Glass>
 
       <Glass className="p-5">
