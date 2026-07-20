@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { buildSpendingContext } from "@/lib/ai/spending-context";
 import { askGemini } from "@/lib/ai/gemini";
+import { askGroq } from "@/lib/ai/groq";
 import type { ChatMessage } from "@/lib/ai/types";
 
 const SYSTEM_PREAMBLE = `You are a helpful, concise financial assistant embedded in Command Deck, a personal finance app. You answer questions about the user's own spending, income, budgets, accounts, and savings goals, grounded strictly in the real data provided below. Rules:
@@ -23,11 +24,21 @@ export async function askAssistant(history: ChatMessage[]): Promise<ChatResult> 
 
   if (history.length === 0) return { error: "Ask something first." };
 
+  const context = await buildSpendingContext();
+  const prompt = `${SYSTEM_PREAMBLE}\n\n${context}`;
+
+  // Gemini first; if it's not configured or the request fails, fall back
+  // to Groq automatically rather than surfacing an error the user can't
+  // act on when a second provider is available.
   try {
-    const context = await buildSpendingContext();
-    const reply = await askGemini(`${SYSTEM_PREAMBLE}\n\n${context}`, history);
-    return { reply };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : "Something went wrong asking the assistant." };
+    return { reply: await askGemini(prompt, history) };
+  } catch (geminiErr) {
+    try {
+      return { reply: await askGroq(prompt, history) };
+    } catch (groqErr) {
+      const primary = geminiErr instanceof Error ? geminiErr.message : "Gemini failed.";
+      const fallback = groqErr instanceof Error ? groqErr.message : "Groq failed.";
+      return { error: `${primary} ${fallback}` };
+    }
   }
 }
