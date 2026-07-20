@@ -66,12 +66,18 @@ export async function updateCurrencyCode(formData: FormData) {
   const currencyCode = String(formData.get("currencyCode") ?? "USD").toUpperCase().trim();
   if (!/^[A-Z]{3}$/.test(currencyCode)) return;
 
+  const secondaryRaw = String(formData.get("secondaryCurrencyCode") ?? "").toUpperCase().trim();
+  const secondaryCurrencyCode = secondaryRaw && /^[A-Z]{3}$/.test(secondaryRaw) ? secondaryRaw : null;
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return;
 
-  await supabase.from("settings").update({ currency_code: currencyCode }).eq("user_id", user.id);
+  await supabase
+    .from("settings")
+    .update({ currency_code: currencyCode, secondary_currency_code: secondaryCurrencyCode })
+    .eq("user_id", user.id);
   revalidatePath("/", "layout");
 }
 
