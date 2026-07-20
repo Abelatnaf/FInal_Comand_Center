@@ -1,5 +1,101 @@
 @AGENTS.md
 
+# Command Deck v2 — Build Spec
+
+## 0. What this is
+A personal finance web app, rebuilt from scratch as a deliberately small, Apple-designed tool. The original app (documented in the Build Log below, kept for history) grew to ~27 routes across many incremental sessions — MFA, month-end close, tax reports, forecasting, audit log, multi-currency, backups, CSV import, and more. Abel asked to "completely change the whole script": a full ground-up rebuild, not another reskin, driven by two things — the app had gotten too complex, and none of the seven prior visual redesigns (all documented below) actually felt right. This version starts over with a hard constraint on scope (5 pages, one unified ledger table) and a real, HIG-accurate Apple design language rather than an approximation of one.
+
+This was a genuine fresh start: the previous Supabase schema (17 tables), all 3 pg_cron jobs, and all 3 real signed-up `auth.users` rows (including Abel's own account and its data) were dropped/deleted as part of this rebuild, with Abel's explicit confirmation that this loss was acceptable.
+
+## 1. Stack
+Unchanged from v1 — nothing about the stack was the problem, only complexity and design.
+- **Framework:** Next.js 16 (App Router), TypeScript — `proxy.ts` (not `middleware.ts`), exported function name `proxy`. `cookies()`/`headers()`/`params`/`searchParams` are all async.
+- **Styling:** Tailwind CSS v4 (CSS-first config, no `tailwind.config.js`)
+- **DB/Auth:** Supabase (Postgres + Supabase Auth, email/password, open signup — multi-tenant)
+- **Hosting:** Vercel, auto-deploys previews on push via GitHub integration
+- **No charts.** v1 used Recharts across several pages; v2 deliberately has none — the 5-page scope doesn't need them, and Apple's own Settings/Wallet-adjacent apps lean on numbers, lists, and simple progress bars rather than charts for this kind of everyday-finance surface. The dependency was removed from `package.json`.
+
+## 2. Design system — real Apple HIG, not an approximation
+
+The core instruction was "how Apple would design something like this, one to one copy" — meaning actual HIG values, not a vibe. Supports **both light and dark**, following the system automatically (`prefers-color-scheme`), which is itself more authentically Apple than the several static-dark-only design systems v1 went through.
+
+### Tokens (`app/globals.css`)
+- Full systemGray scale (`--gray` … `--gray6`), separate light/dark values.
+- Tinted label hierarchy exactly matching Apple's own opacity-based system: `--label` (solid), `--label-secondary` (60% over the label color), `--label-tertiary` (30%), `--label-quaternary` (18%) — not distinct hex approximations.
+- Real separator (`rgba` over gray, not a flat hex), system fill tiers, systemBlue/Green/Red/Orange/Purple/Indigo/Teal/Pink at their real light and dark values.
+- System font stack (`-apple-system, "SF Pro Text", "SF Pro Display", …`) — no downloaded typeface. Native apps don't ship a custom font either, and this also means every native weight is available for free (a real bug category from an earlier v1 redesign — "does this weight exist in the loaded set" — is structurally impossible now).
+- **Money renders in the body font with `tabular-nums`, not a mono font.** SF Mono is for code; real iOS shows currency in tabular SF Pro.
+- Full SF text-style ramp as classes: `.ios-large-title` (34/700), `.ios-title2`, `.ios-title3`, `.ios-headline` (17/600), `.ios-body`, `.ios-subhead`, `.ios-footnote`, `.ios-caption`, `.section-header`.
+
+### Material vs. solid
+`.glass` is a **solid** grouped-list card (`--bg-elevated`, 14px radius, hairline border) — the real Settings/Health app look. `.material` (blur + saturate) is reserved for **overlay chrome only** — the mobile tab bar, the Quick Add sheet, the date-picker popover — never for content cards. This is the correct HIG distinction; v1 got this wrong on its first Apple-styled pass and had to correct it in a later "deep-detail" pass.
+
+### Components
+Real iOS switch (51×31, systemGreen when on), real segmented control (sliding thumb via `data-active`), a bubbly Apple-style date picker (`components/ui/DatePicker.tsx`, portaled calendar popover, carried over unchanged from v1 since it was already correct and has no schema dependency), 10px corner radii on inputs/buttons (rounded rect, not a pill and not architectural), large-title in-content headers (no redundant top app-bar).
+
+### The one rule that has survived every redesign this project has ever done
+No color-coding for good/bad beyond real, deliberate use of systemGreen/systemRed for income/expense amounts and destructive actions — direction (↑/↓, +/−) and weight still do most of the signaling work. This is now the sixth-or-so design system this project has shipped; this restraint is the one thing that has survived every single one.
+
+## 3. Data model (Supabase tables)
+
+The biggest structural simplification versus v1: **one unified `entries` table** replaces the old separate `transactions` / `income` / `transfers` / `recurring_bills` / `recurring_income` tables. A `type` column (`'expense' | 'income' | 'transfer'`) distinguishes the three cash-flow directions, and an `is_recurring` flag marks predictable ones — there is no separate cron-driven auto-posting system; recurring items are just entries with a flag, surfaced on the Budgets page with a manual "Log this month" action.
+
+```sql
+settings        (id, user_id, currency_code default 'USD', low_balance_threshold, created_at)
+accounts        (id, user_id, name, kind 'asset'|'liability', starting_balance, sort_order)
+categories      (id, user_id, name, monthly_budget, sort_order)
+entries         (id, user_id, date, type, amount, account_id, to_account_id,
+                  category_id, description, notes, is_recurring, created_at)
+savings_goals   (id, user_id, name, target_amount, target_date, account_id, saved_so_far)
+```
+
+Every table has `user_id uuid not null references auth.users(id)` and an RLS policy `using ((select auth.uid()) = user_id)` — the `select`-wrapped form per Supabase's RLS perf guidance, carried over from v1's own hard-won lesson on this.
+
+Two computed views, both `security_invoker = true` so they respect the querying user's RLS automatically:
+- `account_balance` — live net worth per account (`starting_balance + income − expenses ± transfers`, liabilities sign-flipped), no manual snapshot/reconciliation step.
+- `budget_vs_actual_this_month` — per-category budget vs. actual spend this month.
+
+`handle_new_user()` (a trigger on `auth.users`, `security definer`, RPC access revoked from `public`/`anon`/`authenticated`) auto-provisions every new signup: one settings row, two starter accounts (Checking/Savings), and 8 generic default categories. Signup is fully open — no invite gate, matching v1's later multi-tenant conversion.
+
+Verified via a rollback-only SQL test (the standing discipline on this project): signup provisioning, an expense + income + transfer, a linked savings goal, and both views' math all check out — `begin; ...; rollback;` in one atomic call, zero residue confirmed afterward.
+
+## 4. Pages (5, down from ~27)
+
+1. **Home (`/`)** — hero net-worth card (live, not a snapshot), this month's spent/income, an account list, recent activity. Quick Add is a floating action button available everywhere.
+2. **Transactions (`/transactions`)** — the one unified ledger. Filter by type (All/Expense/Income/Transfer), search, inline edit, delete, CSV export.
+3. **Budgets (`/budgets`)** — category budgets vs. actual this month (inline-editable budget amounts, a progress bar per category) plus a **Recurring** section listing entries flagged `is_recurring`, each with a one-tap "Log this month" action.
+4. **Goals (`/goals`)** — savings goals with progress bars; a goal can either track a real linked account live (`account_balance`) or a manually-entered "saved so far" amount.
+5. **Settings (`/settings`)** — accounts (name, asset/liability, starting balance — this is where net worth's components live), categories, currency code, email + sign out, one-click full data export (JSON).
+
+Auth (`/login`, `/signup`) and `/privacy`/`/terms` are unchanged in structure from v1, just trimmed of references to cut features (MFA, receipt uploads, self-serve account deletion).
+
+## 5. What was cut, and why
+
+Everything below existed in v1 and was deliberately not rebuilt, because it doesn't fit "essentials + a couple extras" at v2's scope: MFA/TOTP, backup & restore, month-end close & period locking, tax-time reporting, forecasting & scenarios, audit log, multi-currency (beyond a single `currency_code` display preference), transfers/weekly-rollup/monthly-rollup/net-worth as their own dedicated pages (net worth folded into Home; transfers folded into the unified ledger), CSV bank import, global search (⌘K), the onboarding modal, email digest/notifications, receipt attachments, PWA install-prompt polish beyond what already existed. The two "couple extras" kept beyond a bare MVP ledger were **net worth** (live, on Home) and **recurring bills/income** (the Recurring section of Budgets) — a judgment call flagged to Abel at plan time since he didn't specify which extras, not overridden since.
+
+`/accounts/[id]` (the old Wallet-card-stack per-account detail page) was also cut — account management lives in Settings now, and Home's account list is a plain list, not a card-stack metaphor (that was specific to the "Apple Wallet" v1 redesign, not this HIG-general one).
+
+## 6. Non-goals (unchanged from v1)
+No multi-user sharing/permissions, no bank account sync (Plaid, etc.) — manual entry only, no native mobile app (responsive PWA-feel web app is enough).
+
+## 7. Build log / session decisions (v2)
+
+- **Rebuild executed via Supabase MCP directly against the live project** (`xgmznitqwcvjgeoyghor`, "Bigboy money count") — `drop schema public cascade` + `cron.unschedule` on all 3 jobs + `delete from auth.users` for all 3 real accounts, then the fresh 5-table schema applied as a single migration (`v2_schema`). A grants migration (`v2_grants`) was needed immediately after — recreating the `public` schema from scratch drops Supabase's default `anon`/`authenticated`/`service_role` table grants along with it, which isn't obvious until the first RLS-scoped query fails with a bare `permission denied for table` (not an RLS-policy error) rather than an empty result.
+- **`get_advisors` (security) came back completely clean** after the schema + grants migrations — zero findings, including the two long-standing pre-existing v1 items (`rls_auto_enable`, leaked-password-protection) which no longer apply to a freshly-created project's advisor baseline the same way.
+- **The empty `receipts` storage bucket from v1 was left in place**, not deleted — Supabase's `storage.protect_delete()` guard blocks direct SQL `DELETE`/bucket-drop even when the bucket is empty (confirmed by checking `count(*) from storage.objects where bucket_id = 'receipts'` = 0 first), and receipts aren't a v2 feature, so it's inert and harmless rather than worth fighting the Storage API for.
+- **Frontend rebuild strategy**: reused everything with zero v1-schema dependency verbatim — `lib/supabase/{client,server}.ts`, `components/ui/{DatePicker,HScroll,PullToRefresh}.tsx`, `components/{AuthTabs,LoginForm,SignupForm,InstallPrompt,ServiceWorkerRegister}.tsx`, the login/signup page shells, the PWA manifest/icon routes (re-tinted to systemBlue/black). Everything else — `globals.css`, nav, Quick Add, all 5 page routes and their table/form components — was deleted and rebuilt fresh against the new schema and design language.
+- **`lib/supabase/proxy.ts` lost its MFA step-up gate** (the `getAuthenticatorAssuranceLevel()` redirect block) since MFA isn't a v2 feature; `/mfa-challenge` and its actions were deleted outright. `proxy.ts`'s route matcher comment was trimmed of its now-inaccurate cron-route explanation (the `/api/cron/**` routes and their carve-out are gone — there's no more `app/api` directory at all).
+- **`package.json` trimmed**: `recharts` and `xlsx` dependencies removed (no charts, no xlsx importer in v2), `migrate:xlsx` script removed, package renamed `command-deck` at version `2.0.0`. `vercel.json` deleted outright — it only ever held the two now-cut notification cron schedules.
+- **Verified**: `tsc --noEmit` / `npm run lint` / `npm run build` all clean (13 routes, down from 27); a full grep sweep for dangling references to every cut feature (old route paths, `fmtUsd`, `PAYMENT_METHODS`/`INCOME_SOURCES`, `chart-colors`, `AlertsBanner`, `GlobalSearch`, `OnboardingModal`, `MfaChallengeForm`, `ImportForm`, wallet-card components, old table components, etc.) came back empty; `/login` screenshotted in both light and dark via the pre-installed headless Chromium against the real compiled CSS, confirming the grouped-card look, systemBlue button, and segmented control all render correctly in both themes. A live end-to-end signup-and-click-through via Playwright was attempted against the real Supabase project but blocked by this sandbox's egress policy (outbound HTTPS to the Supabase host returns a 403 from the environment's proxy) — this is a known, standing limitation of this sandbox (documented repeatedly through v1's build log) and not something to route around, so verification fell back to the DB-layer rollback-only test plus the static-CSS screenshot method already established as this project's standard.
+
+---
+
+# Everything below this line describes Command Deck v1 (superseded)
+
+The app was fully rebuilt from scratch on 2026-07-20 (see the v2 spec and Build Log above). Everything below is the historical record of what v1 was and why — the schema, routes, and design systems it describes no longer exist in the live app or database, but the reasoning is kept because it explains real lessons (RLS/security-definer patterns, the rollback-only testing discipline, several real bugs found and fixed) that generalize beyond the specific v1 implementation.
+
+@AGENTS.md
+
 # VMI Finance Command Center — Build Spec
 
 ## 0. What this is

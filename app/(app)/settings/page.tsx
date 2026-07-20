@@ -1,48 +1,66 @@
-import { PageHeader } from "@/components/glass/Glass";
-import { SettingsShell } from "@/components/settings/SettingsShell";
-import { createClient } from "@/lib/supabase/server";
+import { Glass, PageHeader } from "@/components/glass/Glass";
+import { AccountsForm } from "@/components/settings/AccountsForm";
+import { CategoriesForm } from "@/components/settings/CategoriesForm";
+import { ExportDataButton } from "@/components/settings/ExportDataButton";
+import { updateCurrencyCode } from "./actions";
 import { signOut } from "../actions";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  const [{ data: settings }, { data: categories }, { data: accounts }, { data: currencies }, { data: userData }, { data: mfaData }, { data: backups }] =
-    await Promise.all([
-      supabase
-        .from("settings")
-        .select("tracking_start_date, low_balance_threshold, notify_weekly_digest, notify_budget_alerts, notify_bill_reminders")
-        .single(),
-      supabase.from("categories").select("id, name, monthly_budget").order("sort_order"),
-      supabase.from("accounts").select("id, name, starting_balance, kind, interest_rate_pct").order("sort_order"),
-      supabase.from("currencies").select("id, code, name, rate_to_usd").order("code"),
-      supabase.auth.getUser(),
-      supabase.auth.mfa.listFactors(),
-      supabase.from("data_backups").select("id, created_at, source").order("created_at", { ascending: false }),
-    ]);
+  const [{ data: userData }, { data: accounts }, { data: categories }, { data: settings }] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from("accounts").select("id, name, kind, starting_balance").order("sort_order"),
+    supabase.from("categories").select("id, name").order("sort_order"),
+    supabase.from("settings").select("currency_code").single(),
+  ]);
+
+  const currency = settings?.currency_code ?? "USD";
 
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Your look, your accounts, your money — all in your control." />
-      <SettingsShell
-        email={userData?.user?.email ?? null}
-        onSignOut={signOut}
-        categories={categories ?? []}
-        accounts={accounts ?? []}
-        currencies={currencies ?? []}
-        mfaFactors={mfaData?.totp ?? []}
-        settings={
-          settings ?? {
-            tracking_start_date: new Date().toISOString().slice(0, 10),
-            low_balance_threshold: null,
-          }
-        }
-        notificationPrefs={{
-          notify_weekly_digest: settings?.notify_weekly_digest ?? false,
-          notify_budget_alerts: settings?.notify_budget_alerts ?? false,
-          notify_bill_reminders: settings?.notify_bill_reminders ?? false,
-        }}
-        backups={backups ?? []}
-      />
+      <PageHeader title="Settings" subtitle="Your accounts, categories, and options." />
+
+      <Glass className="p-5 mb-4">
+        <div className="section-header mb-2">Accounts</div>
+        <AccountsForm accounts={accounts ?? []} currency={currency} />
+      </Glass>
+
+      <Glass className="p-5 mb-4">
+        <div className="section-header mb-2">Categories</div>
+        <CategoriesForm categories={categories ?? []} />
+      </Glass>
+
+      <Glass className="p-5 mb-4">
+        <div className="section-header mb-2">Currency</div>
+        <form action={updateCurrencyCode} className="flex gap-2.5">
+          <input
+            name="currencyCode"
+            defaultValue={currency}
+            maxLength={3}
+            className="input text-sm !py-2 !px-3 w-24 uppercase"
+            placeholder="USD"
+          />
+          <button type="submit" className="btn text-[13px] !py-1.5 !px-3">
+            Save
+          </button>
+        </form>
+        <p className="ios-footnote text-text-faint mt-2">3-letter currency code, e.g. USD, EUR, GBP.</p>
+      </Glass>
+
+      <Glass className="p-5">
+        <div className="section-header mb-2">Account</div>
+        <p className="ios-body mb-3">{userData?.user?.email}</p>
+        <div className="flex flex-wrap gap-3 items-center">
+          <ExportDataButton />
+          <form action={signOut}>
+            <button type="submit" className="link-destructive text-[15px]">
+              Sign out
+            </button>
+          </form>
+        </div>
+      </Glass>
     </div>
   );
 }

@@ -1,55 +1,53 @@
-type IconProps = { className?: string; size?: number };
-
-function base(size: number) {
-  return {
-    width: size,
-    height: size,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.6,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-}
-
-export function HomeIcon({ className, size = 24 }: IconProps) {
-  return (
-    <svg {...base(size)} className={className}>
+const PATHS: Record<string, React.ReactNode> = {
+  "/": (
+    <>
       <path d="M3.5 11.2 12 4l8.5 7.2" />
       <path d="M5.5 9.8V19a1 1 0 0 0 1 1H10v-5.2a2 2 0 0 1 4 0V20h3.5a1 1 0 0 0 1-1V9.8" />
-    </svg>
-  );
-}
-
-export function ListIcon({ className, size = 24 }: IconProps) {
-  return (
-    <svg {...base(size)} className={className}>
+    </>
+  ),
+  "/transactions": (
+    <>
       <circle cx="4.5" cy="7" r="1.1" fill="currentColor" stroke="none" />
       <circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none" />
       <circle cx="4.5" cy="17" r="1.1" fill="currentColor" stroke="none" />
       <path d="M9 7h11M9 12h11M9 17h11" />
-    </svg>
-  );
-}
-
-export function IncomeIcon({ className, size = 24 }: IconProps) {
-  return (
-    <svg {...base(size)} className={className}>
+    </>
+  ),
+  "/budgets": (
+    <>
+      <path d="M12 3v9l7.8 4.5" />
       <circle cx="12" cy="12" r="8.5" />
-      <path d="M12 7.4v9.2" />
-      <path d="M14.4 9.4c-.5-.7-1.4-1.1-2.4-1.1-1.4 0-2.4.7-2.4 1.8 0 2.5 5 1 5 3.5 0 1.1-1.1 1.9-2.6 1.9-1.1 0-2-.4-2.5-1.2" />
-    </svg>
-  );
-}
+    </>
+  ),
+  "/goals": (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="4.3" />
+      <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  "/settings": (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19 12a7 7 0 0 0-.13-1.3l2-1.55-2-3.46-2.36.95A7 7 0 0 0 15 4.6L14.6 2h-4L10 4.6a7 7 0 0 0-1.5.9L6.13 4.6l-2 3.46 2 1.55A7 7 0 0 0 5 12c0 .44.05.87.13 1.3l-2 1.55 2 3.46 2.36-.95c.45.37.96.68 1.51.9L10 22h4l.4-2.6c.55-.22 1.06-.53 1.51-.9l2.36.95 2-3.46-2-1.55c.08-.43.13-.86.13-1.3Z" />
+    </>
+  ),
+};
 
-export function MoreIcon({ className, size = 24 }: IconProps) {
+export function NavIcon({ href, size = 24, className }: { href: string; size?: number; className?: string }) {
   return (
-    <svg {...base(size)} className={className}>
-      <circle cx="12" cy="12" r="8.5" />
-      <circle cx="8.4" cy="12" r="1.05" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="1.05" fill="currentColor" stroke="none" />
-      <circle cx="15.6" cy="12" r="1.05" fill="currentColor" stroke="none" />
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.7}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {PATHS[href] ?? PATHS["/"]}
     </svg>
   );
 }

@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ size: s
         style={{
           width: "100%",
           height: "100%",
-          background: "#10b981",
+          background: "#007aff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

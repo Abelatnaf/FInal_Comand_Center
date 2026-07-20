@@ -11,7 +11,7 @@ export default function TermsPage() {
         </Link>
 
         <h1 className="ios-large-title mt-4 mb-1">Terms of Service</h1>
-        <p className="ios-footnote text-text-faint mb-8">Last updated July 17, 2026</p>
+        <p className="ios-footnote text-text-faint mb-8">Last updated July 20, 2026</p>
 
         <div className="glass p-5 mb-8">
           <p className="ios-footnote text-text-dim">
@@ -34,9 +34,8 @@ export default function TermsPage() {
           <section>
             <h2 className="ios-title3 text-text mb-2">Your responsibility</h2>
             <p>
-              You&apos;re responsible for the accuracy of what you enter and for keeping your password (and, if
-              enabled, your two-factor authenticator app) secure. Anyone who gains access to your account can see and
-              edit everything in it.
+              You&apos;re responsible for the accuracy of what you enter and for keeping your password secure.
+              Anyone who gains access to your account can see and edit everything in it.
             </p>
           </section>
 
@@ -62,9 +61,10 @@ export default function TermsPage() {
           <section>
             <h2 className="ios-title3 text-text mb-2">Account termination</h2>
             <p>
-              You can delete your account at any time from Settings → Account. We may suspend or remove accounts that
-              abuse the service (attempting to access other users&apos; data, disrupting the app for others, or
-              similar). If that happens, we&apos;ll try to notify you at your account email first.
+              You can request your account be deleted at any time by contacting the app operator at your account
+              email. We may suspend or remove accounts that abuse the service (attempting to access other
+              users&apos; data, disrupting the app for others, or similar). If that happens, we&apos;ll try to
+              notify you at your account email first.
             </p>
           </section>
 

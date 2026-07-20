@@ -1,97 +1,64 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Ethical Horizon — an "All-Out Glassmorphism" finance UI: deep
-   charcoal-navy void, translucent blurred glass at every layer,
-   Ethical Emerald as the one primary tint with Trust Blue as a
-   secondary data accent, Montserrat for display type and Geist
-   Mono for data/labels. Adapted from a Stitch design export (see
-   CLAUDE.md build log, "Ethical Horizon reskin").
+   Command Deck v2 — a rigorous, real-HIG Apple design language:
+   full systemGray scale, tinted label hierarchy, the SF text-style
+   ramp, material-vs-solid card treatment, true iOS switch/segmented
+   control, and light+dark support that follows the system, exactly
+   like a real Apple app. System font stack (no downloaded typeface —
+   native apps don't ship one either). Money renders in the body
+   font with tabular numerals, not a mono font.
    ============================================================ */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* Backgrounds */
-  --bg: #0b1326;              /* page — deep charcoal-navy void */
-  --bg-elevated: #131b2e;     /* cards, list rows (surface-container-low) */
-  --bg-elevated-2: #171f33;   /* nested / inputs (surface-container) */
-  --bg-sidebar: #0b1326;
-  --bg-dark: #060e20;         /* hero surface (surface-container-lowest) */
+  /* Backgrounds (systemGroupedBackground family, light) */
+  --bg: #f2f2f7;
+  --bg-elevated: #ffffff;
+  --bg-elevated-2: #f2f2f7;
+  --bg-sidebar: #f9f9f9;
 
-  /* System grays (dark) */
-  --gray: #86948a;
-  --gray2: #5c6a72;
-  --gray3: #3c4a42;
-  --gray4: #2d3449;
-  --gray5: #222a3d;
-  --gray6: #171f33;
+  /* System grays (light) */
+  --gray: #8e8e93;
+  --gray2: #aeaeb2;
+  --gray3: #c7c7cc;
+  --gray4: #d1d1d6;
+  --gray5: #e5e5ea;
+  --gray6: #f2f2f7;
 
-  /* Labels (soft lavender-white, not pure white — on-surface / on-surface-variant) */
-  --label: #dae2fd;
-  --label-secondary: rgba(218, 226, 253, 0.65);
-  --label-tertiary: rgba(218, 226, 253, 0.35);
-  --label-quaternary: rgba(218, 226, 253, 0.18);
+  /* Labels — real HIG opacity-tiered hierarchy over black */
+  --label: #1d1d1f;
+  --label-secondary: rgba(60, 60, 67, 0.6);
+  --label-tertiary: rgba(60, 60, 67, 0.3);
+  --label-quaternary: rgba(60, 60, 67, 0.18);
 
-  /* Separators */
-  --separator: rgba(255, 255, 255, 0.1);
-  --separator-strong: rgba(255, 255, 255, 0.18);
-  --hairline: rgba(255, 255, 255, 0.1);
+  /* Separators / fills */
+  --separator: rgba(60, 60, 67, 0.29);
+  --hairline: rgba(60, 60, 67, 0.29);
+  --fill: rgba(120, 120, 128, 0.2);
+  --fill-secondary: rgba(120, 120, 128, 0.16);
+  --fill-tertiary: rgba(118, 118, 128, 0.12);
+  --fill-quaternary: rgba(116, 116, 128, 0.08);
 
-  /* Fills */
-  --fill: rgba(218, 226, 253, 0.16);
-  --fill-secondary: rgba(218, 226, 253, 0.12);
-  --fill-tertiary: rgba(218, 226, 253, 0.09);
-  --fill-quaternary: rgba(218, 226, 253, 0.06);
+  /* System colors (light) */
+  --blue: #007aff;
+  --blue-hover: #0060d1;
+  --green: #34c759;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --purple: #af52de;
+  --indigo: #5856d6;
+  --teal: #30b0c7;
+  --pink: #ff2d55;
 
-  /* System colors — Ethical Emerald is the one primary tint everywhere
-     the app previously used systemBlue; Trust Blue becomes the secondary
-     data-accent (charts, links-within-data), matching the source spec. */
-  --blue: #10b981;
-  --blue-hover: #4edea3;
-  --accent-blue: #3b82f6;
-  --accent-purple: #b090ff;
-  --green: #4edea3;
-  --red: #ffb4ab;
-  --orange: #ff9f0a;
-  --purple: #d0bcff;
-  --indigo: #5e5ce6;
-  --teal: #64d2ff;
-  --pink: #ff375f;
-
-  /* Card shadow */
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 32px rgba(0, 0, 0, 0.5);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.05);
   --card-border: 1px solid var(--hairline);
 
-  /* Themed surfaces */
-  --material-bg: rgba(11, 19, 38, 0.55);
-  --hero-bg: #060e20;
-  --badge-bg: rgba(78, 222, 163, 0.16);
-  --badge-fg: #4edea3;
+  /* Material chrome (overlay-only: tab bar, sheets, popovers) */
+  --material-bg: rgba(255, 255, 255, 0.72);
 
-  /* Liquid-glass intensity — driven by the Settings slider (0–40px). */
-  --glass-blur: 20px;
-
-  /* Wallet card finishes — deterministically assigned per account (see
-     CardStack), not tied to account type; graphite is reserved for
-     liabilities so a debt card visually reads as different stock. */
-  --finish-titanium-1: #4a4a4d;
-  --finish-titanium-2: #232326;
-  --finish-titanium-3: #131315;
-  --finish-steel-1: #6b7785;
-  --finish-steel-2: #3f4750;
-  --finish-steel-3: #23282e;
-  --finish-gold-1: #e8caa0;
-  --finish-gold-2: #b98d4f;
-  --finish-gold-3: #7c5a2c;
-  --finish-rosegold-1: #e8b8ab;
-  --finish-rosegold-2: #c48576;
-  --finish-rosegold-3: #8a5347;
-  --finish-graphite-1: #3a2e2e;
-  --finish-graphite-2: #1f1616;
-  --finish-graphite-3: #120d0d;
-
-  /* Aliases kept so existing markup keeps working */
+  /* Aliases kept so shared markup can use one vocabulary */
   --surface: var(--bg-elevated);
   --surface-secondary: var(--bg-elevated-2);
   --divider: var(--separator);
@@ -101,9 +68,51 @@
   --text-dim: var(--label-secondary);
   --text-faint: var(--label-tertiary);
 
-  --font-body: var(--font-montserrat), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: var(--font-montserrat), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: var(--font-body);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #000000;
+    --bg-elevated: #1c1c1e;
+    --bg-elevated-2: #2c2c2e;
+    --bg-sidebar: #0b0b0c;
+
+    --gray: #8e8e93;
+    --gray2: #636366;
+    --gray3: #48484a;
+    --gray4: #3a3a3c;
+    --gray5: #2c2c2e;
+    --gray6: #1c1c1e;
+
+    --label: #ffffff;
+    --label-secondary: rgba(235, 235, 245, 0.6);
+    --label-tertiary: rgba(235, 235, 245, 0.3);
+    --label-quaternary: rgba(235, 235, 245, 0.18);
+
+    --separator: rgba(84, 84, 88, 0.65);
+    --hairline: rgba(84, 84, 88, 0.65);
+    --fill: rgba(120, 120, 128, 0.36);
+    --fill-secondary: rgba(120, 120, 128, 0.32);
+    --fill-tertiary: rgba(118, 118, 128, 0.24);
+    --fill-quaternary: rgba(118, 118, 128, 0.18);
+
+    --blue: #0a84ff;
+    --blue-hover: #409cff;
+    --green: #30d158;
+    --red: #ff453a;
+    --orange: #ff9f0a;
+    --purple: #bf5af2;
+    --indigo: #5e5ce6;
+    --teal: #64d2ff;
+    --pink: #ff375f;
+
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
+    --material-bg: rgba(28, 28, 30, 0.72);
+  }
 }
 
 @theme inline {
@@ -117,7 +126,6 @@
   --color-text-faint: var(--label-tertiary);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
-  --font-mono: var(--font-mono);
 }
 
 * {
@@ -131,17 +139,10 @@ select {
 
 html {
   background: var(--bg);
-  color-scheme: dark;
 }
 
 body {
   background-color: var(--bg);
-  background-image:
-    radial-gradient(120% 90% at 15% -10%, rgba(78, 222, 163, 0.1), transparent 55%),
-    radial-gradient(100% 80% at 100% 0%, rgba(59, 130, 246, 0.1), transparent 55%),
-    radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
-  background-size: auto, auto, 40px 40px;
-  background-attachment: fixed, fixed, fixed;
   color: var(--label);
   font-family: var(--font-body);
   font-size: 17px;
@@ -165,24 +166,14 @@ body {
   }
 }
 
-/* Manual override from Settings › Appearance › Reduce Motion */
-:root[data-reduce-motion="true"] *,
-:root[data-reduce-motion="true"] *::before,
-:root[data-reduce-motion="true"] *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
-  scroll-behavior: auto !important;
-}
-
-/* ---------- iOS type styles ---------- */
+/* ---------- SF text-style ramp ---------- */
 
 .ios-large-title {
   font-family: var(--font-display);
-  font-size: 32px;
-  line-height: 1.08;
+  font-size: 34px;
+  line-height: 1.11;
   font-weight: 700;
-  letter-spacing: -0.024em;
+  letter-spacing: -0.021em;
   color: var(--label);
 }
 
@@ -243,6 +234,7 @@ body {
   font-weight: 600;
   letter-spacing: -0.006em;
   color: var(--label-secondary);
+  text-transform: uppercase;
 }
 
 h1,
@@ -253,12 +245,13 @@ h3,
   letter-spacing: -0.02em;
 }
 
+/* Money renders in the body font with tabular numerals — SF Mono is for
+   code, not currency; real iOS apps show balances in tabular SF Pro. */
 .num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-/* semantic money helpers */
 .pos {
   color: var(--green);
 }
@@ -266,24 +259,16 @@ h3,
   color: var(--red);
 }
 
-/* ---------- Cards ---------- */
+/* ---------- Cards: solid grouped-list surface (Settings/Health look) ---------- */
 
 .glass {
   position: relative;
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02) 60%);
-  backdrop-filter: blur(var(--glass-blur, 20px));
-  -webkit-backdrop-filter: blur(var(--glass-blur, 20px));
-  border-radius: 16px;
+  background: var(--bg-elevated);
+  border-radius: 14px;
   border: var(--card-border);
   box-shadow: var(--card-shadow);
 }
 
-/* overflow lives in the components layer (below Tailwind's utilities
-   layer) specifically so that className="overflow-x-auto"/"overflow-y-auto"
-   on a <Glass> can actually override it -- plain unlayered CSS like the
-   rest of this file otherwise beats every Tailwind layer regardless of
-   className order, which was silently clipping every wide/scrollable
-   table (Weekly/Monthly Rollup, Transactions, etc.) inside a Glass card. */
 @layer components {
   .glass {
     overflow: hidden;
@@ -291,18 +276,8 @@ h3,
 }
 
 .glass-dense {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(calc(var(--glass-blur, 20px) * 0.6));
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 20px) * 0.6));
-  border-radius: 12px;
-}
-
-/* Neon glow accents, per the "Ethical Horizon" glass spec */
-.neon-glow-emerald {
-  box-shadow: 0 0 20px rgba(78, 222, 163, 0.25);
-}
-.neon-glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
+  background: var(--fill-quaternary);
+  border-radius: 10px;
 }
 
 /* ---------- Horizontal-scroll affordance (wide tables) ---------- */
@@ -332,57 +307,31 @@ h3,
   background: linear-gradient(to left, transparent, var(--bg-elevated));
 }
 
-/* Any other overflow-scrolled region (modals, sheets, nested nav) also
-   gets momentum scrolling on iOS -- not just the tables above. */
 .overflow-x-auto,
 .overflow-y-auto {
   -webkit-overflow-scrolling: touch;
 }
 
-/* ---------- Motion: entrance animations for sheets, modals, popovers ----------
-   Plain @keyframes (not transitions) since these elements are freshly
-   mounted on open, not toggled -- a transition alone can't animate a
-   from-state on first paint. Respects prefers-reduced-motion / the manual
-   Settings toggle automatically via the animation-duration override above. */
+/* ---------- Motion: entrance animations for sheets, modals, popovers ---------- */
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes sheet-up {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 @keyframes modal-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes popover-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .anim-backdrop {
@@ -403,45 +352,15 @@ h3,
   animation: modal-pop 0.2s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
-/* Frosted "liquid glass" overlay chrome (tab bar, top bar, sheets).
-   Blur is variable so the Settings › Appearance slider can dial it. */
+/* Frosted material — reserved for overlay chrome only (tab bar, sheets,
+   date-picker popover), never for content cards. */
 .material {
   background: var(--material-bg);
-  backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.8);
-  -webkit-backdrop-filter: blur(var(--glass-blur, 24px)) saturate(1.8);
-}
-
-/* The dark hero card (Net Worth) */
-.ledger {
-  position: relative;
-  background:
-    radial-gradient(120% 140% at 100% 0%, rgba(78, 222, 163, 0.22), transparent 55%),
-    radial-gradient(90% 120% at 0% 100%, rgba(59, 130, 246, 0.16), transparent 55%),
-    var(--hero-bg);
-  border-radius: 20px;
-  overflow: hidden;
-  color: #ffffff;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), 0 0 30px rgba(78, 222, 163, 0.08);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 /* ---------- Small helpers ---------- */
-
-.eyebrow {
-  font-size: 15px;
-  font-weight: 400;
-  letter-spacing: -0.006em;
-  color: var(--label-secondary);
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.eyebrow .dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--green);
-}
 
 .stat-label {
   font-size: 13px;
@@ -455,7 +374,7 @@ h3,
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.024em;
+  letter-spacing: -0.021em;
   color: var(--label);
   font-variant-numeric: tabular-nums;
 }
@@ -465,12 +384,11 @@ h3,
   font-weight: 700;
   font-size: 44px;
   line-height: 1.02;
-  letter-spacing: -0.03em;
-  color: #ffffff;
+  letter-spacing: -0.025em;
+  color: var(--label);
   font-variant-numeric: tabular-nums;
 }
 
-/* Status pill */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -480,8 +398,8 @@ h3,
   letter-spacing: -0.006em;
   padding: 3px 10px;
   border-radius: 999px;
-  background: var(--badge-bg);
-  color: var(--badge-fg);
+  background: rgba(52, 199, 89, 0.15);
+  color: var(--green);
   border: none;
   width: fit-content;
 }
@@ -497,7 +415,7 @@ h3,
   position: relative;
   height: 6px;
   border-radius: 999px;
-  background: var(--gray5);
+  background: var(--fill-tertiary);
   overflow: hidden;
 }
 
@@ -508,7 +426,7 @@ h3,
   background: var(--blue);
 }
 
-/* ---------- iOS switch ---------- */
+/* ---------- iOS switch (systemGreen when on) ---------- */
 
 .ios-switch {
   appearance: none;
@@ -517,7 +435,7 @@ h3,
   width: 51px;
   height: 31px;
   border-radius: 999px;
-  background: var(--gray5);
+  background: var(--fill);
   position: relative;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -550,7 +468,7 @@ h3,
   outline-offset: 2px;
 }
 
-/* ---------- Segmented control ---------- */
+/* ---------- Segmented control (real sliding thumb) ---------- */
 
 .segmented {
   display: inline-flex;
@@ -581,19 +499,6 @@ h3,
 
 .segmented > [data-active="false"] {
   color: var(--label-secondary);
-}
-
-/* dark variant used inside the dark hero */
-.segmented-dark {
-  background: rgba(255, 255, 255, 0.1);
-}
-.segmented-dark > * {
-  color: rgba(255, 255, 255, 0.55);
-}
-.segmented-dark > [data-active="true"] {
-  background: rgba(255, 255, 255, 0.22);
-  color: #fff;
-  box-shadow: none;
 }
 
 /* ---------- Forms ---------- */
@@ -631,16 +536,16 @@ a:focus-visible {
   font-size: 16px;
   letter-spacing: -0.012em;
   padding: 12px 20px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: none;
-  background: rgba(78, 222, 163, 0.1);
-  color: var(--blue-hover);
+  background: rgba(0, 122, 255, 0.12);
+  color: var(--blue);
   transition: opacity 0.15s ease, background 0.15s ease, transform 0.1s ease;
   cursor: pointer;
 }
 
 .btn:hover {
-  background: rgba(78, 222, 163, 0.18);
+  background: rgba(0, 122, 255, 0.2);
 }
 
 .btn:active {
@@ -653,17 +558,13 @@ a:focus-visible {
 }
 
 .btn-primary {
-  background: linear-gradient(120deg, var(--blue) 0%, var(--accent-blue) 100%);
+  background: var(--blue);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  box-shadow: 0 0 16px rgba(78, 222, 163, 0.25);
+  border: none;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 0 24px rgba(78, 222, 163, 0.4);
+  background: var(--blue-hover);
 }
 
 .btn-primary:active {
@@ -697,45 +598,6 @@ a:focus-visible {
   opacity: 0.5;
 }
 
-/* ---------- Range slider (Settings › Liquid Glass) ---------- */
-
-.glass-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--gray5);
-  outline: none;
-  cursor: pointer;
-}
-
-.glass-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 0.5px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.glass-slider::-moz-range-thumb {
-  width: 26px;
-  height: 26px;
-  border: none;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-}
-
-.glass-slider:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 4px;
-}
-
 /* ---------- Colored app-style icon badge ---------- */
 
 .app-icon {
@@ -749,59 +611,26 @@ a:focus-visible {
   color: #fff;
 }
 
-/* ---------- Wallet card finishes ---------- */
-
-.wallet-card {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  isolation: isolate;
-  color: #f2f2f4;
-}
-
-.wallet-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.14), transparent 40%);
-  pointer-events: none;
-}
-
-.finish-titanium {
-  background: linear-gradient(135deg, var(--finish-titanium-1) 0%, var(--finish-titanium-2) 55%, var(--finish-titanium-3) 100%);
-}
-
-.finish-steel {
-  background: linear-gradient(135deg, var(--finish-steel-1) 0%, var(--finish-steel-2) 55%, var(--finish-steel-3) 100%);
-}
-
-.finish-gold {
-  background: linear-gradient(135deg, var(--finish-gold-1) 0%, var(--finish-gold-2) 55%, var(--finish-gold-3) 100%);
-  color: #2c1e0c;
-}
-
-.finish-rosegold {
-  background: linear-gradient(135deg, var(--finish-rosegold-1) 0%, var(--finish-rosegold-2) 55%, var(--finish-rosegold-3) 100%);
-  color: #2c1712;
-}
-
-.finish-graphite {
-  background: linear-gradient(135deg, var(--finish-graphite-1) 0%, var(--finish-graphite-2) 55%, var(--finish-graphite-3) 100%);
-  box-shadow: 0 18px 30px -14px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 69, 58, 0.18);
-}
-
 /* ---------- Bubbly Apple date picker ---------- */
 
 .datefield {
   width: 100%;
   text-align: left;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.datefield[data-empty="true"] {
+  color: var(--label-tertiary);
 }
 
 .cal-pop {
   background: var(--material-bg);
-  backdrop-filter: blur(calc(var(--glass-blur, 24px) + 6px)) saturate(1.8);
-  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 24px) + 6px)) saturate(1.8);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
   border: 1px solid var(--hairline);
   border-radius: 18px;
   box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
@@ -875,16 +704,4 @@ a:focus-visible {
 
 .cal-nav:hover {
   background: var(--fill-tertiary);
-}
-
-/* The trigger button shows its value/placeholder; keep it looking like an input */
-.datefield {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.datefield[data-empty="true"] {
-  color: var(--label-tertiary);
 }
