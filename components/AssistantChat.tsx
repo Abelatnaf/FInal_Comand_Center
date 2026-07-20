@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { askAssistant } from "@/app/(app)/assistant/actions";
-import type { ChatMessage } from "@/lib/ai/anthropic";
+import type { ChatMessage } from "@/lib/ai/types";
 
 const SUGGESTIONS = [
   "How much have I spent this month?",

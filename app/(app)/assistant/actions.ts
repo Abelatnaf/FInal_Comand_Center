@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { buildSpendingContext } from "@/lib/ai/spending-context";
-import { askClaude, type ChatMessage } from "@/lib/ai/anthropic";
+import { askGemini } from "@/lib/ai/gemini";
+import type { ChatMessage } from "@/lib/ai/types";
 
 const SYSTEM_PREAMBLE = `You are a helpful, concise financial assistant embedded in Command Deck, a personal finance app. You answer questions about the user's own spending, income, budgets, accounts, and savings goals, grounded strictly in the real data provided below. Rules:
 - Only use the data given here — never invent transactions, balances, or numbers.
@@ -24,7 +25,7 @@ export async function askAssistant(history: ChatMessage[]): Promise<ChatResult> 
 
   try {
     const context = await buildSpendingContext();
-    const reply = await askClaude(`${SYSTEM_PREAMBLE}\n\n${context}`, history);
+    const reply = await askGemini(`${SYSTEM_PREAMBLE}\n\n${context}`, history);
     return { reply };
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Something went wrong asking the assistant." };
