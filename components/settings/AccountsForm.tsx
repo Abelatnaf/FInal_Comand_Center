@@ -1,151 +1,105 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
-import { Glass } from "@/components/glass/Glass";
-import { fmtUsd } from "@/lib/format";
-import { updateAccountBalances, addAccount, deleteAccount } from "@/app/(app)/settings/actions";
+import { useState } from "react";
+import { addAccount, updateAccount, deleteAccount } from "@/app/(app)/settings/actions";
+import { fmtMoney } from "@/lib/format";
 
-type Account = { id: string; name: string; starting_balance: number; kind: string; interest_rate_pct: number | null };
+type Account = { id: string; name: string; kind: string; starting_balance: number };
 
-export function AccountsForm({ accounts }: { accounts: Account[] }) {
-  const [state, formAction, pending] = useActionState(updateAccountBalances, undefined);
-  const [values, setValues] = useState<Record<string, string>>(
-    Object.fromEntries(accounts.map((a) => [a.id, String(a.starting_balance)]))
-  );
-  const [rates, setRates] = useState<Record<string, string>>(
-    Object.fromEntries(accounts.map((a) => [a.id, a.interest_rate_pct != null ? String(a.interest_rate_pct) : ""]))
-  );
-  const [adding, setAdding] = useState(false);
-  const [addPending, startAddTransition] = useTransition();
-  const [addError, setAddError] = useState<string | null>(null);
-
-  const total = accounts.reduce((s, a) => {
-    const v = parseFloat(values[a.id]) || 0;
-    return s + (a.kind === "liability" ? -v : v);
-  }, 0);
-
-  function handleAdd(formData: FormData) {
-    startAddTransition(async () => {
-      const res = await addAccount(formData);
-      if (res?.error) setAddError(res.error);
-      else {
-        setAddError(null);
-        setAdding(false);
-      }
-    });
-  }
-
-  function handleDelete(id: string) {
-    if (!confirm("Delete this account? Its history stays on past net worth snapshots.")) return;
-    startAddTransition(async () => {
-      await deleteAccount(id);
-    });
-  }
-
+function AccountForm({
+  account,
+  onSubmit,
+  onCancel,
+}: {
+  account?: Account;
+  onSubmit: (formData: FormData) => void;
+  onCancel?: () => void;
+}) {
   return (
-    <Glass className="p-6 max-w-xl">
-      <div className="flex items-center justify-between mb-1">
-        <div className="ios-headline">Accounts</div>
-        {!adding && (
-          <button type="button" onClick={() => setAdding(true)} className="btn text-xs">
-            + Add Account
+    <form action={onSubmit} className="flex flex-col gap-2.5">
+      <input name="name" defaultValue={account?.name} required placeholder="Account name" className="input text-sm !py-2 !px-3 w-full" />
+      <div className="grid grid-cols-2 gap-2.5">
+        <select name="kind" defaultValue={account?.kind ?? "asset"} className="select text-sm !py-2 !px-3">
+          <option value="asset">Asset</option>
+          <option value="liability">Liability</option>
+        </select>
+        <input
+          name="startingBalance"
+          type="number"
+          step="0.01"
+          defaultValue={account?.starting_balance ?? 0}
+          placeholder="Starting balance"
+          className="input text-sm !py-2 !px-3"
+        />
+      </div>
+      <div className="flex gap-3 justify-end">
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="link-action text-[13px]">
+            Cancel
           </button>
         )}
+        <button type="submit" className="btn btn-primary text-[13px] !py-1.5 !px-3">
+          Save
+        </button>
       </div>
-      <p className="text-text-dim ios-subhead mb-4">
-        Your own accounts. Assets (checking, savings, cash) add to your net worth; liabilities (credit cards, loans) subtract from it.
-      </p>
+    </form>
+  );
+}
 
-      {adding && (
-        <form action={handleAdd} className="flex flex-wrap gap-2 items-end mb-4">
-          <div className="flex-1 min-w-[140px]">
-            <label className="stat-label block mb-1 text-[10px]">Name</label>
-            <input name="name" required placeholder="e.g. Checking" className="input !py-1.5 !px-2 text-sm w-full" />
-          </div>
-          <div>
-            <label className="stat-label block mb-1 text-[10px]">Type</label>
-            <select name="kind" defaultValue="asset" className="select !py-1.5 !px-2 text-sm">
-              <option value="asset">Asset</option>
-              <option value="liability">Liability</option>
-            </select>
-          </div>
-          <div className="w-28">
-            <label className="stat-label block mb-1 text-[10px]">Starting $</label>
-            <input name="starting_balance" type="number" step="0.01" defaultValue={0} className="input !py-1.5 !px-2 text-sm num" />
-          </div>
-          <div className="flex gap-1.5">
-            <button type="submit" disabled={addPending} className="btn btn-primary !py-1.5 !px-3 text-xs">
-              {addPending ? "Adding…" : "Add"}
-            </button>
-            <button type="button" onClick={() => setAdding(false)} className="btn !py-1.5 !px-3 text-xs">
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-      {addError && <p className="text-text-dim text-xs mb-3">{addError}</p>}
+export function AccountsForm({ accounts, currency }: { accounts: Account[]; currency: string }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
-      <form action={formAction} className="flex flex-col">
-        {accounts.map((a, i) => (
-          <div
-            key={a.id}
-            className={`flex items-center justify-between gap-3 py-2.5 flex-wrap ${i > 0 ? "border-t border-[var(--separator)]" : ""}`}
-          >
-            <label htmlFor={`acct_${a.id}`} className="ios-body flex items-center gap-2">
-              {a.name}
-              {a.kind === "liability" && <span className="badge badge-dim !text-[10px] !py-0.5">Liability</span>}
-            </label>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 w-32">
-                <span className="text-text-dim">$</span>
-                <input
-                  id={`acct_${a.id}`}
-                  name={`account_${a.id}`}
-                  type="number"
-                  step="0.01"
-                  value={values[a.id]}
-                  onChange={(e) => setValues((v) => ({ ...v, [a.id]: e.target.value }))}
-                  className="input !py-1.5 !px-2 text-sm num w-full text-right"
-                />
+  return (
+    <div className="flex flex-col">
+      {accounts.map((a, i) =>
+        editingId === a.id ? (
+          <div key={a.id} className={`py-3 ${i > 0 ? "border-t border-[var(--separator)]" : ""}`}>
+            <AccountForm
+              account={a}
+              onSubmit={async (formData) => {
+                await updateAccount(a.id, formData);
+                setEditingId(null);
+              }}
+              onCancel={() => setEditingId(null)}
+            />
+          </div>
+        ) : (
+          <div key={a.id} className={`flex items-center justify-between py-2.5 gap-2 ${i > 0 ? "border-t border-[var(--separator)]" : ""}`}>
+            <div>
+              <div className="ios-body">
+                {a.name}
+                {a.kind === "liability" && <span className="ios-caption text-text-faint ml-1.5">(liability)</span>}
               </div>
-              {a.kind === "liability" && (
-                <div className="flex items-center gap-1 w-24">
-                  <input
-                    name={`rate_${a.id}`}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="APR"
-                    value={rates[a.id]}
-                    onChange={(e) => setRates((v) => ({ ...v, [a.id]: e.target.value }))}
-                    className="input !py-1.5 !px-2 text-sm num w-full text-right"
-                  />
-                  <span className="text-text-dim text-xs">%</span>
-                </div>
-              )}
-              <button type="button" onClick={() => handleDelete(a.id)} className="link-destructive text-[13px]">
+              <div className="ios-footnote text-text-dim num">Starting balance: {fmtMoney(a.starting_balance, currency)}</div>
+            </div>
+            <div className="flex gap-3 shrink-0">
+              <button onClick={() => setEditingId(a.id)} className="link-action text-[13px]">
+                Edit
+              </button>
+              <button onClick={() => deleteAccount(a.id)} className="link-destructive text-[13px]">
                 Delete
               </button>
             </div>
           </div>
-        ))}
+        )
+      )}
 
-        {accounts.length === 0 ? (
-          <div className="text-text-dim text-sm py-3">No accounts yet — add one above.</div>
-        ) : (
-          <div className="flex items-center justify-between border-t border-[var(--separator-strong)] pt-3 mt-1">
-            <span className="ios-headline">Net Starting Balance</span>
-            <span className="num ios-headline">{fmtUsd(total)}</span>
-          </div>
-        )}
-
-        {state?.error && <p className="text-text-dim text-sm mt-2">{state.error}</p>}
-        {state?.success && <p className="text-text-dim text-sm mt-2">Saved.</p>}
-
-        <button disabled={pending || accounts.length === 0} type="submit" className="btn btn-primary mt-4 self-start">
-          {pending ? "Saving…" : "Save Balances"}
+      {adding ? (
+        <div className={`py-3 ${accounts.length > 0 ? "border-t border-[var(--separator)]" : ""}`}>
+          <AccountForm
+            onSubmit={async (formData) => {
+              await addAccount(formData);
+              setAdding(false);
+            }}
+            onCancel={() => setAdding(false)}
+          />
+        </div>
+      ) : (
+        <button onClick={() => setAdding(true)} className="link-action text-[13px] text-left py-2">
+          + Add account
         </button>
-      </form>
-    </Glass>
+      )}
+    </div>
   );
 }

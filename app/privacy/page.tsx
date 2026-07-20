@@ -11,7 +11,7 @@ export default function PrivacyPage() {
         </Link>
 
         <h1 className="ios-large-title mt-4 mb-1">Privacy Policy</h1>
-        <p className="ios-footnote text-text-faint mb-8">Last updated July 17, 2026</p>
+        <p className="ios-footnote text-text-faint mb-8">Last updated July 20, 2026</p>
 
         <div className="glass p-5 mb-8">
           <p className="ios-footnote text-text-dim">
@@ -26,8 +26,8 @@ export default function PrivacyPage() {
             <h2 className="ios-title3 text-text mb-2">What we collect</h2>
             <p>
               Your email address and password (used only to authenticate you — see below), and whatever financial
-              data you choose to enter: transactions, income, accounts, balances, budgets, savings goals, and any
-              receipt images you upload. We don&apos;t collect anything beyond what you type in or upload.
+              data you choose to enter: transactions, accounts, balances, budgets, and savings goals. We don&apos;t
+              collect anything beyond what you type in.
             </p>
           </section>
 
@@ -35,18 +35,17 @@ export default function PrivacyPage() {
             <h2 className="ios-title3 text-text mb-2">How your password is handled</h2>
             <p>
               Authentication is handled by Supabase Auth. Your password is hashed before storage — we never see or
-              store it in plain text, and nobody with database access can read it back out. You can add an
-              authenticator-app second factor (TOTP) in Settings → Account for additional protection.
+              store it in plain text, and nobody with database access can read it back out.
             </p>
           </section>
 
           <section>
             <h2 className="ios-title3 text-text mb-2">Where your data lives</h2>
             <p>
-              All data is stored in a Postgres database and file storage bucket hosted by Supabase, with the app
-              itself hosted on Vercel. Every row you create is scoped to your account with row-level security —
-              other users of this app cannot read or write your data, and we have not built any admin panel or
-              back-office view into anyone&apos;s financial data.
+              All data is stored in a Postgres database hosted by Supabase, with the app itself hosted on Vercel.
+              Every row you create is scoped to your account with row-level security — other users of this app
+              cannot read or write your data, and we have not built any admin panel or back-office view into
+              anyone&apos;s financial data.
             </p>
           </section>
 
@@ -71,9 +70,8 @@ export default function PrivacyPage() {
             <h2 className="ios-title3 text-text mb-2">Your data, your control</h2>
             <p>
               You can export everything you&apos;ve logged as a single JSON file at any time from Settings → Account
-              → Export. You can permanently delete your account and every row associated with it — transactions,
-              income, accounts, receipts, everything — from the same page. Deletion is immediate and cannot be
-              undone; there is no recovery window.
+              → Export All Data. If you&apos;d like your account and its data deleted, contact the email address you
+              used to sign up.
             </p>
           </section>
 

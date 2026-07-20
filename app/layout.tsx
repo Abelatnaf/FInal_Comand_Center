@@ -1,20 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Montserrat, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "900"],
-  variable: "--font-montserrat",
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Command Deck — Finance Command Center",
@@ -22,7 +8,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b1326",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f2f2f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
 };
 
 export default function RootLayout({
@@ -31,23 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${montserrat.variable} ${geistMono.variable}`}>
-      <head>
-        {/* Resolve saved appearance preferences before first paint so there is
-            no flash of the wrong look. Reads localStorage: glass (0–100 →
-            --glass-blur px), reduceMotion ("true"). The Wallet redesign
-            committed to a single dark canvas, so there's no theme/accent
-            preference to resolve anymore — see components/settings/AppearanceSettings. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{var d=document.documentElement,s=localStorage;" +
-              "var g=s.getItem('glass');if(g!==null){var px=Math.round(Math.max(0,Math.min(100,+g))/100*40);d.style.setProperty('--glass-blur',px+'px');}" +
-              "if(s.getItem('reduceMotion')==='true'){d.dataset.reduceMotion='true';}" +
-              "}catch(e){}})();",
-          }}
-        />
-      </head>
+    <html lang="en">
       <body className="min-h-full antialiased">
         <ServiceWorkerRegister />
         {children}
