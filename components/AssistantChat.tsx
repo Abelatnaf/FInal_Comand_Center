@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { askAssistant } from "@/app/(app)/assistant/actions";
 import type { ChatMessage } from "@/lib/ai/types";
+import { ChatMarkdown } from "@/components/ui/ChatMarkdown";
 
 function SendIcon() {
   return (
@@ -77,13 +78,13 @@ export function AssistantChat() {
           messages.map((m, i) => (
             <div key={i} className={`max-w-[78%] ${m.role === "user" ? "self-end" : "self-start"}`}>
               <div
-                className={`px-4 py-2.5 ios-body whitespace-pre-wrap ${
+                className={`px-4 py-2.5 ios-body ${
                   m.role === "user"
-                    ? "bg-[var(--blue)] text-white rounded-[20px] rounded-br-[6px]"
+                    ? "bg-[var(--blue)] text-white rounded-[20px] rounded-br-[6px] whitespace-pre-wrap"
                     : "bg-[var(--fill-tertiary)] text-text rounded-[20px] rounded-bl-[6px]"
                 }`}
               >
-                {m.content}
+                {m.role === "user" ? m.content : <ChatMarkdown content={m.content} />}
               </div>
             </div>
           ))
