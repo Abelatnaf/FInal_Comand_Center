@@ -2,8 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { buildSpendingContext } from "@/lib/ai/spending-context";
-import { askGemini, GEMINI_PRO, GEMINI_FLASH } from "@/lib/ai/gemini";
-import { askGroq } from "@/lib/ai/groq";
+import { askGroq, GROQ_SMART, GROQ_FALLBACK } from "@/lib/ai/groq";
 import type { ChatMessage } from "@/lib/ai/types";
 
 const SYSTEM_PREAMBLE = `You are Command Deck's financial assistant — a sharp, genuinely insightful money advisor for one person, embedded in their personal finance app. You are precise, proactive, and you think a problem through before answering.
@@ -38,13 +37,12 @@ export async function askAssistant(history: ChatMessage[]): Promise<ChatResult> 
   const context = await buildSpendingContext();
   const prompt = `${SYSTEM_PREAMBLE}\n\n${context}`;
 
-  // Try the strongest model first, degrading gracefully: Gemini 2.5 Pro
-  // (deep reasoning) → Gemini 2.5 Flash (in case Pro is rate-limited or
-  // unavailable on the key) → Groq (separate provider, full redundancy).
+  // Groq only. Try the strongest reasoning model first (GPT-OSS 120B) and
+  // degrade to the proven Llama 3.3 70B if it's unavailable on the key —
+  // so a bad/withheld model never leaves the assistant dead.
   const providers: Array<{ name: string; run: () => Promise<string> }> = [
-    { name: "Gemini 2.5 Pro", run: () => askGemini(prompt, history, GEMINI_PRO) },
-    { name: "Gemini 2.5 Flash", run: () => askGemini(prompt, history, GEMINI_FLASH) },
-    { name: "Groq", run: () => askGroq(prompt, history) },
+    { name: "Groq GPT-OSS 120B", run: () => askGroq(prompt, history, GROQ_SMART) },
+    { name: "Groq Llama 3.3 70B", run: () => askGroq(prompt, history, GROQ_FALLBACK) },
   ];
 
   const errors: string[] = [];
