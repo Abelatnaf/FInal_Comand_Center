@@ -20,7 +20,7 @@ export async function askGroq(system: string, messages: ChatMessage[]): Promise<
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [{ role: "system", content: system }, ...messages],
     }),
   });
