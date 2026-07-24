@@ -79,6 +79,9 @@ export type Database = {
           created_at: string
           date: string
           description: string
+          entry_currency: string | null
+          entry_fx_rate: number | null
+          entry_original_amount: number | null
           id: string
           is_recurring: boolean
           notes: string | null
@@ -93,6 +96,9 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string
+          entry_currency?: string | null
+          entry_fx_rate?: number | null
+          entry_original_amount?: number | null
           id?: string
           is_recurring?: boolean
           notes?: string | null
@@ -107,6 +113,9 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string
+          entry_currency?: string | null
+          entry_fx_rate?: number | null
+          entry_original_amount?: number | null
           id?: string
           is_recurring?: boolean
           notes?: string | null

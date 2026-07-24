@@ -18,12 +18,18 @@ export function AppShell({
   categories,
   accounts,
   email,
+  mainCurrency,
+  secondaryCurrency,
+  fxRate,
 }: {
   children: React.ReactNode;
   onSignOut: () => void;
   categories: { id: string; name: string }[];
   accounts: { id: string; name: string }[];
   email: string | null;
+  mainCurrency: string;
+  secondaryCurrency: string | null;
+  fxRate: number | null;
 }) {
   const pathname = usePathname();
   const initial = (email?.[0] ?? "?").toUpperCase();
@@ -125,7 +131,13 @@ export function AppShell({
       </nav>
 
       <InstallPrompt />
-      <QuickAddFab categories={categories} accounts={accounts} />
+      <QuickAddFab
+        categories={categories}
+        accounts={accounts}
+        mainCurrency={mainCurrency}
+        secondaryCurrency={secondaryCurrency}
+        fxRate={fxRate}
+      />
     </div>
   );
 }
