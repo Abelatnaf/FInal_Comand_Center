@@ -19,6 +19,8 @@ type Entry = {
   account_id: string | null;
   to_account_id: string | null;
   category_id: string | null;
+  entry_currency: string | null;
+  entry_original_amount: number | null;
   category_name: string | null;
   account_name: string | null;
   to_account_name: string | null;
@@ -33,11 +35,15 @@ function EditForm({
   entry,
   categories,
   accounts,
+  currency,
+  secondaryCurrency,
   onDone,
 }: {
   entry: Entry;
   categories: Category[];
   accounts: Account[];
+  currency: string;
+  secondaryCurrency: string | null;
   onDone: () => void;
 }) {
   const [type, setType] = useState(entry.type);
@@ -63,8 +69,21 @@ function EditForm({
       </div>
       <input name="description" defaultValue={entry.description} required className="input !py-1.5 !px-2 text-sm" placeholder="Description" />
       <div className="grid grid-cols-2 gap-2.5">
-        <input name="amount" type="number" step="0.01" min="0.01" defaultValue={entry.amount} required className="input !py-1.5 !px-2 text-sm" />
-        {type === "expense" ? (
+        <input
+          name="amount"
+          type="number"
+          step="0.01"
+          min="0.01"
+          defaultValue={entry.entry_original_amount ?? entry.amount}
+          required
+          className="input !py-1.5 !px-2 text-sm"
+        />
+        {secondaryCurrency ? (
+          <select name="currency" defaultValue={entry.entry_currency ?? currency} className="select !py-1.5 !px-2 text-sm">
+            <option value={currency}>{currency}</option>
+            <option value={secondaryCurrency}>{secondaryCurrency}</option>
+          </select>
+        ) : type === "expense" ? (
           <select name="categoryId" defaultValue={entry.category_id ?? ""} className="select !py-1.5 !px-2 text-sm">
             <option value="">No category</option>
             {categories.map((c) => (
@@ -77,6 +96,16 @@ function EditForm({
           <div />
         )}
       </div>
+      {secondaryCurrency && type === "expense" && (
+        <select name="categoryId" defaultValue={entry.category_id ?? ""} className="select !py-1.5 !px-2 text-sm w-full">
+          <option value="">No category</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      )}
       <div className="grid grid-cols-2 gap-2.5">
         <select name="accountId" defaultValue={entry.account_id ?? ""} className="select !py-1.5 !px-2 text-sm">
           <option value="">No account</option>
@@ -148,9 +177,21 @@ export function EntriesTable({
   }, [entries, typeFilter, search]);
 
   function exportCsv() {
-    const rows: unknown[][] = [["Date", "Type", "Description", "Category", "Account", "Amount", "Notes"]];
+    const rows: unknown[][] = [
+      ["Date", "Type", "Description", "Category", "Account", "Amount", "Original Currency", "Original Amount", "Notes"],
+    ];
     for (const e of filtered) {
-      rows.push([e.date, TYPE_LABEL[e.type] ?? e.type, e.description, e.category_name ?? "", e.account_name ?? "", e.amount, e.notes ?? ""]);
+      rows.push([
+        e.date,
+        TYPE_LABEL[e.type] ?? e.type,
+        e.description,
+        e.category_name ?? "",
+        e.account_name ?? "",
+        e.amount,
+        e.entry_currency ?? "",
+        e.entry_original_amount ?? "",
+        e.notes ?? "",
+      ]);
     }
     downloadCsv(rows, `entries-${new Date().toISOString().slice(0, 10)}.csv`);
   }
@@ -203,7 +244,14 @@ export function EntriesTable({
                   editingId === e.id ? (
                     <tr key={e.id} className="border-t border-[var(--separator)]">
                       <td colSpan={6} className="p-2">
-                        <EditForm entry={e} categories={categories} accounts={accounts} onDone={() => setEditingId(null)} />
+                        <EditForm
+                          entry={e}
+                          categories={categories}
+                          accounts={accounts}
+                          currency={currency}
+                          secondaryCurrency={secondaryCurrency}
+                          onDone={() => setEditingId(null)}
+                        />
                       </td>
                     </tr>
                   ) : (
@@ -223,10 +271,16 @@ export function EntriesTable({
                           {e.type === "income" ? "+" : e.type === "expense" ? "−" : ""}
                           {fmtMoney(Math.abs(e.amount), currency)}
                         </div>
-                        {fmtSecondary(Math.abs(e.amount), secondaryCurrency, fxRate) && (
+                        {e.entry_currency ? (
                           <div className="ios-caption text-text-faint num">
-                            {fmtSecondary(Math.abs(e.amount), secondaryCurrency, fxRate)}
+                            {fmtMoney(Math.abs(e.entry_original_amount ?? 0), e.entry_currency)} logged
                           </div>
+                        ) : (
+                          fmtSecondary(Math.abs(e.amount), secondaryCurrency, fxRate) && (
+                            <div className="ios-caption text-text-faint num">
+                              {fmtSecondary(Math.abs(e.amount), secondaryCurrency, fxRate)}
+                            </div>
+                          )
                         )}
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap text-right">

@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { addEntry, type AddEntryState } from "@/app/(app)/quick-add-actions";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { fmtMoney } from "@/lib/format";
 
 type Category = { id: string; name: string };
 type Account = { id: string; name: string };
@@ -18,18 +19,40 @@ function todayIso() {
   return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`;
 }
 
-export function QuickAddFab({ categories, accounts }: { categories: Category[]; accounts: Account[] }) {
+export function QuickAddFab({
+  categories,
+  accounts,
+  mainCurrency,
+  secondaryCurrency,
+  fxRate,
+}: {
+  categories: Category[];
+  accounts: Account[];
+  mainCurrency: string;
+  secondaryCurrency: string | null;
+  fxRate: number | null;
+}) {
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"expense" | "income" | "transfer">("expense");
   const [date, setDate] = useState(todayIso());
+  const [amount, setAmount] = useState("");
+  const [entryCurrency, setEntryCurrency] = useState(mainCurrency);
   const [state, action, pending] = useActionState<AddEntryState, FormData>(async (prev, formData) => {
     const result = await addEntry(prev, formData);
     if (!result?.error) {
       setOpen(false);
       setDate(todayIso());
+      setAmount("");
+      setEntryCurrency(mainCurrency);
     }
     return result;
   }, undefined);
+
+  const typedAmount = parseFloat(amount);
+  const preview =
+    entryCurrency !== mainCurrency && fxRate && typedAmount > 0
+      ? `≈ ${fmtMoney(typedAmount / fxRate, mainCurrency)}`
+      : null;
 
   return (
     <>
@@ -79,10 +102,36 @@ export function QuickAddFab({ categories, accounts }: { categories: Category[]; 
               </div>
 
               <div>
-                <label className="stat-label block mb-1.5" htmlFor="qa-amount">
-                  Amount
-                </label>
-                <input id="qa-amount" name="amount" type="number" step="0.01" min="0.01" required inputMode="decimal" className="input w-full" placeholder="0.00" />
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="stat-label" htmlFor="qa-amount">
+                    Amount
+                  </label>
+                  {secondaryCurrency && (
+                    <div className="segmented">
+                      <div data-active={entryCurrency === mainCurrency} onClick={() => setEntryCurrency(mainCurrency)}>
+                        {mainCurrency}
+                      </div>
+                      <div data-active={entryCurrency === secondaryCurrency} onClick={() => setEntryCurrency(secondaryCurrency)}>
+                        {secondaryCurrency}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <input
+                  id="qa-amount"
+                  name="amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  required
+                  inputMode="decimal"
+                  className="input w-full"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+                <input type="hidden" name="currency" value={entryCurrency} />
+                {preview && <p className="ios-footnote text-text-faint mt-1">{preview}</p>}
               </div>
 
               <div>

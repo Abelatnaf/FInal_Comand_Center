@@ -10,7 +10,7 @@ export default async function TransactionsPage() {
     supabase
       .from("entries")
       .select(
-        "id, date, type, amount, description, notes, is_recurring, account_id, to_account_id, category_id, categories(name), from_account:accounts!entries_account_id_fkey(name), to_account:accounts!entries_to_account_id_fkey(name)"
+        "id, date, type, amount, description, notes, is_recurring, account_id, to_account_id, category_id, entry_currency, entry_original_amount, categories(name), from_account:accounts!entries_account_id_fkey(name), to_account:accounts!entries_to_account_id_fkey(name)"
       )
       .order("date", { ascending: false })
       .order("created_at", { ascending: false }),
@@ -38,6 +38,8 @@ export default async function TransactionsPage() {
       account_id: r.account_id,
       to_account_id: r.to_account_id,
       category_id: r.category_id,
+      entry_currency: r.entry_currency,
+      entry_original_amount: r.entry_original_amount,
       category_name: cat?.name ?? null,
       account_name: from?.name ?? null,
       to_account_name: to?.name ?? null,
