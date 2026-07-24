@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/glass/Glass";
 import { EntriesTable } from "@/components/tables/EntriesTable";
 import { createClient } from "@/lib/supabase/server";
@@ -48,7 +49,12 @@ export default async function TransactionsPage() {
 
   return (
     <div>
-      <PageHeader title="Transactions" subtitle="Everything you've spent, earned, or moved between accounts." />
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <PageHeader title="Transactions" subtitle="Everything you've spent, earned, or moved between accounts." />
+        <Link href="/transactions/import" className="btn text-sm !py-2 !px-3 shrink-0">
+          Import from Bank
+        </Link>
+      </div>
       <EntriesTable
         entries={entries}
         categories={categories ?? []}
