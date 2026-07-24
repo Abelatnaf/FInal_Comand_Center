@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Glass } from "@/components/glass/Glass";
 import { createClient } from "@/lib/supabase/server";
-import { fmtMoney, fmtDate } from "@/lib/format";
+import { fmtMoney, fmtDate, fmtSecondary } from "@/lib/format";
 import { getExchangeRate } from "@/lib/fx";
 
 function monthStartIso() {
@@ -40,12 +40,9 @@ export default async function HomePage() {
   const name = user?.email?.split("@")[0] ?? "there";
 
   function secondaryLine(amountInBase: number) {
-    if (!secondaryCurrency || !fxRate) return null;
-    return (
-      <div className="ios-footnote text-text-dim num mt-0.5">
-        ≈ {fmtMoney(amountInBase * fxRate, secondaryCurrency)}
-      </div>
-    );
+    const line = fmtSecondary(amountInBase, secondaryCurrency, fxRate);
+    if (!line) return null;
+    return <div className="ios-footnote text-text-dim num mt-0.5">{line}</div>;
   }
 
   return (
@@ -84,7 +81,12 @@ export default async function HomePage() {
                   {a.name}
                   {a.kind === "liability" && <span className="ios-caption text-text-faint ml-1.5">(liability)</span>}
                 </div>
-                <div className="num ios-headline">{fmtMoney(a.balance ?? 0, currency)}</div>
+                <div className="text-right">
+                  <div className="num ios-headline">{fmtMoney(a.balance ?? 0, currency)}</div>
+                  {fmtSecondary(a.balance ?? 0, secondaryCurrency, fxRate) && (
+                    <div className="ios-caption text-text-faint num">{fmtSecondary(a.balance ?? 0, secondaryCurrency, fxRate)}</div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -120,9 +122,14 @@ export default async function HomePage() {
                       {acc?.name ? ` · ${acc.name}` : ""}
                     </div>
                   </div>
-                  <div className={`num ios-headline shrink-0 ${e.type === "income" ? "pos" : e.type === "expense" ? "neg" : ""}`}>
-                    {e.type === "income" ? "+" : e.type === "expense" ? "−" : ""}
-                    {fmtMoney(Math.abs(e.amount), currency)}
+                  <div className="text-right shrink-0">
+                    <div className={`num ios-headline ${e.type === "income" ? "pos" : e.type === "expense" ? "neg" : ""}`}>
+                      {e.type === "income" ? "+" : e.type === "expense" ? "−" : ""}
+                      {fmtMoney(Math.abs(e.amount), currency)}
+                    </div>
+                    {fmtSecondary(Math.abs(e.amount), secondaryCurrency, fxRate) && (
+                      <div className="ios-caption text-text-faint num">{fmtSecondary(Math.abs(e.amount), secondaryCurrency, fxRate)}</div>
+                    )}
                   </div>
                 </div>
               );

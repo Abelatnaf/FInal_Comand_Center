@@ -1,6 +1,7 @@
 import { Glass, PageHeader } from "@/components/glass/Glass";
 import { CategoryBudgetRow, RecurringRow } from "@/components/tables/BudgetsList";
 import { createClient } from "@/lib/supabase/server";
+import { getExchangeRate } from "@/lib/fx";
 
 function monthStartIso() {
   const d = new Date();
@@ -17,10 +18,12 @@ export default async function BudgetsPage() {
       .select("id, type, description, amount, date, categories(name)")
       .eq("is_recurring", true)
       .order("date", { ascending: false }),
-    supabase.from("settings").select("currency_code").single(),
+    supabase.from("settings").select("currency_code, secondary_currency_code").single(),
   ]);
 
   const currency = settings?.currency_code ?? "USD";
+  const secondaryCurrency = settings?.secondary_currency_code || null;
+  const fxRate = secondaryCurrency ? await getExchangeRate(currency, secondaryCurrency) : null;
   const monthStart = monthStartIso();
 
   const seen = new Set<string>();
@@ -63,6 +66,8 @@ export default async function BudgetsPage() {
                 actual_spent: row.actual_spent ?? 0,
               }}
               currency={currency}
+              secondaryCurrency={secondaryCurrency}
+              fxRate={fxRate}
             />
           ))}
         </div>
@@ -77,7 +82,7 @@ export default async function BudgetsPage() {
         ) : (
           <div className="flex flex-col">
             {recurringItems.map((item) => (
-              <RecurringRow key={item.id} item={item} currency={currency} />
+              <RecurringRow key={item.id} item={item} currency={currency} secondaryCurrency={secondaryCurrency} fxRate={fxRate} />
             ))}
           </div>
         )}

@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/glass/Glass";
 import { EntriesTable } from "@/components/tables/EntriesTable";
 import { createClient } from "@/lib/supabase/server";
+import { getExchangeRate } from "@/lib/fx";
 
 export default async function TransactionsPage() {
   const supabase = await createClient();
@@ -15,8 +16,12 @@ export default async function TransactionsPage() {
       .order("created_at", { ascending: false }),
     supabase.from("categories").select("id, name").order("sort_order"),
     supabase.from("accounts").select("id, name").order("sort_order"),
-    supabase.from("settings").select("currency_code").single(),
+    supabase.from("settings").select("currency_code, secondary_currency_code").single(),
   ]);
+
+  const currency = settings?.currency_code ?? "USD";
+  const secondaryCurrency = settings?.secondary_currency_code || null;
+  const fxRate = secondaryCurrency ? await getExchangeRate(currency, secondaryCurrency) : null;
 
   const entries = (rows ?? []).map((r) => {
     const cat = Array.isArray(r.categories) ? r.categories[0] : r.categories;
@@ -42,7 +47,14 @@ export default async function TransactionsPage() {
   return (
     <div>
       <PageHeader title="Transactions" subtitle="Everything you've spent, earned, or moved between accounts." />
-      <EntriesTable entries={entries} categories={categories ?? []} accounts={accounts ?? []} currency={settings?.currency_code ?? "USD"} />
+      <EntriesTable
+        entries={entries}
+        categories={categories ?? []}
+        accounts={accounts ?? []}
+        currency={currency}
+        secondaryCurrency={secondaryCurrency}
+        fxRate={fxRate}
+      />
     </div>
   );
 }

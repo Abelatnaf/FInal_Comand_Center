@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Glass } from "@/components/glass/Glass";
 import { HScroll } from "@/components/ui/HScroll";
 import { DatePicker } from "@/components/ui/DatePicker";
-import { fmtMoney, fmtDate } from "@/lib/format";
+import { fmtMoney, fmtDate, fmtSecondary } from "@/lib/format";
 import { downloadCsv } from "@/lib/csv";
 import { updateEntry, deleteEntry } from "@/app/(app)/transactions/actions";
 
@@ -121,11 +121,15 @@ export function EntriesTable({
   categories,
   accounts,
   currency,
+  secondaryCurrency = null,
+  fxRate = null,
 }: {
   entries: Entry[];
   categories: Category[];
   accounts: Account[];
   currency: string;
+  secondaryCurrency?: string | null;
+  fxRate?: number | null;
 }) {
   const [typeFilter, setTypeFilter] = useState<"all" | "expense" | "income" | "transfer">("all");
   const [search, setSearch] = useState("");
@@ -214,9 +218,16 @@ export function EntriesTable({
                           ? `${e.account_name ?? "—"} → ${e.to_account_name ?? "—"}`
                           : [e.category_name, e.account_name].filter(Boolean).join(" · ") || "—"}
                       </td>
-                      <td className={`py-2.5 px-3 num text-right ${e.type === "income" ? "pos" : e.type === "expense" ? "neg" : ""}`}>
-                        {e.type === "income" ? "+" : e.type === "expense" ? "−" : ""}
-                        {fmtMoney(Math.abs(e.amount), currency)}
+                      <td className="py-2.5 px-3 text-right">
+                        <div className={`num ${e.type === "income" ? "pos" : e.type === "expense" ? "neg" : ""}`}>
+                          {e.type === "income" ? "+" : e.type === "expense" ? "−" : ""}
+                          {fmtMoney(Math.abs(e.amount), currency)}
+                        </div>
+                        {fmtSecondary(Math.abs(e.amount), secondaryCurrency, fxRate) && (
+                          <div className="ios-caption text-text-faint num">
+                            {fmtSecondary(Math.abs(e.amount), secondaryCurrency, fxRate)}
+                          </div>
+                        )}
                       </td>
                       <td className="py-2.5 px-3 whitespace-nowrap text-right">
                         <button onClick={() => setEditingId(e.id)} className="link-action text-[13px] mr-3">

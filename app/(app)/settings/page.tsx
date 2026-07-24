@@ -5,6 +5,7 @@ import { ExportDataButton } from "@/components/settings/ExportDataButton";
 import { updateCurrencyCode } from "./actions";
 import { signOut } from "../actions";
 import { createClient } from "@/lib/supabase/server";
+import { getExchangeRate } from "@/lib/fx";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -18,6 +19,7 @@ export default async function SettingsPage() {
 
   const currency = settings?.currency_code ?? "USD";
   const secondaryCurrency = settings?.secondary_currency_code ?? "";
+  const fxRate = secondaryCurrency ? await getExchangeRate(currency, secondaryCurrency) : null;
 
   return (
     <div>
@@ -25,7 +27,7 @@ export default async function SettingsPage() {
 
       <Glass className="p-5 mb-4">
         <div className="section-header mb-2">Accounts</div>
-        <AccountsForm accounts={accounts ?? []} currency={currency} />
+        <AccountsForm accounts={accounts ?? []} currency={currency} secondaryCurrency={secondaryCurrency || null} fxRate={fxRate} />
       </Glass>
 
       <Glass className="p-5 mb-4">
@@ -61,8 +63,9 @@ export default async function SettingsPage() {
           </button>
         </form>
         <p className="ios-footnote text-text-faint mt-2">
-          3-letter currency codes, e.g. USD, ETB, EUR. When a second currency is set, Home shows a live-converted
-          amount underneath your net worth and monthly totals. Rates update roughly once a day.
+          3-letter currency codes, e.g. USD, ETB, EUR. When a second currency is set, every dollar figure across the
+          app — Home, Transactions, Budgets, Goals, and your account balances here — shows a live-converted line
+          underneath it. Rates update roughly once a day.
         </p>
       </Glass>
 

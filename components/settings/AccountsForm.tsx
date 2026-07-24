@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { addAccount, updateAccount, deleteAccount } from "@/app/(app)/settings/actions";
-import { fmtMoney } from "@/lib/format";
+import { fmtMoney, fmtSecondary } from "@/lib/format";
 
 type Account = { id: string; name: string; kind: string; starting_balance: number };
 
@@ -46,7 +46,17 @@ function AccountForm({
   );
 }
 
-export function AccountsForm({ accounts, currency }: { accounts: Account[]; currency: string }) {
+export function AccountsForm({
+  accounts,
+  currency,
+  secondaryCurrency = null,
+  fxRate = null,
+}: {
+  accounts: Account[];
+  currency: string;
+  secondaryCurrency?: string | null;
+  fxRate?: number | null;
+}) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
@@ -72,6 +82,9 @@ export function AccountsForm({ accounts, currency }: { accounts: Account[]; curr
                 {a.kind === "liability" && <span className="ios-caption text-text-faint ml-1.5">(liability)</span>}
               </div>
               <div className="ios-footnote text-text-dim num">Starting balance: {fmtMoney(a.starting_balance, currency)}</div>
+              {fmtSecondary(a.starting_balance, secondaryCurrency, fxRate) && (
+                <div className="ios-caption text-text-faint num">{fmtSecondary(a.starting_balance, secondaryCurrency, fxRate)}</div>
+              )}
             </div>
             <div className="flex gap-3 shrink-0">
               <button onClick={() => setEditingId(a.id)} className="link-action text-[13px]">

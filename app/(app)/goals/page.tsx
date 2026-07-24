@@ -1,6 +1,7 @@
 import { PageHeader } from "@/components/glass/Glass";
 import { GoalsList } from "@/components/tables/GoalsList";
 import { createClient } from "@/lib/supabase/server";
+import { getExchangeRate } from "@/lib/fx";
 
 export default async function GoalsPage() {
   const supabase = await createClient();
@@ -9,8 +10,12 @@ export default async function GoalsPage() {
     supabase.from("savings_goals").select("id, name, target_amount, target_date, account_id, saved_so_far, accounts(name)").order("created_at"),
     supabase.from("accounts").select("id, name").eq("kind", "asset").order("sort_order"),
     supabase.from("account_balance").select("account_id, balance"),
-    supabase.from("settings").select("currency_code").single(),
+    supabase.from("settings").select("currency_code, secondary_currency_code").single(),
   ]);
+
+  const currency = settings?.currency_code ?? "USD";
+  const secondaryCurrency = settings?.secondary_currency_code || null;
+  const fxRate = secondaryCurrency ? await getExchangeRate(currency, secondaryCurrency) : null;
 
   const balanceByAccount = new Map((balances ?? []).map((b) => [b.account_id, b.balance ?? 0]));
 
@@ -30,7 +35,7 @@ export default async function GoalsPage() {
   return (
     <div>
       <PageHeader title="Goals" subtitle="Money you're saving up for, and how close you are." />
-      <GoalsList goals={goals} accounts={accounts ?? []} currency={settings?.currency_code ?? "USD"} />
+      <GoalsList goals={goals} accounts={accounts ?? []} currency={currency} secondaryCurrency={secondaryCurrency} fxRate={fxRate} />
     </div>
   );
 }
