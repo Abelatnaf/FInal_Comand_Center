@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Glass } from "@/components/glass/Glass";
+import { AlertsBanner } from "@/components/AlertsBanner";
 import { createClient } from "@/lib/supabase/server";
 import { fmtMoney, fmtDate, fmtSecondary } from "@/lib/format";
 import { getExchangeRate } from "@/lib/fx";
@@ -16,8 +17,8 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: settings }, { data: balances }, { data: monthEntries }, { data: recent }] = await Promise.all([
-    supabase.from("settings").select("currency_code, secondary_currency_code").single(),
+  const [{ data: settings }, { data: balances }, { data: monthEntries }, { data: recent }, { data: budgetRows }] = await Promise.all([
+    supabase.from("settings").select("currency_code, secondary_currency_code, low_balance_threshold").single(),
     supabase.from("account_balance").select("*"),
     supabase.from("entries").select("type, amount").gte("date", monthStartIso()),
     supabase
@@ -26,6 +27,7 @@ export default async function HomePage() {
       .order("date", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(8),
+    supabase.from("budget_vs_actual_this_month").select("*"),
   ]);
 
   const currency = settings?.currency_code ?? "USD";
@@ -39,6 +41,31 @@ export default async function HomePage() {
 
   const name = user?.email?.split("@")[0] ?? "there";
 
+  const alerts: { id: string; message: string }[] = [];
+
+  const threshold = settings?.low_balance_threshold;
+  if (threshold != null) {
+    for (const a of balances ?? []) {
+      if (a.kind === "asset" && (a.balance ?? 0) < threshold) {
+        alerts.push({
+          id: `balance-${a.account_id}`,
+          message: `${a.name} is below ${fmtMoney(threshold, currency)} — ${fmtMoney(a.balance ?? 0, currency)} left.`,
+        });
+      }
+    }
+  }
+
+  for (const row of budgetRows ?? []) {
+    const budget = row.monthly_budget ?? 0;
+    const actual = row.actual_spent ?? 0;
+    if (budget > 0 && actual > budget) {
+      alerts.push({
+        id: `budget-${row.category_id}`,
+        message: `${row.name} is over budget this month — ${fmtMoney(actual, currency)} of ${fmtMoney(budget, currency)}.`,
+      });
+    }
+  }
+
   function secondaryLine(amountInBase: number) {
     const line = fmtSecondary(amountInBase, secondaryCurrency, fxRate);
     if (!line) return null;
@@ -48,6 +75,8 @@ export default async function HomePage() {
   return (
     <div>
       <h1 className="ios-large-title mb-6">Hi, {name}</h1>
+
+      <AlertsBanner alerts={alerts} />
 
       <Glass className="p-6 mb-4">
         <div className="stat-label mb-1">Net Worth</div>

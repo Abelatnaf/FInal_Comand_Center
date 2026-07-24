@@ -81,6 +81,21 @@ export async function updateCurrencyCode(formData: FormData) {
   revalidatePath("/", "layout");
 }
 
+export async function updateLowBalanceThreshold(formData: FormData) {
+  const supabase = await createClient();
+  const raw = String(formData.get("lowBalanceThreshold") ?? "").trim();
+  const threshold = raw ? Number(raw) : null;
+  if (raw && (threshold === null || Number.isNaN(threshold) || threshold < 0)) return;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase.from("settings").update({ low_balance_threshold: threshold }).eq("user_id", user.id);
+  revalidatePath("/", "layout");
+}
+
 export async function exportAllData() {
   const supabase = await createClient();
   const [settings, accounts, categories, entries, goals] = await Promise.all([
