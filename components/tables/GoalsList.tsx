@@ -85,10 +85,25 @@ function GoalForm({
   );
 }
 
-function GoalCard({ goal, accounts, currency }: { goal: Goal; accounts: Account[]; currency: string }) {
+function GoalCard({
+  goal,
+  accounts,
+  currency,
+  secondaryCurrency = null,
+  fxRate = null,
+}: {
+  goal: Goal;
+  accounts: Account[];
+  currency: string;
+  secondaryCurrency?: string | null;
+  fxRate?: number | null;
+}) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const pct = goal.target_amount > 0 ? Math.min(100, (goal.saved / goal.target_amount) * 100) : 0;
+  const showSecondary = Boolean(secondaryCurrency && fxRate);
+  const secondarySaved = showSecondary ? fmtMoney(goal.saved * fxRate!, secondaryCurrency!) : null;
+  const secondaryTarget = showSecondary ? fmtMoney(goal.target_amount * fxRate!, secondaryCurrency!) : null;
 
   if (editing) {
     return (
@@ -136,17 +151,35 @@ function GoalCard({ goal, accounts, currency }: { goal: Goal; accounts: Account[
         <div className="num ios-headline">{fmtMoney(goal.saved, currency)}</div>
         <div className="ios-footnote text-text-dim">of {fmtMoney(goal.target_amount, currency)}</div>
       </div>
+      {secondarySaved && (
+        <div className="flex items-baseline justify-between">
+          <div className="ios-caption text-text-faint num">≈ {secondarySaved}</div>
+          <div className="ios-caption text-text-faint">of {secondaryTarget}</div>
+        </div>
+      )}
     </Glass>
   );
 }
 
-export function GoalsList({ goals, accounts, currency }: { goals: Goal[]; accounts: Account[]; currency: string }) {
+export function GoalsList({
+  goals,
+  accounts,
+  currency,
+  secondaryCurrency = null,
+  fxRate = null,
+}: {
+  goals: Goal[];
+  accounts: Account[];
+  currency: string;
+  secondaryCurrency?: string | null;
+  fxRate?: number | null;
+}) {
   const [adding, setAdding] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
       {goals.map((g) => (
-        <GoalCard key={g.id} goal={g} accounts={accounts} currency={currency} />
+        <GoalCard key={g.id} goal={g} accounts={accounts} currency={currency} secondaryCurrency={secondaryCurrency} fxRate={fxRate} />
       ))}
 
       {adding ? (

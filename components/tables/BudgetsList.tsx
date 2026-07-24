@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { fmtMoney } from "@/lib/format";
+import { fmtMoney, fmtSecondary } from "@/lib/format";
 import { updateCategoryBudget, logRecurringNow } from "@/app/(app)/budgets/actions";
 
 export type BudgetRow = { category_id: string; name: string; monthly_budget: number; actual_spent: number };
@@ -14,11 +14,24 @@ export type RecurringItem = {
   loggedThisMonth: boolean;
 };
 
-export function CategoryBudgetRow({ row, currency }: { row: BudgetRow; currency: string }) {
+export function CategoryBudgetRow({
+  row,
+  currency,
+  secondaryCurrency = null,
+  fxRate = null,
+}: {
+  row: BudgetRow;
+  currency: string;
+  secondaryCurrency?: string | null;
+  fxRate?: number | null;
+}) {
   const [editing, setEditing] = useState(false);
   const [pending, startTransition] = useTransition();
   const pct = row.monthly_budget > 0 ? Math.min(100, (row.actual_spent / row.monthly_budget) * 100) : 0;
   const over = row.monthly_budget > 0 && row.actual_spent > row.monthly_budget;
+  const showSecondary = Boolean(secondaryCurrency && fxRate);
+  const secondarySpent = showSecondary ? fmtMoney(row.actual_spent * fxRate!, secondaryCurrency!) : null;
+  const secondaryBudget = showSecondary && row.monthly_budget > 0 ? fmtMoney(row.monthly_budget * fxRate!, secondaryCurrency!) : null;
 
   return (
     <div className="py-3 border-t border-[var(--separator)] first:border-t-0">
@@ -44,8 +57,16 @@ export function CategoryBudgetRow({ row, currency }: { row: BudgetRow; currency:
             />
           </form>
         ) : (
-          <button onClick={() => setEditing(true)} className="ios-footnote text-text-dim shrink-0">
-            {fmtMoney(row.actual_spent, currency)} / {row.monthly_budget > 0 ? fmtMoney(row.monthly_budget, currency) : "Set budget"}
+          <button onClick={() => setEditing(true)} className="text-right shrink-0">
+            <div className="ios-footnote text-text-dim">
+              {fmtMoney(row.actual_spent, currency)} / {row.monthly_budget > 0 ? fmtMoney(row.monthly_budget, currency) : "Set budget"}
+            </div>
+            {secondarySpent && (
+              <div className="ios-caption text-text-faint num">
+                ≈ {secondarySpent}
+                {secondaryBudget ? ` / ${secondaryBudget}` : ""}
+              </div>
+            )}
           </button>
         )}
       </div>
@@ -61,9 +82,20 @@ export function CategoryBudgetRow({ row, currency }: { row: BudgetRow; currency:
   );
 }
 
-export function RecurringRow({ item, currency }: { item: RecurringItem; currency: string }) {
+export function RecurringRow({
+  item,
+  currency,
+  secondaryCurrency = null,
+  fxRate = null,
+}: {
+  item: RecurringItem;
+  currency: string;
+  secondaryCurrency?: string | null;
+  fxRate?: number | null;
+}) {
   const [pending, startTransition] = useTransition();
   const [logged, setLogged] = useState(item.loggedThisMonth);
+  const secondary = fmtSecondary(item.amount, secondaryCurrency, fxRate);
 
   return (
     <div className="flex items-center justify-between py-2.5 border-t border-[var(--separator)] first:border-t-0 gap-3">
@@ -72,9 +104,12 @@ export function RecurringRow({ item, currency }: { item: RecurringItem; currency
         <div className="ios-footnote text-text-dim">{item.category_name ?? (item.type === "income" ? "Income" : "Expense")}</div>
       </div>
       <div className="flex items-center gap-3 shrink-0">
-        <div className={`num ios-headline ${item.type === "income" ? "pos" : "neg"}`}>
-          {item.type === "income" ? "+" : "−"}
-          {fmtMoney(item.amount, currency)}
+        <div className="text-right">
+          <div className={`num ios-headline ${item.type === "income" ? "pos" : "neg"}`}>
+            {item.type === "income" ? "+" : "−"}
+            {fmtMoney(item.amount, currency)}
+          </div>
+          {secondary && <div className="ios-caption text-text-faint num">{secondary}</div>}
         </div>
         {logged ? (
           <span className="badge !text-[11px]">Logged</span>
