@@ -49,18 +49,18 @@ export function InstallPrompt() {
 
   return (
     <div
-      className="md:hidden fixed left-4 right-4 z-40 material rounded-[14px] border border-[var(--separator)] shadow-[0_8px_24px_rgba(0,0,0,0.25)] p-3.5 flex items-center gap-3 anim-modal"
+      className="md:hidden fixed left-4 right-4 z-40 card p-3.5 flex items-center gap-3"
       style={{ bottom: "calc(env(safe-area-inset-bottom) + 84px)" }}
     >
-      <div className="w-9 h-9 rounded-[9px] bg-[var(--blue)] flex items-center justify-center shrink-0">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="w-9 h-9 rounded-[8px] bg-[var(--surface-raised)] border border-[var(--border)] flex items-center justify-center shrink-0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--silver)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 18V7l8-3 8 3v11" />
           <path d="M4 18h16M9 18v-5h6v5" />
         </svg>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-semibold text-text">Install Command Deck</div>
-        <div className="text-[12px] text-text-dim">
+        <div className="text-[14px] font-medium text-text">Install Command Deck</div>
+        <div className="text-[12px] text-muted">
           {deferred ? "Add it to your home screen for quicker access." : 'Tap the Share icon, then "Add to Home Screen."'}
         </div>
       </div>
@@ -69,11 +69,11 @@ export function InstallPrompt() {
           Install
         </button>
       ) : (
-        <button onClick={dismiss} className="link-action text-[13px] shrink-0">
+        <button onClick={dismiss} className="text-text text-[13px] shrink-0">
           Got it
         </button>
       )}
-      <button onClick={dismiss} aria-label="Dismiss" className="text-text-dim shrink-0">
+      <button onClick={dismiss} aria-label="Dismiss" className="text-muted shrink-0">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M6 6l12 12M18 6L6 18" />
         </svg>
