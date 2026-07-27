@@ -1,576 +1,122 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Command Deck v2 — a rigorous, real-HIG Apple design language:
-   full systemGray scale, tinted label hierarchy, the SF text-style
-   ramp, material-vs-solid card treatment, true iOS switch/segmented
-   control, and light+dark support that follows the system, exactly
-   like a real Apple app. System font stack (no downloaded typeface —
-   native apps don't ship one either). Money renders in the body
-   font with tabular numerals, not a mono font.
+   Command Deck v3 — monochrome silver. Locked design system, see
+   CLAUDE.md v3 plan section 7. Do not reinterpret: silver is scarce
+   (at most one element per screen), no gradients, no glassmorphism.
+   Money reads as cold and factual, not decorative.
    ============================================================ */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* Backgrounds (systemGroupedBackground family, light) */
-  --bg: #f2f2f7;
-  --bg-elevated: #ffffff;
-  --bg-elevated-2: #f2f2f7;
-  --bg-sidebar: #f9f9f9;
+  --bg: #0a0a0b;
+  --surface: #141416;
+  --surface-raised: #1c1c20;
+  --border: #2a2a2f;
+  --text: #f2f3f5;
+  --text-muted: #8a8d93;
+  --text-faint: #55585e;
+  --silver: #c8cbd0;
+  --urgent: #e8b44a;
+  --alarm: #d9584a;
+  --positive: #6fa88a;
 
-  /* System grays (light) */
-  --gray: #8e8e93;
-  --gray2: #aeaeb2;
-  --gray3: #c7c7cc;
-  --gray4: #d1d1d6;
-  --gray5: #e5e5ea;
-  --gray6: #f2f2f7;
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --motion: 150ms ease-out;
 
-  /* Labels — real HIG opacity-tiered hierarchy over black */
-  --label: #1d1d1f;
-  --label-secondary: rgba(60, 60, 67, 0.6);
-  --label-tertiary: rgba(60, 60, 67, 0.3);
-  --label-quaternary: rgba(60, 60, 67, 0.18);
-
-  /* Separators / fills */
-  --separator: rgba(60, 60, 67, 0.29);
-  --hairline: rgba(60, 60, 67, 0.29);
-  --fill: rgba(120, 120, 128, 0.2);
-  --fill-secondary: rgba(120, 120, 128, 0.16);
-  --fill-tertiary: rgba(118, 118, 128, 0.12);
-  --fill-quaternary: rgba(116, 116, 128, 0.08);
-
-  /* System colors (light) */
-  --blue: #007aff;
-  --blue-hover: #0060d1;
-  --green: #34c759;
-  --red: #ff3b30;
-  --orange: #ff9500;
-  --purple: #af52de;
-  --indigo: #5856d6;
-  --teal: #30b0c7;
-  --pink: #ff2d55;
-
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.05);
-  --card-border: 1px solid var(--hairline);
-
-  /* Material chrome (overlay-only: tab bar, sheets, popovers) */
-  --material-bg: rgba(255, 255, 255, 0.72);
-
-  /* Aliases kept so shared markup can use one vocabulary */
-  --surface: var(--bg-elevated);
-  --surface-secondary: var(--bg-elevated-2);
-  --divider: var(--separator);
-  --accent: var(--blue);
-  --accent-bright: var(--blue-hover);
-  --text: var(--label);
-  --text-dim: var(--label-secondary);
-  --text-faint: var(--label-tertiary);
-
-  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-display: var(--font-body);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-
-    --bg: #000000;
-    --bg-elevated: #1c1c1e;
-    --bg-elevated-2: #2c2c2e;
-    --bg-sidebar: #0b0b0c;
-
-    --gray: #8e8e93;
-    --gray2: #636366;
-    --gray3: #48484a;
-    --gray4: #3a3a3c;
-    --gray5: #2c2c2e;
-    --gray6: #1c1c1e;
-
-    --label: #ffffff;
-    --label-secondary: rgba(235, 235, 245, 0.6);
-    --label-tertiary: rgba(235, 235, 245, 0.3);
-    --label-quaternary: rgba(235, 235, 245, 0.18);
-
-    --separator: rgba(84, 84, 88, 0.65);
-    --hairline: rgba(84, 84, 88, 0.65);
-    --fill: rgba(120, 120, 128, 0.36);
-    --fill-secondary: rgba(120, 120, 128, 0.32);
-    --fill-tertiary: rgba(118, 118, 128, 0.24);
-    --fill-quaternary: rgba(118, 118, 128, 0.18);
-
-    --blue: #0a84ff;
-    --blue-hover: #409cff;
-    --green: #30d158;
-    --red: #ff453a;
-    --orange: #ff9f0a;
-    --purple: #bf5af2;
-    --indigo: #5e5ce6;
-    --teal: #64d2ff;
-    --pink: #ff375f;
-
-    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.4);
-    --material-bg: rgba(28, 28, 30, 0.72);
-  }
-}
-
-@theme inline {
-  --color-bg: var(--bg);
-  --color-tint: var(--blue);
-  --color-tint-dim: var(--blue-hover);
-  --color-green: var(--green);
-  --color-red: var(--red);
-  --color-text: var(--label);
-  --color-text-dim: var(--label-secondary);
-  --color-text-faint: var(--label-tertiary);
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-input,
-select {
-  accent-color: var(--blue);
-}
-
-html {
-  background: var(--bg);
-}
-
-body {
-  background-color: var(--bg);
-  color: var(--label);
-  font-family: var(--font-body);
-  font-size: 17px;
-  line-height: 1.29;
-  letter-spacing: -0.012em;
-  min-height: 100vh;
-  position: relative;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --font-sans: var(--font-inter), -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion: 0.01ms;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }
 
-/* ---------- SF text-style ramp ---------- */
-
-.ios-large-title {
-  font-family: var(--font-display);
-  font-size: 34px;
-  line-height: 1.11;
-  font-weight: 700;
-  letter-spacing: -0.021em;
-  color: var(--label);
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
 }
 
-.ios-title2 {
-  font-family: var(--font-display);
-  font-size: 22px;
-  line-height: 1.18;
-  font-weight: 700;
-  letter-spacing: -0.021em;
-  color: var(--label);
+* {
+  border-color: var(--border);
 }
 
-.ios-title3 {
-  font-family: var(--font-display);
-  font-size: 19px;
-  line-height: 1.2;
-  font-weight: 600;
-  letter-spacing: -0.019em;
-  color: var(--label);
-}
-
-.ios-headline {
-  font-size: 17px;
-  line-height: 1.29;
-  font-weight: 600;
-  letter-spacing: -0.014em;
-  color: var(--label);
-}
-
-.ios-body {
-  font-size: 16px;
-  line-height: 1.31;
-  font-weight: 400;
-  letter-spacing: -0.012em;
-}
-
-.ios-subhead {
-  font-size: 15px;
-  line-height: 1.33;
-  font-weight: 400;
-  letter-spacing: -0.006em;
-}
-
-.ios-footnote {
-  font-size: 13px;
-  line-height: 1.38;
-  font-weight: 400;
-}
-
-.ios-caption {
-  font-size: 12px;
-  line-height: 1.33;
-  font-weight: 400;
-}
-
-.section-header {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.006em;
-  color: var(--label-secondary);
-  text-transform: uppercase;
-}
-
-h1,
-h2,
-h3,
-.font-display {
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
-}
-
-/* Money renders in the body font with tabular numerals — SF Mono is for
-   code, not currency; real iOS apps show balances in tabular SF Pro. */
+/* Tabular figures for every money value — never a mono font. */
 .num {
   font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+  font-feature-settings: "tnum";
 }
 
-.pos {
-  color: var(--green);
-}
-.neg {
-  color: var(--red);
-}
-
-/* ---------- Cards: solid grouped-list surface (Settings/Health look) ---------- */
-
-.glass {
-  position: relative;
-  background: var(--bg-elevated);
-  border-radius: 14px;
-  border: var(--card-border);
-  box-shadow: var(--card-shadow);
+/* The one hero figure per screen — big, thin, and the only silver thing
+   on it. Weight 300 on purpose: big and thin, not big and bold. */
+.hero-figure {
+  font-size: clamp(2.5rem, 12vw, 3.5rem);
+  font-weight: 300;
+  color: var(--silver);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
-@layer components {
-  .glass {
-    overflow: hidden;
-  }
+/* Any figure computed with today's rate, not a frozen one. The ~ prefix
+   is written in the JSX text itself, not injected via CSS content, so it
+   still reads correctly when copied or read by a screen reader. */
+.estimate {
+  color: var(--text-muted);
 }
 
-.glass-dense {
-  background: var(--fill-quaternary);
-  border-radius: 10px;
-}
-
-/* ---------- Horizontal-scroll affordance (wide tables) ---------- */
-
-.hscroll {
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.hscroll-fade {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 28px;
-  pointer-events: none;
-  z-index: 5;
-  transition: opacity 0.15s ease;
-}
-
-.hscroll-fade-right {
-  right: 0;
-  background: linear-gradient(to right, transparent, var(--bg-elevated));
-}
-
-.hscroll-fade-left {
-  left: 0;
-  background: linear-gradient(to left, transparent, var(--bg-elevated));
-}
-
-.overflow-x-auto,
-.overflow-y-auto {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* ---------- Motion: entrance animations for sheets, modals, popovers ---------- */
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes sheet-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-@keyframes modal-pop {
-  from { opacity: 0; transform: scale(0.95) translateY(8px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-@keyframes popover-pop {
-  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.anim-backdrop {
-  animation: fade-in 0.2s ease both;
-}
-
-.anim-sheet {
-  animation: sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
-}
-
-@media (min-width: 768px) {
-  .anim-sheet {
-    animation: modal-pop 0.22s cubic-bezier(0.32, 0.72, 0, 1) both;
-  }
-}
-
-.anim-modal {
-  animation: modal-pop 0.2s cubic-bezier(0.32, 0.72, 0, 1) both;
-}
-
-/* ---------- Assistant chat: typing indicator ---------- */
-
-@keyframes typing-bounce {
-  0%, 60%, 100% {
-    transform: translateY(0);
-    opacity: 0.4;
-  }
-  30% {
-    transform: translateY(-3px);
-    opacity: 1;
-  }
-}
-
-.typing-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--label-tertiary);
-  animation: typing-bounce 1.1s ease-in-out infinite;
-}
-
-/* Frosted material — reserved for overlay chrome only (tab bar, sheets,
-   date-picker popover), never for content cards. */
-.material {
-  background: var(--material-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-/* ---------- Small helpers ---------- */
-
-.stat-label {
+.section-label {
   font-size: 13px;
-  line-height: 1.3;
-  color: var(--label-secondary);
-  font-weight: 400;
-  letter-spacing: -0.006em;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.stat-value {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -0.021em;
-  color: var(--label);
-  font-variant-numeric: tabular-nums;
+/* Grouped-list card. 12px radius, always. */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
 }
 
-.hero-value {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 44px;
-  line-height: 1.02;
-  letter-spacing: -0.025em;
-  color: var(--label);
-  font-variant-numeric: tabular-nums;
+.row {
+  padding: 14px 16px;
 }
 
-.badge {
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+/* Buttons. 8px radius, controls always ≥44px touch target. */
+.btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.006em;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: rgba(52, 199, 89, 0.15);
-  color: var(--green);
-  border: none;
-  width: fit-content;
-}
-
-.badge-dim {
-  background: var(--fill-tertiary);
-  color: var(--label-secondary);
-}
-
-/* ---------- Progress ---------- */
-
-.liquid-track {
-  position: relative;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--fill-tertiary);
-  overflow: hidden;
-}
-
-.liquid-fill {
-  position: absolute;
-  inset: 0;
-  border-radius: 999px;
-  background: var(--blue);
-}
-
-/* ---------- iOS switch (systemGreen when on) ---------- */
-
-.ios-switch {
-  appearance: none;
-  -webkit-appearance: none;
-  flex: none;
-  width: 51px;
-  height: 31px;
-  border-radius: 999px;
-  background: var(--fill);
-  position: relative;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  vertical-align: middle;
-}
-
-.ios-switch::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 27px;
-  height: 27px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ios-switch:checked {
-  background: var(--green);
-}
-
-.ios-switch:checked::after {
-  transform: translateX(20px);
-}
-
-.ios-switch:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 2px;
-}
-
-/* ---------- Segmented control (real sliding thumb) ---------- */
-
-.segmented {
-  display: inline-flex;
-  padding: 2px;
-  gap: 0;
-  background: var(--fill-tertiary);
-  border-radius: 9px;
-}
-
-.segmented > * {
-  flex: 1;
-  text-align: center;
-  padding: 5px 12px;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--label);
-  transition: background 0.2s ease;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.segmented > [data-active="true"] {
-  background: var(--bg-elevated);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
-}
-
-.segmented > [data-active="false"] {
-  color: var(--label-secondary);
-}
-
-/* ---------- Forms ---------- */
-
-.input,
-.select {
-  background: var(--bg-elevated-2);
-  border: 1px solid var(--separator);
-  border-radius: 10px;
-  color: var(--label);
-  font-family: var(--font-body);
-  padding: 13px 14px;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: var(--radius-control);
   font-size: 16px;
-  letter-spacing: -0.012em;
-}
-
-.input:focus,
-.select:focus,
-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 1px;
-  border-color: transparent;
-}
-
-.input::placeholder {
-  color: var(--label-tertiary);
-}
-
-/* ---------- Buttons ---------- */
-
-.btn {
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 16px;
-  letter-spacing: -0.012em;
-  padding: 12px 20px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(0, 122, 255, 0.12);
-  color: var(--blue);
-  transition: opacity 0.15s ease, background 0.15s ease, transform 0.1s ease;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background: rgba(0, 122, 255, 0.2);
+  font-weight: 500;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: background-color var(--motion), transform var(--motion), opacity var(--motion);
 }
 
 .btn:active {
-  opacity: 0.6;
   transform: scale(0.97);
 }
 
@@ -578,151 +124,214 @@ a:focus-visible {
   opacity: 0.4;
 }
 
+/* The one inverted, high-contrast button style — deliberately neutral
+   (light-on-dark), not a saturated accent hue. Silver stays reserved for
+   the hero figure alone. */
 .btn-primary {
-  background: var(--blue);
-  color: #ffffff;
-  border: none;
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
 }
 
-.btn-primary:hover {
-  background: var(--blue-hover);
+.btn-destructive {
+  background: transparent;
+  color: var(--alarm);
+  border-color: var(--border);
 }
 
-.btn-primary:active {
-  opacity: 0.85;
-  transform: scale(0.97);
+.btn:focus-visible,
+.input:focus-visible,
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--silver);
+  outline-offset: 2px;
 }
 
-.link-action {
-  color: var(--blue);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.012em;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.link-action:active {
-  opacity: 0.5;
-}
-
-.link-destructive {
-  color: var(--red);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.012em;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.link-destructive:active {
-  opacity: 0.5;
-}
-
-/* ---------- Colored app-style icon badge ---------- */
-
-.app-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  color: #fff;
-}
-
-/* ---------- Bubbly Apple date picker ---------- */
-
-.datefield {
+.input {
+  display: block;
   width: 100%;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 16px;
 }
 
-.datefield[data-empty="true"] {
-  color: var(--label-tertiary);
+.input::placeholder {
+  color: var(--text-faint);
 }
 
-.cal-pop {
-  background: var(--material-bg);
-  backdrop-filter: blur(26px) saturate(180%);
-  -webkit-backdrop-filter: blur(26px) saturate(180%);
-  border: 1px solid var(--hairline);
-  border-radius: 18px;
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
-  padding: 14px;
-  width: 300px;
-  animation: popover-pop 0.16s cubic-bezier(0.32, 0.72, 0, 1) both;
-  transform-origin: top center;
+/* Two/three-way segmented toggle -- currency, direction, tabs. */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: 3px;
+  gap: 3px;
+  background: var(--surface);
 }
 
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-}
-
-.cal-cell {
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
+.segmented button {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: calc(var(--radius-control) - 3px);
   font-size: 15px;
-  font-variant-numeric: tabular-nums;
-  color: var(--label);
-  cursor: pointer;
-  transition: background 0.12s ease, transform 0.1s ease;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: background-color var(--motion), color var(--motion);
 }
 
-.cal-cell:hover {
-  background: var(--fill-tertiary);
+.segmented button[data-active="true"] {
+  background: var(--text);
+  color: var(--bg);
 }
 
-.cal-cell:active {
-  transform: scale(0.9);
+/* Fixed category chip row -- no dropdown, no search. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color var(--motion), color var(--motion);
 }
 
-.cal-cell[data-muted="true"] {
-  color: var(--label-tertiary);
+.chip[data-active="true"] {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
 }
 
-.cal-cell[data-today="true"] {
-  color: var(--blue);
-  font-weight: 700;
+/* Obligation / balance progress bar -- partial payments must read at a
+   glance. */
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  overflow: hidden;
 }
 
-.cal-cell[data-selected="true"] {
-  background: var(--blue);
-  color: #fff;
-  font-weight: 600;
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--silver);
+  transition: width var(--motion);
 }
 
-.cal-dow {
+.progress-fill[data-alarm="true"] {
+  background: var(--alarm);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--label-tertiary);
-  text-align: center;
-  padding-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-.cal-nav {
-  width: 30px;
-  height: 30px;
+.status-pill[data-status="open"] {
+  background: color-mix(in srgb, var(--text-muted) 18%, transparent);
+  color: var(--text-muted);
+}
+
+.status-pill[data-status="partial"] {
+  background: color-mix(in srgb, var(--urgent) 18%, transparent);
+  color: var(--urgent);
+}
+
+.status-pill[data-status="paid"] {
+  background: color-mix(in srgb, var(--positive) 18%, transparent);
+  color: var(--positive);
+}
+
+.status-pill[data-status="waived"] {
+  background: color-mix(in srgb, var(--text-faint) 30%, transparent);
+  color: var(--text-faint);
+}
+
+.status-pill[data-status="past-due"] {
+  background: color-mix(in srgb, var(--alarm) 18%, transparent);
+  color: var(--alarm);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+.text-faint {
+  color: var(--text-faint);
+}
+.text-silver {
+  color: var(--silver);
+}
+.text-urgent {
+  color: var(--urgent);
+}
+.text-alarm {
+  color: var(--alarm);
+}
+.text-positive {
+  color: var(--positive);
+}
+
+/* Bottom tab bar -- thumb-reachable, no hover-dependent UI. */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 40;
+}
+
+.tab-bar a {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 56px;
+  padding: 8px 0;
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: 500;
+  transition: color var(--motion);
+}
+
+.tab-bar a[data-active="true"] {
+  color: var(--text);
+}
+
+.keypad-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  color: var(--blue);
-  cursor: pointer;
-  transition: background 0.12s ease;
+  min-height: 64px;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text);
+  transition: background-color var(--motion), transform var(--motion);
 }
 
-.cal-nav:hover {
-  background: var(--fill-tertiary);
+.keypad-btn:active {
+  transform: scale(0.95);
+  background: var(--surface-raised);
 }

@@ -68,13 +68,13 @@ export function PullToRefresh({ children }: { children: React.ReactNode }) {
           className="fixed left-0 right-0 flex justify-center pointer-events-none z-20"
           style={{ top: 10, opacity: isPending ? 1 : progress }}
         >
-          <div className="w-8 h-8 rounded-full material border border-[var(--separator)] flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.18)]">
+          <div className="w-8 h-8 rounded-full bg-[var(--surface-raised)] border border-[var(--border)] flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
             <svg
               width="16"
               height="16"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--label)"
+              stroke="var(--text)"
               strokeWidth="2.2"
               strokeLinecap="round"
               strokeLinejoin="round"

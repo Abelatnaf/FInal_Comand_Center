@@ -1,8 +1,6 @@
-export const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/transactions", label: "Transactions" },
-  { href: "/budgets", label: "Budgets" },
-  { href: "/goals", label: "Goals" },
-  { href: "/assistant", label: "Assistant" },
-  { href: "/settings", label: "Settings" },
-] as const;
+export const TAB_LINKS = [
+  { href: "/", label: "Now", icon: "now" as const },
+  { href: "/add", label: "Add", icon: "add" as const },
+  { href: "/bills", label: "Bills", icon: "bills" as const },
+  { href: "/ledger", label: "Ledger", icon: "ledger" as const },
+];

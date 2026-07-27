@@ -17,281 +17,272 @@ export type Database = {
       accounts: {
         Row: {
           created_at: string
+          currency: string
           id: string
+          is_archived: boolean
           kind: string
           name: string
-          sort_order: number
-          starting_balance: number
+          opening_balance_minor: number
           user_id: string
         }
         Insert: {
           created_at?: string
+          currency: string
           id?: string
-          kind?: string
+          is_archived?: boolean
+          kind: string
           name: string
-          sort_order?: number
-          starting_balance?: number
+          opening_balance_minor?: number
           user_id: string
         }
         Update: {
           created_at?: string
+          currency?: string
           id?: string
+          is_archived?: boolean
           kind?: string
           name?: string
-          sort_order?: number
-          starting_balance?: number
+          opening_balance_minor?: number
           user_id?: string
         }
         Relationships: []
       }
-      categories: {
+      fx_rates: {
         Row: {
           created_at: string
+          effective_on: string
+          etb_per_usd: number
           id: string
-          monthly_budget: number
-          name: string
-          sort_order: number
+          source: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          effective_on: string
+          etb_per_usd: number
           id?: string
-          monthly_budget?: number
-          name: string
-          sort_order?: number
+          source: string
           user_id: string
         }
         Update: {
           created_at?: string
+          effective_on?: string
+          etb_per_usd?: number
           id?: string
-          monthly_budget?: number
-          name?: string
-          sort_order?: number
+          source?: string
           user_id?: string
         }
         Relationships: []
       }
-      entries: {
+      obligations: {
         Row: {
-          account_id: string | null
-          amount: number
-          category_id: string | null
+          amount_usd_minor: number
           created_at: string
-          date: string
-          description: string
-          entry_currency: string | null
-          entry_fx_rate: number | null
-          entry_original_amount: number | null
+          due_on: string | null
           id: string
-          is_recurring: boolean
-          notes: string | null
-          to_account_id: string | null
-          type: string
+          payer_id: string
+          source_note: string | null
+          title: string
           user_id: string
+          waived_at: string | null
         }
         Insert: {
-          account_id?: string | null
-          amount: number
-          category_id?: string | null
+          amount_usd_minor: number
           created_at?: string
-          date?: string
-          description?: string
-          entry_currency?: string | null
-          entry_fx_rate?: number | null
-          entry_original_amount?: number | null
+          due_on?: string | null
           id?: string
-          is_recurring?: boolean
-          notes?: string | null
-          to_account_id?: string | null
-          type: string
+          payer_id: string
+          source_note?: string | null
+          title: string
           user_id: string
+          waived_at?: string | null
         }
         Update: {
-          account_id?: string | null
-          amount?: number
-          category_id?: string | null
+          amount_usd_minor?: number
           created_at?: string
-          date?: string
-          description?: string
-          entry_currency?: string | null
-          entry_fx_rate?: number | null
-          entry_original_amount?: number | null
+          due_on?: string | null
           id?: string
-          is_recurring?: boolean
-          notes?: string | null
-          to_account_id?: string | null
-          type?: string
+          payer_id?: string
+          source_note?: string | null
+          title?: string
           user_id?: string
+          waived_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "entries_account_id_fkey"
-            columns: ["account_id"]
+            foreignKeyName: "obligations_payer_id_fkey"
+            columns: ["payer_id"]
             isOneToOne: false
-            referencedRelation: "account_balance"
-            referencedColumns: ["account_id"]
-          },
-          {
-            foreignKeyName: "entries_account_id_fkey"
-            columns: ["account_id"]
-            isOneToOne: false
-            referencedRelation: "accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "entries_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "budget_vs_actual_this_month"
-            referencedColumns: ["category_id"]
-          },
-          {
-            foreignKeyName: "entries_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "entries_to_account_id_fkey"
-            columns: ["to_account_id"]
-            isOneToOne: false
-            referencedRelation: "account_balance"
-            referencedColumns: ["account_id"]
-          },
-          {
-            foreignKeyName: "entries_to_account_id_fkey"
-            columns: ["to_account_id"]
-            isOneToOne: false
-            referencedRelation: "accounts"
+            referencedRelation: "payers"
             referencedColumns: ["id"]
           },
         ]
       }
-      savings_goals: {
+      payers: {
         Row: {
-          account_id: string | null
+          class_year: number | null
           created_at: string
           id: string
-          name: string
-          saved_so_far: number
-          target_amount: number
-          target_date: string | null
+          is_default: boolean
+          key: string
+          label: string
           user_id: string
         }
         Insert: {
-          account_id?: string | null
+          class_year?: number | null
           created_at?: string
           id?: string
-          name: string
-          saved_so_far?: number
-          target_amount: number
-          target_date?: string | null
+          is_default?: boolean
+          key: string
+          label: string
           user_id: string
         }
         Update: {
-          account_id?: string | null
+          class_year?: number | null
           created_at?: string
           id?: string
-          name?: string
-          saved_so_far?: number
-          target_amount?: number
-          target_date?: string | null
+          is_default?: boolean
+          key?: string
+          label?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          account_id: string
+          amount_minor: number
+          amount_usd_minor: number
+          category: string | null
+          created_at: string
+          currency: string
+          direction: string
+          fx_rate_etb_per_usd: number
+          id: string
+          note: string | null
+          obligation_id: string | null
+          occurred_on: string
+          payer_id: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount_minor: number
+          amount_usd_minor: number
+          category?: string | null
+          created_at?: string
+          currency: string
+          direction: string
+          fx_rate_etb_per_usd: number
+          id?: string
+          note?: string | null
+          obligation_id?: string | null
+          occurred_on?: string
+          payer_id: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount_minor?: number
+          amount_usd_minor?: number
+          category?: string | null
+          created_at?: string
+          currency?: string
+          direction?: string
+          fx_rate_etb_per_usd?: number
+          id?: string
+          note?: string | null
+          obligation_id?: string | null
+          occurred_on?: string
+          payer_id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "savings_goals_account_id_fkey"
-            columns: ["account_id"]
-            isOneToOne: false
-            referencedRelation: "account_balance"
-            referencedColumns: ["account_id"]
-          },
-          {
-            foreignKeyName: "savings_goals_account_id_fkey"
+            foreignKeyName: "transactions_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transactions_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligation_progress"
+            referencedColumns: ["obligation_id"]
+          },
+          {
+            foreignKeyName: "transactions_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "payers"
+            referencedColumns: ["id"]
+          },
         ]
-      }
-      settings: {
-        Row: {
-          created_at: string
-          currency_code: string
-          id: number
-          low_balance_threshold: number | null
-          secondary_currency_code: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          currency_code?: string
-          id?: never
-          low_balance_threshold?: number | null
-          secondary_currency_code?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          currency_code?: string
-          id?: never
-          low_balance_threshold?: number | null
-          secondary_currency_code?: string | null
-          user_id?: string
-        }
-        Relationships: []
       }
     }
     Views: {
-      account_balance: {
+      balance_by_account: {
         Row: {
           account_id: string | null
-          balance: number | null
+          balance_minor: number | null
+          currency: string | null
+          is_archived: boolean | null
           kind: string | null
           name: string | null
           user_id: string | null
         }
-        Insert: {
-          account_id?: string | null
-          balance?: never
-          kind?: string | null
-          name?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          account_id?: string | null
-          balance?: never
-          kind?: string | null
-          name?: string | null
-          user_id?: string | null
+        Relationships: []
+      }
+      liquid_position: {
+        Row: {
+          fx_rate_effective_on: string | null
+          fx_rate_used: number | null
+          total_liquid_usd_minor: number | null
+          user_id: string | null
         }
         Relationships: []
       }
-      budget_vs_actual_this_month: {
+      obligation_progress: {
         Row: {
-          actual_spent: number | null
-          category_id: string | null
-          monthly_budget: number | null
-          name: string | null
+          amount_paid_usd_minor: number | null
+          amount_remaining_usd_minor: number | null
+          amount_usd_minor: number | null
+          days_until_due: number | null
+          due_on: string | null
+          is_past_due: boolean | null
+          obligation_id: string | null
+          payer_id: string | null
+          source_note: string | null
+          status: string | null
+          title: string | null
           user_id: string | null
+          waived_at: string | null
         }
-        Insert: {
-          actual_spent?: never
-          category_id?: string | null
-          monthly_budget?: number | null
-          name?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          actual_spent?: never
-          category_id?: string | null
-          monthly_budget?: number | null
-          name?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "obligations_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "payers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

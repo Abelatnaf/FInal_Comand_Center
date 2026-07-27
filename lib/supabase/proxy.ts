@@ -31,8 +31,11 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
 
+  // No public signup route in v3 -- nobody else logs in (see CLAUDE.md v3
+  // plan, assumption A6). The one account is created directly, not through
+  // a public flow.
   const pathname = request.nextUrl.pathname
-  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup')
+  const isAuthRoute = pathname.startsWith('/login')
   const isPublicRoute = isAuthRoute || pathname.startsWith('/privacy') || pathname.startsWith('/terms')
 
   if (!user && !isPublicRoute) {
