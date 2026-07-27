@@ -148,6 +148,51 @@ export type Database = {
         }
         Relationships: []
       }
+      settings: {
+        Row: {
+          created_at: string
+          id: number
+          tracking_start_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          tracking_start_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          tracking_start_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      share_links: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           account_id: string
@@ -284,9 +329,78 @@ export type Database = {
           },
         ]
       }
+      transactions_with_week: {
+        Row: {
+          account_id: string | null
+          amount_minor: number | null
+          amount_usd_minor: number | null
+          category: string | null
+          created_at: string | null
+          currency: string | null
+          direction: string | null
+          fx_rate_etb_per_usd: number | null
+          id: string | null
+          note: string | null
+          obligation_id: string | null
+          occurred_on: string | null
+          payer_id: string | null
+          user_id: string | null
+          week_number: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transactions_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligation_progress"
+            referencedColumns: ["obligation_id"]
+          },
+          {
+            foreignKeyName: "transactions_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "payers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_shared_snapshot: {
+        Args: { p_token: string }
+        Returns: {
+          balances: Json
+          found: boolean
+          fx_rate_effective_on: string
+          next_due_days_until_due: number
+          next_due_is_past_due: boolean
+          next_due_payer_label: string
+          next_due_remaining_usd_minor: number
+          next_due_title: string
+          total_liquid_usd_minor: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

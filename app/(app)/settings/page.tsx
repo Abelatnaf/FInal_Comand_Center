@@ -4,6 +4,8 @@ import { FxRateForm } from "@/components/settings/FxRateForm";
 import { AccountsForm } from "@/components/settings/AccountsForm";
 import { PayersForm } from "@/components/settings/PayersForm";
 import { ExportButton } from "@/components/settings/ExportButton";
+import { TrackingWeekForm } from "@/components/settings/TrackingWeekForm";
+import { ShareLinksForm } from "@/components/settings/ShareLinksForm";
 import type { Currency } from "@/lib/money";
 
 export default async function SettingsPage() {
@@ -12,7 +14,7 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [fxRes, accountsRes, payersRes] = await Promise.all([
+  const [fxRes, accountsRes, payersRes, settingsRes, shareLinksRes] = await Promise.all([
     supabase
       .from("fx_rates")
       .select("etb_per_usd, effective_on, source")
@@ -22,6 +24,8 @@ export default async function SettingsPage() {
       .maybeSingle(),
     supabase.from("accounts").select("id, name, currency, kind, opening_balance_minor, is_archived").order("kind").order("name"),
     supabase.from("payers").select("id, key, label, class_year").order("is_default", { ascending: false }),
+    supabase.from("settings").select("tracking_start_date").maybeSingle(),
+    supabase.from("share_links").select("id, label, created_at, revoked_at").order("created_at", { ascending: false }),
   ]);
 
   return (
@@ -33,6 +37,10 @@ export default async function SettingsPage() {
       <AccountsForm accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency; kind: "bank" | "cash" | "processor"; opening_balance_minor: number; is_archived: boolean }[]} />
 
       <PayersForm payers={payersRes.data ?? []} />
+
+      <TrackingWeekForm trackingStartDate={settingsRes.data?.tracking_start_date ?? null} />
+
+      <ShareLinksForm links={shareLinksRes.data ?? []} />
 
       <div className="card row">
         <ExportButton />

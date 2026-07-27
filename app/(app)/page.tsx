@@ -4,12 +4,12 @@ import { SettingsIcon } from "@/components/nav/icons";
 import { Amount } from "@/components/money/Amount";
 import { TransactionRow, type TransactionRowData } from "@/components/ledger/TransactionRow";
 import type { Currency } from "@/lib/money";
-import { formatShortDate } from "@/lib/date";
+import { formatShortDate, daysBetween, todayIso } from "@/lib/date";
 
 export default async function NowPage() {
   const supabase = await createClient();
 
-  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, nextDueRes, recentRes] =
+  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, nextDueRes, recentRes, settingsRes] =
     await Promise.all([
       supabase.from("payers").select("id, key, label"),
       supabase.from("accounts").select("id, name, currency").eq("is_archived", false),
@@ -29,7 +29,11 @@ export default async function NowPage() {
         .order("occurred_on", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(3),
+      supabase.from("settings").select("tracking_start_date").maybeSingle(),
     ]);
+
+  const trackingStartDate = settingsRes.data?.tracking_start_date ?? null;
+  const currentWeek = trackingStartDate ? Math.floor(daysBetween(trackingStartDate, todayIso()) / 7) + 1 : null;
 
   const payers = payersRes.data ?? [];
   const payerLabel = (id: string) => payers.find((p) => p.id === id)?.label ?? "—";
@@ -62,7 +66,10 @@ export default async function NowPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Now</h1>
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-[20px] font-semibold text-text">Now</h1>
+          {currentWeek !== null && <span className="text-[13px] text-faint">Week {currentWeek}</span>}
+        </div>
         <Link href="/settings" aria-label="Settings" className="p-2 -m-2 text-muted">
           <SettingsIcon className="w-6 h-6" />
         </Link>
@@ -72,7 +79,7 @@ export default async function NowPage() {
         <div className="card row flex flex-col gap-3">
           <p className="text-[15px] text-text">No obligations yet.</p>
           <Link href="/bills/new" className="btn btn-primary self-start">
-            Add the first VMI bill
+            Add the first bill
           </Link>
         </div>
       ) : (

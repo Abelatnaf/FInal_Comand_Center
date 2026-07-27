@@ -33,7 +33,7 @@ export default async function BillsPage() {
         <div className="card row flex flex-col gap-3">
           <p className="text-[15px] text-text">No obligations yet.</p>
           <Link href="/bills/new" className="btn btn-primary self-start">
-            Add the first VMI bill
+            Add the first bill
           </Link>
         </div>
       ) : (

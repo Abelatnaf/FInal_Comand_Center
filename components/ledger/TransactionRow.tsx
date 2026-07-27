@@ -22,6 +22,7 @@ export type TransactionRowData = {
   payer_id: string;
   payer_label: string;
   obligation_id: string | null;
+  week_number?: number | null;
 };
 
 type Payer = { id: string; label: string };
@@ -58,6 +59,7 @@ export function TransactionRow({
           <p className="text-[15px] text-text truncate">{transaction.category ?? "Uncategorized"}</p>
           <p className="text-[13px] text-muted">
             {formatRelativeDay(transaction.occurred_on)} · {transaction.account_name} · {transaction.payer_label}
+            {transaction.week_number != null && ` · Week ${transaction.week_number}`}
           </p>
         </div>
         <Amount
