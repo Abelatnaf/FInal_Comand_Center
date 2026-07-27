@@ -1,17 +1,20 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { transactionSchema } from "@/lib/schemas/transaction";
 
-export type CreateTransactionState = { error?: string } | undefined;
+export type CreateTransactionState = { error?: string; success?: boolean } | undefined;
 
 function orUndefined(value: FormDataEntryValue | null): string | undefined {
   const s = String(value ?? "").trim();
   return s === "" ? undefined : s;
 }
 
+// Returns {success} rather than redirecting -- this is also called
+// directly (bypassing the form) by lib/offline/sync.ts to replay queued
+// entries once back online, where a redirect would be a jarring, unwanted
+// navigation away from whatever page the user is actually on.
 export async function createTransaction(
   _prevState: CreateTransactionState,
   formData: FormData
@@ -66,5 +69,5 @@ export async function createTransaction(
   revalidatePath("/");
   revalidatePath("/ledger");
   revalidatePath("/bills");
-  redirect("/");
+  return { success: true };
 }

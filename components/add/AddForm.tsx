@@ -1,12 +1,15 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
-import { createTransaction, type CreateTransactionState } from "@/app/(app)/add/actions";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createTransaction } from "@/app/(app)/add/actions";
 import { Keypad } from "@/components/money/Keypad";
 import { CurrencyToggle } from "@/components/money/CurrencyToggle";
 import { toMinor, convertToUsdMinor, formatMoney, type Currency } from "@/lib/money";
 import { sortByUsage, type Direction } from "@/lib/categories";
 import { todayIso } from "@/lib/date";
+import { enqueueTransaction } from "@/lib/offline/queue";
+import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
 
 type Payer = { id: string; key: string; label: string; is_default: boolean };
 type Account = { id: string; name: string; currency: Currency };
@@ -34,6 +37,8 @@ export function AddForm({
   initialPayerId?: string;
 }) {
   const isRecordingPayment = Boolean(initialObligationId);
+  const router = useRouter();
+  const isOnline = useOnlineStatus();
 
   const [amountRaw, setAmountRaw] = useState("");
   const [currency, setCurrency] = useState<Currency>(defaultCurrency);
@@ -43,6 +48,8 @@ export function AddForm({
   const [occurredOn, setOccurredOn] = useState(todayIso());
   const [note, setNote] = useState("");
   const [obligationId, setObligationId] = useState(initialObligationId ?? "");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const accountsForCurrency = useMemo(() => accounts.filter((a) => a.currency === currency), [accounts, currency]);
   const [accountId, setAccountId] = useState<string>(
@@ -50,11 +57,6 @@ export function AddForm({
   );
   const defaultPayer = payers.find((p) => p.id === initialPayerId) ?? payers.find((p) => p.is_default) ?? payers[0];
   const [payerId, setPayerId] = useState<string>(defaultPayer?.id ?? "");
-
-  const [state, formAction, pending] = useActionState<CreateTransactionState, FormData>(
-    createTransaction,
-    undefined
-  );
 
   function handleCurrency(next: Currency) {
     setCurrency(next);
@@ -86,11 +88,40 @@ export function AddForm({
     minor = null;
   }
 
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const formData = new FormData(e.currentTarget);
+
+    if (!navigator.onLine) {
+      await enqueueTransaction(queueFieldsFrom(formData));
+      router.push("/");
+      return;
+    }
+
+    setPending(true);
+    try {
+      const result = await createTransaction(undefined, formData);
+      setPending(false);
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      router.push("/");
+    } catch {
+      // A real network failure mid-request (was online, connection dropped
+      // right as Save was tapped) -- queue it rather than losing the entry.
+      setPending(false);
+      await enqueueTransaction(queueFieldsFrom(formData));
+      router.push("/");
+    }
+  }
+
   const relevantObligations = obligations.filter((o) => o.payer_id === payerId);
   const categories = sortByUsage(direction, categoryUsage[direction]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="text-center py-4">
         <div className="hero-figure num">{amountRaw === "" ? "0" : amountRaw}</div>
         {minor !== null && currency === "ETB" && fxRate && (
@@ -210,11 +241,26 @@ export function AddForm({
       <input type="hidden" name="note" value={note} />
       <input type="hidden" name="obligation_id" value={direction === "out" ? obligationId : ""} />
 
-      {state?.error && <p className="text-alarm text-[15px]">{state.error}</p>}
+      {error && <p className="text-alarm text-[15px]">{error}</p>}
 
       <button type="submit" disabled={pending || minor === null} className="btn btn-primary w-full">
-        {pending ? "Saving…" : "Save"}
+        {pending ? "Saving…" : isOnline ? "Save" : "Save (will sync later)"}
       </button>
     </form>
   );
+}
+
+function queueFieldsFrom(formData: FormData) {
+  const get = (name: string) => String(formData.get(name) ?? "");
+  return {
+    amount_minor: get("amount_minor"),
+    currency: get("currency"),
+    direction: get("direction"),
+    category: get("category"),
+    occurred_on: get("occurred_on"),
+    account_id: get("account_id"),
+    payer_id: get("payer_id"),
+    note: get("note"),
+    obligation_id: get("obligation_id"),
+  };
 }
