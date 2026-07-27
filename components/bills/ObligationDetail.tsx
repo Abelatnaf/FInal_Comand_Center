@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { setObligationWaived, deleteObligation } from "@/app/(app)/bills/actions";
+import { setObligationWaived, deleteObligation, duplicateObligation } from "@/app/(app)/bills/actions";
 import { ObligationForm } from "@/components/bills/ObligationForm";
 import { Amount } from "@/components/money/Amount";
 import { formatShortDate } from "@/lib/date";
@@ -108,6 +108,22 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
         <button type="button" className="btn flex-1" onClick={() => setEditing(true)}>
           Edit
         </button>
+        <button
+          type="button"
+          className="btn flex-1"
+          disabled={busy}
+          onClick={() =>
+            startTransition(async () => {
+              const res = await duplicateObligation(obligation.obligation_id);
+              if (res.error) setError(res.error);
+              else if (res.newId) router.push(`/bills/${res.newId}`);
+            })
+          }
+        >
+          Duplicate
+        </button>
+      </div>
+      <div className="flex gap-2">
         <button
           type="button"
           className="btn flex-1"

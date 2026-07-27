@@ -109,3 +109,41 @@ export async function deleteObligation(id: string): Promise<{ error?: string }> 
   revalidateAll();
   return {};
 }
+
+// Bills like tuition recur every semester with the same payer and usually
+// a similar amount -- duplicating one saves retyping all of that for what
+// will genuinely happen again. due_on and source_note are deliberately left
+// blank rather than copied: the whole point is a new bill's own date and
+// paperwork, not a stale copy of the last one's.
+export async function duplicateObligation(id: string): Promise<{ error?: string; newId?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const { data: source, error: fetchError } = await supabase
+    .from("obligations")
+    .select("title, payer_id, amount_usd_minor")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !source) return { error: fetchError?.message ?? "Bill not found." };
+
+  const { data, error } = await supabase
+    .from("obligations")
+    .insert({
+      user_id: user.id,
+      payer_id: source.payer_id,
+      title: source.title,
+      amount_usd_minor: source.amount_usd_minor,
+      due_on: null,
+      source_note: null,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+  revalidateAll();
+  return { newId: data.id };
+}

@@ -84,6 +84,15 @@ Asked what to build next again; offered the two remaining unbuilt spec items via
 - **A live end-to-end test of the actual `/share/[token]` page was attempted, and its failure is what surfaced the section 7/8 correction above**: created one real (not rollback) `share_links` row, hit the page through a real `npm run dev` server, and got "this link isn't valid" for a token confirmed valid by direct SQL — traced to the genuine egress block (`$HTTPS_PROXY/__agentproxy/status` showed `connect_rejected`/403 for the Supabase host), not a bug in the function or the page. Fixed the page to distinguish that failure mode honestly (see above) rather than leaving "not valid" to cover both cases, then deleted the real test row (`delete ... returning id`, confirmed) and the standalone debug script used to isolate the cause.
 - Verified: the two DB-level rollback-only tests above (schema/type correctness, anon-role scoping including the security-definer regression); `tsc --noEmit`/`npm run lint`/`npm run build` clean (16 routes, up from 15 — `/share/[token]` is new); `npm test` still 12/12. The live page render, the Settings share-link create/revoke UI, and the Ledger week filter against real data could not be click-tested this session for the now-confirmed egress reason — verified by code review instead.
 
+## 10. Post-launch: obligation duplication
+
+Asked for more features again with no specifics given twice in a row, even after being asked directly to name one — at that point, continuing to ask a third time seemed less useful than making a small, clearly-justified call. Picked **duplicating an obligation**, not invented from nothing: VMI tuition bills recur every semester (referenced throughout this file's own history — "Fall 2026 tuition," "Spring 2027 tuition"), and until now creating each one meant retyping the same title/payer/amount from scratch every time.
+
+- `duplicateObligation(id)` (`app/(app)/bills/actions.ts`) reads an existing obligation's title/payer/amount and inserts a fresh one from them, deliberately leaving `due_on` and `source_note` blank rather than copied — the point is a new bill's own date and paperwork, not a stale copy of the last one's. Returns the new row's id so the UI navigates straight to it.
+- A "Duplicate" button on `/bills/[id]` (`ObligationDetail.tsx`), next to Edit; Waive/Delete moved to their own row underneath to keep the button grid from getting cramped at four across.
+- Deliberately small: no "recurring schedule" concept, no auto-creation, no cron — that would be real new scope (a stored schedule + something to run it), not a copy-paste shortcut. One tap, one new row, same as creating a bill by hand.
+- Verified: `tsc --noEmit`/`npm run lint`/`npm run build` clean (still 16 routes — no new page, just a new action + button); `npm test` still 12/12 (unaffected). Same standing egress reason as every prior phase for why this couldn't be click-tested against real authenticated data — verified by code review (the insert shape matches `createObligation`'s exactly, just sourced from an existing row instead of a form).
+
 ---
 
 # Everything below this line describes Command Deck v2 (superseded)
