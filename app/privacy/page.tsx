@@ -6,80 +6,66 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen px-5 py-12">
       <div className="max-w-2xl mx-auto">
-        <Link href="/login" className="link-action text-[14px]">
+        <Link href="/login" className="text-muted text-[14px]">
           ← Back
         </Link>
 
-        <h1 className="ios-large-title mt-4 mb-1">Privacy Policy</h1>
-        <p className="ios-footnote text-text-faint mb-8">Last updated July 20, 2026</p>
+        <h1 className="text-[28px] font-semibold text-text mt-4 mb-1">Privacy Policy</h1>
+        <p className="text-[13px] text-faint mb-8">Last updated July 27, 2026</p>
 
-        <div className="glass p-5 mb-8">
-          <p className="ios-footnote text-text-dim">
-            Command Deck is a small, independently-run personal finance tool. This page describes what actually
-            happens to your data in plain language — it has not been drafted or reviewed by a lawyer. If you need
-            this to satisfy a specific legal or compliance requirement, have your own counsel review it.
+        <div className="card row mb-8">
+          <p className="text-[14px] text-muted">
+            Command Deck is a small, personal tool built for one person&apos;s own use. This page describes what
+            actually happens to your data in plain language — it has not been drafted or reviewed by a lawyer.
           </p>
         </div>
 
-        <div className="flex flex-col gap-6 ios-body text-text-dim">
+        <div className="flex flex-col gap-6 text-[15px] text-muted">
           <section>
-            <h2 className="ios-title3 text-text mb-2">What we collect</h2>
+            <h2 className="text-[17px] font-medium text-text mb-2">What we collect</h2>
             <p>
-              Your email address and password (used only to authenticate you — see below), and whatever financial
-              data you choose to enter: transactions, accounts, balances, budgets, and savings goals. We don&apos;t
-              collect anything beyond what you type in.
+              An email address and password (used only to authenticate you), and whatever financial data you choose
+              to enter: transactions, accounts, obligations, and the FX rate you type in. Nothing else is collected.
             </p>
           </section>
 
           <section>
-            <h2 className="ios-title3 text-text mb-2">How your password is handled</h2>
+            <h2 className="text-[17px] font-medium text-text mb-2">How your password is handled</h2>
             <p>
-              Authentication is handled by Supabase Auth. Your password is hashed before storage — we never see or
-              store it in plain text, and nobody with database access can read it back out.
+              Authentication is handled by Supabase Auth. Your password is hashed before storage — nobody with
+              database access can read it back out.
             </p>
           </section>
 
           <section>
-            <h2 className="ios-title3 text-text mb-2">Where your data lives</h2>
+            <h2 className="text-[17px] font-medium text-text mb-2">Where your data lives</h2>
             <p>
               All data is stored in a Postgres database hosted by Supabase, with the app itself hosted on Vercel.
-              Every row you create is scoped to your account with row-level security — other users of this app
-              cannot read or write your data, and we have not built any admin panel or back-office view into
-              anyone&apos;s financial data.
+              Every row is scoped to your account with row-level security.
             </p>
           </section>
 
           <section>
-            <h2 className="ios-title3 text-text mb-2">What we don&apos;t do</h2>
+            <h2 className="text-[17px] font-medium text-text mb-2">What we don&apos;t do</h2>
             <p>
-              We don&apos;t sell your data. We don&apos;t share it with advertisers or data brokers. We don&apos;t
-              connect to your bank (there is no Plaid or similar integration) — every entry is typed in by you. We
-              don&apos;t use your financial data to train any model.
+              We don&apos;t sell your data or share it with advertisers. We don&apos;t connect to your bank — every
+              entry is typed in by hand. We don&apos;t fetch a live FX rate on your behalf; the rate is whatever you
+              enter in Settings. We don&apos;t use your financial data to train any model.
             </p>
           </section>
 
           <section>
-            <h2 className="ios-title3 text-text mb-2">Cookies</h2>
+            <h2 className="text-[17px] font-medium text-text mb-2">Cookies</h2>
             <p>
-              The only cookies this app sets are the ones Supabase Auth uses to keep you signed in. There is no
-              advertising or analytics tracking.
+              The only cookies this app sets are the ones Supabase Auth uses to keep you signed in. No advertising or
+              analytics tracking.
             </p>
           </section>
 
           <section>
-            <h2 className="ios-title3 text-text mb-2">Your data, your control</h2>
+            <h2 className="text-[17px] font-medium text-text mb-2">Your data, your control</h2>
             <p>
-              You can export everything you&apos;ve logged as a single JSON file at any time from Settings → Account
-              → Export All Data. If you&apos;d like your account and its data deleted, contact the email address you
-              used to sign up.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="ios-title3 text-text mb-2">Questions</h2>
-            <p>
-              This app is run by one person, not a company. If you have questions about your data, reach out to the
-              email address you used to sign up, or contact the app&apos;s operator directly.
+              You can export everything logged as a single JSON file at any time from Settings.
             </p>
           </section>
         </div>
