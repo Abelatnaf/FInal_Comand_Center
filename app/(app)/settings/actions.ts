@@ -130,6 +130,56 @@ export async function updatePayerLabel(_prevState: ActionState, formData: FormDa
   return { success: true };
 }
 
+export async function updateTrackingStartDate(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const trackingStartDate = String(formData.get("tracking_start_date") ?? "");
+  if (!trackingStartDate) return { error: "Pick a date." };
+
+  const { error } = await supabase
+    .from("settings")
+    .upsert({ user_id: user.id, tracking_start_date: trackingStartDate }, { onConflict: "user_id" });
+
+  if (error) return { error: error.message };
+  revalidateAll();
+  return { success: true };
+}
+
+export async function createShareLink(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const label = String(formData.get("label") ?? "").trim() || null;
+
+  const { error } = await supabase.from("share_links").insert({ user_id: user.id, label });
+  if (error) return { error: error.message };
+  revalidateAll();
+  return { success: true };
+}
+
+export async function revokeShareLink(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("share_links").update({ revoked_at: new Date().toISOString() }).eq("id", id);
+  if (error) return { error: error.message };
+  revalidateAll();
+  return {};
+}
+
+export async function deleteShareLink(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("share_links").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidateAll();
+  return {};
+}
+
 export async function exportAllData(): Promise<Record<string, unknown>> {
   const supabase = await createClient();
   const {
@@ -137,12 +187,13 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
   } = await supabase.auth.getUser();
   if (!user) return {};
 
-  const [payers, accounts, fxRates, obligations, transactions] = await Promise.all([
+  const [payers, accounts, fxRates, obligations, transactions, settings] = await Promise.all([
     supabase.from("payers").select("*"),
     supabase.from("accounts").select("*"),
     supabase.from("fx_rates").select("*"),
     supabase.from("obligations").select("*"),
     supabase.from("transactions").select("*"),
+    supabase.from("settings").select("*"),
   ]);
 
   return {
@@ -152,5 +203,6 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
     fx_rates: fxRates.data,
     obligations: obligations.data,
     transactions: transactions.data,
+    settings: settings.data,
   };
 }

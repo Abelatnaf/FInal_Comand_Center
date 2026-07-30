@@ -3,10 +3,11 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { setObligationWaived, deleteObligation } from "@/app/(app)/bills/actions";
+import { setObligationWaived, deleteObligation, duplicateObligation } from "@/app/(app)/bills/actions";
 import { ObligationForm } from "@/components/bills/ObligationForm";
 import { Amount } from "@/components/money/Amount";
 import { formatShortDate } from "@/lib/date";
+import { useUndo } from "@/components/ui/UndoToastProvider";
 
 type Payer = { id: string; label: string };
 type Obligation = {
@@ -29,6 +30,7 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
   const [busy, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { scheduleUndo } = useUndo();
 
   const total = BigInt(obligation.amount_usd_minor);
   const paidPct = total > 0n ? Number((BigInt(obligation.amount_paid_usd_minor) * 100n) / total) : 0;
@@ -114,6 +116,22 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
           disabled={busy}
           onClick={() =>
             startTransition(async () => {
+              const res = await duplicateObligation(obligation.obligation_id);
+              if (res.error) setError(res.error);
+              else if (res.newId) router.push(`/bills/${res.newId}`);
+            })
+          }
+        >
+          Duplicate
+        </button>
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className="btn flex-1"
+          disabled={busy}
+          onClick={() =>
+            startTransition(async () => {
               const res = await setObligationWaived(obligation.obligation_id, !obligation.waived_at);
               if (res.error) setError(res.error);
             })
@@ -125,13 +143,13 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
           type="button"
           className="btn btn-destructive flex-1"
           disabled={busy}
-          onClick={() =>
-            startTransition(async () => {
-              const res = await deleteObligation(obligation.obligation_id);
-              if (res.error) setError(res.error);
-              else router.push("/bills");
-            })
-          }
+          onClick={() => {
+            scheduleUndo({
+              label: "Bill deleted",
+              onCommit: () => deleteObligation(obligation.obligation_id),
+            });
+            router.push("/bills");
+          }}
         >
           Delete
         </button>

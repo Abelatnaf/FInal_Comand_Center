@@ -36,7 +36,8 @@ export async function updateSession(request: NextRequest) {
   // a public flow.
   const pathname = request.nextUrl.pathname
   const isAuthRoute = pathname.startsWith('/login')
-  const isPublicRoute = isAuthRoute || pathname.startsWith('/privacy') || pathname.startsWith('/terms')
+  const isPublicRoute =
+    isAuthRoute || pathname.startsWith('/privacy') || pathname.startsWith('/terms') || pathname.startsWith('/share/')
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()

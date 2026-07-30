@@ -52,7 +52,7 @@ export default function TermsPage() {
               To the fullest extent permitted by law, the operator of this app is not liable for any loss, damage, or
               financial decision made using data from this app, including data loss, downtime, or calculation errors.
               Nothing here should be your sole source of truth for tuition payments or financial decisions — verify
-              against your actual bank statements and VMI billing statements.
+              against your actual bank and billing statements.
             </p>
           </section>
 

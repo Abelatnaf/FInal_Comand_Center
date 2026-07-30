@@ -9,6 +9,7 @@ import {
   type ActionState,
 } from "@/app/(app)/settings/actions";
 import { fromMinor, type Currency } from "@/lib/money";
+import { AccountSwatch } from "@/components/money/AccountSwatch";
 
 type Account = {
   id: string;
@@ -19,7 +20,7 @@ type Account = {
   is_archived: boolean;
 };
 
-function AccountRow({ account }: { account: Account }) {
+function AccountRow({ account, index }: { account: Account; index: number }) {
   const [editing, setEditing] = useState(false);
   const [state, formAction, pending] = useActionState<ActionState, FormData>(updateAccountBalance, undefined);
   const [busy, startTransition] = useTransition();
@@ -28,15 +29,18 @@ function AccountRow({ account }: { account: Account }) {
   return (
     <div className="row flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[15px] text-text truncate">
-            {account.name} {account.is_archived && <span className="text-faint">(archived)</span>}
-          </p>
-          <p className="text-[13px] text-muted">
-            {account.currency} · {account.kind}
-          </p>
+        <div className="flex items-center gap-3 min-w-0">
+          <AccountSwatch name={account.name} index={index} />
+          <div className="min-w-0">
+            <p className="text-[15px] text-text truncate">
+              {account.name} {account.is_archived && <span className="text-faint">(archived)</span>}
+            </p>
+            <p className="text-[13px] text-muted">
+              {account.currency} · {account.kind}
+            </p>
+          </div>
         </div>
-        <button type="button" className="text-muted text-[13px]" onClick={() => setEditing((v) => !v)}>
+        <button type="button" className="text-muted text-[13px] shrink-0" onClick={() => setEditing((v) => !v)}>
           {editing ? "Close" : "Edit"}
         </button>
       </div>
@@ -96,8 +100,8 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
   return (
     <div className="card">
       <p className="section-label row pb-0">Accounts</p>
-      {accounts.map((a) => (
-        <AccountRow key={a.id} account={a} />
+      {accounts.map((a, i) => (
+        <AccountRow key={a.id} account={a} index={i} />
       ))}
       <form action={addFormAction} className="row flex flex-col gap-2">
         <input name="name" placeholder="Name" required className="input" />

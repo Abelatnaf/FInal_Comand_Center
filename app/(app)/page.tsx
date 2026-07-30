@@ -2,14 +2,15 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SettingsIcon } from "@/components/nav/icons";
 import { Amount } from "@/components/money/Amount";
+import { AccountSwatch } from "@/components/money/AccountSwatch";
 import { TransactionRow, type TransactionRowData } from "@/components/ledger/TransactionRow";
-import type { Currency } from "@/lib/money";
-import { formatShortDate } from "@/lib/date";
+import { formatMoney, type Currency } from "@/lib/money";
+import { formatShortDate, daysBetween, todayIso } from "@/lib/date";
 
 export default async function NowPage() {
   const supabase = await createClient();
 
-  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, nextDueRes, recentRes] =
+  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, openObligationsRes, recentRes, settingsRes] =
     await Promise.all([
       supabase.from("payers").select("id, key, label"),
       supabase.from("accounts").select("id, name, currency").eq("is_archived", false),
@@ -20,21 +21,34 @@ export default async function NowPage() {
         .from("obligation_progress")
         .select("*")
         .in("status", ["open", "partial"])
-        .order("due_on", { ascending: true, nullsFirst: false })
-        .limit(1)
-        .maybeSingle(),
+        .order("due_on", { ascending: true, nullsFirst: false }),
       supabase
         .from("transactions")
         .select("id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category, note, account_id, payer_id, obligation_id, accounts(name), payers(label)")
         .order("occurred_on", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(3),
+      supabase.from("settings").select("tracking_start_date").maybeSingle(),
     ]);
+
+  const trackingStartDate = settingsRes.data?.tracking_start_date ?? null;
+  const currentWeek = trackingStartDate ? Math.floor(daysBetween(trackingStartDate, todayIso()) / 7) + 1 : null;
 
   const payers = payersRes.data ?? [];
   const payerLabel = (id: string) => payers.find((p) => p.id === id)?.label ?? "—";
 
-  const nextDue = nextDueRes.data;
+  // Past-due sorts first even among open obligations, since due_on for a
+  // past-due bill is earlier than today -- but re-sort explicitly so this
+  // doesn't quietly depend on that coincidence.
+  const openObligations = [...(openObligationsRes.data ?? [])].sort((a, b) => {
+    if (a.is_past_due !== b.is_past_due) return a.is_past_due ? -1 : 1;
+    if (a.due_on == null) return 1;
+    if (b.due_on == null) return -1;
+    return a.due_on.localeCompare(b.due_on);
+  });
+  const nextDue = openObligations[0] ?? null;
+  const upcoming = openObligations.slice(1, 4);
+
   const liquid = liquidRes.data;
   const hasAnyObligations = (obligationCountRes.count ?? 0) > 0;
 
@@ -42,6 +56,15 @@ export default async function NowPage() {
     nextDue && liquid?.total_liquid_usd_minor != null
       ? BigInt(liquid.total_liquid_usd_minor) >= BigInt(nextDue.amount_remaining_usd_minor ?? 0)
       : null;
+
+  // Informational only -- this sums what each payer's obligations still
+  // add up to. It is not a claim that liquid funds are earmarked per payer;
+  // there's only ever one shared pool, shown separately above.
+  const byPayer = new Map<string, bigint>();
+  for (const o of openObligations) {
+    if (!o.payer_id) continue;
+    byPayer.set(o.payer_id, (byPayer.get(o.payer_id) ?? 0n) + BigInt(o.amount_remaining_usd_minor ?? 0));
+  }
 
   const recent: TransactionRowData[] = (recentRes.data ?? []).map((t) => ({
     id: t.id,
@@ -62,7 +85,10 @@ export default async function NowPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Now</h1>
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-[20px] font-semibold text-text">Now</h1>
+          {currentWeek !== null && <span className="text-[13px] text-faint">Week {currentWeek}</span>}
+        </div>
         <Link href="/settings" aria-label="Settings" className="p-2 -m-2 text-muted">
           <SettingsIcon className="w-6 h-6" />
         </Link>
@@ -72,7 +98,7 @@ export default async function NowPage() {
         <div className="card row flex flex-col gap-3">
           <p className="text-[15px] text-text">No obligations yet.</p>
           <Link href="/bills/new" className="btn btn-primary self-start">
-            Add the first VMI bill
+            Add the first bill
           </Link>
         </div>
       ) : (
@@ -84,7 +110,8 @@ export default async function NowPage() {
             <Amount
               minor={BigInt(nextDue.amount_remaining_usd_minor ?? 0)}
               currency="USD"
-              className={`text-[28px] font-light block ${nextDue.is_past_due ? "text-alarm" : (nextDue.days_until_due ?? 99) <= 14 ? "text-urgent" : "text-text"}`}
+              className="hero-figure block"
+              tone={nextDue.is_past_due ? "alarm" : (nextDue.days_until_due ?? 99) <= 14 ? "urgent" : undefined}
             />
             <p className={`text-[14px] mt-1 ${nextDue.is_past_due ? "text-alarm" : "text-muted"}`}>
               {nextDue.is_past_due
@@ -97,30 +124,62 @@ export default async function NowPage() {
         )
       )}
 
+      {upcoming.length > 0 && (
+        <div className="card">
+          <p className="section-label row pb-0">Also open</p>
+          {upcoming.map((o) => (
+            <Link key={o.obligation_id} href={`/bills/${o.obligation_id}`} className="row flex items-center justify-between gap-3 block">
+              <div className="min-w-0">
+                <p className="text-[14px] text-text truncate">{o.title}</p>
+                <p className="text-[12px] text-muted">{payerLabel(o.payer_id ?? "")}</p>
+              </div>
+              <Amount
+                minor={BigInt(o.amount_remaining_usd_minor ?? 0)}
+                currency="USD"
+                className={`shrink-0 ${o.is_past_due ? "text-alarm" : "text-text"}`}
+              />
+            </Link>
+          ))}
+        </div>
+      )}
+
       {hasAnyObligations && nextDue && (
-        <div className="card row">
-          <p className="section-label mb-2">Coverage</p>
-          {liquid?.total_liquid_usd_minor != null ? (
-            <p className="text-[15px] text-text">
-              You have{" "}
-              <span className={`num estimate ${isCovered ? "text-positive" : "text-alarm"}`}>
-                ~{(Number(liquid.total_liquid_usd_minor) / 100).toFixed(2)}
-              </span>{" "}
-              liquid against{" "}
-              <Amount minor={BigInt(nextDue.amount_remaining_usd_minor ?? 0)} currency="USD" className="text-text" />{" "}
-              due.
-            </p>
-          ) : (
-            <p className="text-[14px] text-muted">Set today&rsquo;s rate in Settings to see this.</p>
+        <div className="card row flex flex-col gap-3">
+          <div>
+            <p className="section-label mb-2">Coverage</p>
+            {liquid?.total_liquid_usd_minor != null ? (
+              <p className="text-[15px] text-text">
+                You have{" "}
+                <span className={`num estimate ${isCovered ? "text-positive" : "text-alarm"}`}>
+                  ~{formatMoney(BigInt(liquid.total_liquid_usd_minor), "USD")}
+                </span>{" "}
+                liquid against{" "}
+                <Amount minor={BigInt(nextDue.amount_remaining_usd_minor ?? 0)} currency="USD" className="text-text" />{" "}
+                due.
+              </p>
+            ) : (
+              <p className="text-[14px] text-muted">Set today&rsquo;s rate in Settings to see this.</p>
+            )}
+          </div>
+          {byPayer.size > 1 && (
+            <div className="pt-1 border-t border-[var(--border)] flex flex-col gap-1.5">
+              {[...byPayer.entries()].map(([payerId, minor]) => (
+                <div key={payerId} className="flex items-center justify-between text-[13px]">
+                  <span className="text-muted">{payerLabel(payerId)}</span>
+                  <Amount minor={minor} currency="USD" className="text-text" />
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}
 
       <div className="card">
         <p className="section-label row pb-0">Balances</p>
-        {(balancesRes.data ?? []).map((a) => (
-          <div key={a.account_id} className="row flex items-center justify-between">
-            <span className="text-[15px] text-text">{a.name}</span>
+        {(balancesRes.data ?? []).map((a, i) => (
+          <div key={a.account_id} className="row flex items-center gap-3">
+            <AccountSwatch name={a.name ?? "?"} index={i} />
+            <span className="text-[15px] text-text flex-1">{a.name}</span>
             <Amount
               minor={BigInt(a.balance_minor ?? 0)}
               currency={(a.currency ?? "USD") as Currency}

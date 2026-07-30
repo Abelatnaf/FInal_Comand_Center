@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono-accent" });
 
 export const metadata: Metadata = {
   title: "Command Deck",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0b",
+  themeColor: "#07080a",
 };
 
 export default function RootLayout({
@@ -20,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${geistMono.variable}`}>
       <body className="min-h-full antialiased">
         <ServiceWorkerRegister />
         {children}
