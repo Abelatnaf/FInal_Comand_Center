@@ -28,7 +28,7 @@
 
   --text: #f5f7f8;
   --text-muted: #9ba0aa;
-  --text-faint: #5a5f68;
+  --text-faint: #82868f;
 
   --accent: #22c58e;
   --accent-bright: #6fe8bb;
@@ -355,7 +355,7 @@ button:focus-visible,
 }
 
 .status-pill[data-status="waived"] {
-  background: color-mix(in srgb, var(--text-faint) 30%, transparent);
+  background: color-mix(in srgb, var(--text-faint) 8%, transparent);
   color: var(--text-faint);
 }
 
