@@ -1,32 +1,52 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Command Deck v3 — monochrome silver. Locked design system, see
-   CLAUDE.md v3 plan section 7. Do not reinterpret: silver is scarce
-   (at most one element per screen), no gradients, no glassmorphism.
-   Money reads as cold and factual, not decorative.
+   Command Deck v3 — "Dark Premium." A deliberate visual reset
+   (Abel signed off on overriding the v3 spec's original monochrome-
+   silver lock-in for a real redesign): deep near-black base, ambient
+   emerald glow, genuine glassmorphism (blur, layered fill, top-edge
+   highlight), a gradient-text hero treatment, and a mono accent for
+   small metadata/labels — the "precision" note real premium fintech
+   products lean on. Money still reads as tabular and exact; the
+   richness is in material and light, not in inventing new meaning.
    ============================================================ */
 
 :root {
   color-scheme: dark;
 
-  --bg: #0a0a0b;
-  --surface: #141416;
-  --surface-raised: #1c1c20;
-  --border: #2a2a2f;
-  --text: #f2f3f5;
-  --text-muted: #8a8d93;
-  --text-faint: #55585e;
-  --silver: #c8cbd0;
-  --urgent: #e8b44a;
-  --alarm: #d9584a;
-  --positive: #6fa88a;
+  --bg: #07080a;
+  --bg-glow-1: rgba(20, 184, 138, 0.16);
+  --bg-glow-2: rgba(88, 101, 242, 0.09);
+  --bg-glow-3: rgba(20, 184, 138, 0.05);
 
-  --radius-card: 12px;
-  --radius-control: 8px;
-  --motion: 150ms ease-out;
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-2: rgba(255, 255, 255, 0.02);
+  --surface-raised: rgba(255, 255, 255, 0.075);
+  --surface-solid: #131519;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --text: #f5f7f8;
+  --text-muted: #9ba0aa;
+  --text-faint: #5a5f68;
+
+  --accent: #22c58e;
+  --accent-bright: #6fe8bb;
+  --accent-dim: #157a56;
+  --accent-ink: #04150f;
+  --silver: var(--accent-bright);
+
+  --urgent: #f0b043;
+  --alarm: #ef6a5d;
+  --positive: var(--accent);
+
+  --radius-card: 20px;
+  --radius-control: 12px;
+  --motion: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --blur: 22px;
 
   --font-sans: var(--font-inter), -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-mono-accent), ui-monospace, "SF Mono", monospace;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -42,31 +62,65 @@
   }
 }
 
-html,
-body {
+html {
   background: var(--bg);
+}
+
+body {
   color: var(--text);
   font-family: var(--font-sans);
+  background:
+    radial-gradient(ellipse 900px 640px at 15% -8%, var(--bg-glow-1), transparent 60%),
+    radial-gradient(ellipse 700px 560px at 105% 8%, var(--bg-glow-2), transparent 62%),
+    radial-gradient(ellipse 800px 500px at 50% 115%, var(--bg-glow-3), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100dvh;
 }
 
 * {
   border-color: var(--border);
 }
 
-/* Tabular figures for every money value — never a mono font. */
+/* Tabular figures for every money value — never a mono font for the
+   figures themselves (the mono accent below is for labels/metadata). */
 .num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* The one hero figure per screen — big, thin, and the only silver thing
-   on it. Weight 300 on purpose: big and thin, not big and bold. */
+/* The one hero figure per screen — big, and the only gradient-lit thing
+   on it. Weight stays light: big and refined, not big and bold. */
 .hero-figure {
-  font-size: clamp(2.5rem, 12vw, 3.5rem);
+  font-size: clamp(2.6rem, 12vw, 3.75rem);
   font-weight: 300;
-  color: var(--silver);
   letter-spacing: -0.02em;
   line-height: 1.05;
+  background: linear-gradient(160deg, #ffffff 10%, var(--accent-bright) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: var(--accent-bright);
+  -webkit-text-fill-color: transparent;
+}
+
+/* Plain color utilities (.text-alarm etc.) can't override a background-clip
+   gradient in WebKit -- these explicit tone variants swap the gradient
+   itself instead, so the hero figure can still turn urgent/alarm without
+   losing the gradient treatment. */
+.hero-figure[data-tone="urgent"] {
+  background: linear-gradient(160deg, #ffffff 10%, var(--urgent) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: var(--urgent);
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-figure[data-tone="alarm"] {
+  background: linear-gradient(160deg, #ffffff 10%, var(--alarm) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: var(--alarm);
+  -webkit-text-fill-color: transparent;
 }
 
 /* Any figure computed with today's rate, not a frozen one. The ~ prefix
@@ -77,29 +131,51 @@ body {
 }
 
 .section-label {
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--text-faint);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
-/* Grouped-list card. 12px radius, always. */
+/* Grouped-list glass card: layered fill, blur, a soft top-edge highlight,
+   and real elevation via shadow — the "material" this redesign is built
+   around. */
 .card {
-  background: var(--surface);
+  position: relative;
+  background: linear-gradient(165deg, var(--surface) 0%, var(--surface-2) 55%, var(--surface) 100%);
+  backdrop-filter: blur(var(--blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 12px 40px -12px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  pointer-events: none;
 }
 
 .row {
   padding: 14px 16px;
+  position: relative;
 }
 
 .row + .row {
   border-top: 1px solid var(--border);
 }
 
-/* Buttons. 8px radius, controls always ≥44px touch target. */
+/* Buttons. 12px radius, controls always ≥44px touch target. */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -113,7 +189,7 @@ body {
   background: var(--surface-raised);
   color: var(--text);
   border: 1px solid var(--border);
-  transition: background-color var(--motion), transform var(--motion), opacity var(--motion);
+  transition: background-color var(--motion), transform var(--motion), opacity var(--motion), box-shadow var(--motion);
 }
 
 .btn:active {
@@ -124,13 +200,22 @@ body {
   opacity: 0.4;
 }
 
-/* The one inverted, high-contrast button style — deliberately neutral
-   (light-on-dark), not a saturated accent hue. Silver stays reserved for
-   the hero figure alone. */
+/* The one rich, glowing button style — a real emerald gradient with an
+   inner highlight, reserved for the primary action per screen. */
 .btn-primary {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dim));
+  color: var(--accent-ink);
+  border-color: rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.35) inset,
+    0 6px 24px -6px rgba(34, 197, 142, 0.45);
+}
+
+.btn-primary:active {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.25) inset,
+    0 3px 14px -6px rgba(34, 197, 142, 0.4);
 }
 
 .btn-destructive {
@@ -144,7 +229,7 @@ body {
 a:focus-visible,
 button:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--silver);
+  outline: 2px solid var(--accent-bright);
   outline-offset: 2px;
 }
 
@@ -154,10 +239,16 @@ button:focus-visible,
   min-height: 44px;
   padding: 10px 14px;
   border-radius: var(--radius-control);
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text);
   font-size: 16px;
+  transition: border-color var(--motion), background-color var(--motion);
+}
+
+.input:focus {
+  border-color: var(--border-strong);
+  background: var(--surface);
 }
 
 .input::placeholder {
@@ -171,22 +262,24 @@ button:focus-visible,
   border-radius: var(--radius-control);
   padding: 3px;
   gap: 3px;
-  background: var(--surface);
+  background: var(--surface-2);
 }
 
 .segmented button {
   min-height: 38px;
   padding: 0 16px;
-  border-radius: calc(var(--radius-control) - 3px);
+  border-radius: calc(var(--radius-control) - 4px);
   font-size: 15px;
   font-weight: 500;
   color: var(--text-muted);
-  transition: background-color var(--motion), color var(--motion);
+  transition: background-color var(--motion), color var(--motion), box-shadow var(--motion);
 }
 
 .segmented button[data-active="true"] {
-  background: var(--text);
-  color: var(--bg);
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dim));
+  color: var(--accent-ink);
+  font-weight: 600;
+  box-shadow: 0 2px 10px -2px rgba(34, 197, 142, 0.5);
 }
 
 /* Fixed category chip row -- no dropdown, no search. */
@@ -197,37 +290,41 @@ button:focus-visible,
   padding: 0 16px;
   border-radius: var(--radius-control);
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--text-muted);
   font-size: 15px;
   font-weight: 500;
-  transition: background-color var(--motion), color var(--motion);
+  transition: background-color var(--motion), color var(--motion), border-color var(--motion);
 }
 
 .chip[data-active="true"] {
-  background: var(--text);
-  color: var(--bg);
-  border-color: var(--text);
+  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dim));
+  color: var(--accent-ink);
+  border-color: transparent;
+  font-weight: 600;
 }
 
 /* Obligation / balance progress bar -- partial payments must read at a
-   glance. */
+   glance. Gradient fill with a soft glow, not flat. */
 .progress-track {
-  height: 6px;
+  height: 8px;
   border-radius: 999px;
-  background: var(--surface-raised);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: var(--silver);
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent-bright));
+  box-shadow: 0 0 14px rgba(34, 197, 142, 0.55);
   transition: width var(--motion);
 }
 
 .progress-fill[data-alarm="true"] {
-  background: var(--alarm);
+  background: linear-gradient(90deg, #b5382f, var(--alarm));
+  box-shadow: 0 0 14px rgba(239, 106, 93, 0.55);
 }
 
 .status-pill {
@@ -235,10 +332,11 @@ button:focus-visible,
   align-items: center;
   padding: 3px 9px;
   border-radius: 999px;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
 }
 
 .status-pill[data-status="open"] {
@@ -247,12 +345,12 @@ button:focus-visible,
 }
 
 .status-pill[data-status="partial"] {
-  background: color-mix(in srgb, var(--urgent) 18%, transparent);
+  background: color-mix(in srgb, var(--urgent) 20%, transparent);
   color: var(--urgent);
 }
 
 .status-pill[data-status="paid"] {
-  background: color-mix(in srgb, var(--positive) 18%, transparent);
+  background: color-mix(in srgb, var(--positive) 20%, transparent);
   color: var(--positive);
 }
 
@@ -262,7 +360,7 @@ button:focus-visible,
 }
 
 .status-pill[data-status="past-due"] {
-  background: color-mix(in srgb, var(--alarm) 18%, transparent);
+  background: color-mix(in srgb, var(--alarm) 20%, transparent);
   color: var(--alarm);
 }
 
@@ -273,7 +371,7 @@ button:focus-visible,
   color: var(--text-faint);
 }
 .text-silver {
-  color: var(--silver);
+  color: var(--accent-bright);
 }
 .text-urgent {
   color: var(--urgent);
@@ -285,7 +383,8 @@ button:focus-visible,
   color: var(--positive);
 }
 
-/* Bottom tab bar -- thumb-reachable, no hover-dependent UI. */
+/* Bottom tab bar -- thumb-reachable, no hover-dependent UI. Real glass,
+   matching the redesign's material language for overlay chrome. */
 .tab-bar {
   position: fixed;
   bottom: 0;
@@ -293,7 +392,9 @@ button:focus-visible,
   right: 0;
   display: flex;
   border-top: 1px solid var(--border);
-  background: var(--surface);
+  background: rgba(10, 11, 13, 0.72);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 40;
 }
@@ -314,7 +415,7 @@ button:focus-visible,
 }
 
 .tab-bar a[data-active="true"] {
-  color: var(--text);
+  color: var(--accent-bright);
 }
 
 .keypad-btn {
@@ -323,7 +424,7 @@ button:focus-visible,
   justify-content: center;
   min-height: 64px;
   border-radius: var(--radius-control);
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   font-size: 24px;
   font-weight: 400;
@@ -334,4 +435,74 @@ button:focus-visible,
 .keypad-btn:active {
   transform: scale(0.95);
   background: var(--surface-raised);
+}
+
+/* Per-account visual identity -- a small rotating set of accent finishes
+   so the Balances list reads as considered, not a plain table. Purely
+   decorative (assigned by position, not stored), so it costs nothing to
+   add/remove an account. */
+.account-swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+  flex-shrink: 0;
+}
+
+.account-swatch[data-tone="emerald"] {
+  background: linear-gradient(150deg, #1f9d70, #0d5c3f);
+}
+.account-swatch[data-tone="indigo"] {
+  background: linear-gradient(150deg, #6366f1, #3730a3);
+}
+.account-swatch[data-tone="amber"] {
+  background: linear-gradient(150deg, #f2b043, #b5730f);
+}
+.account-swatch[data-tone="rose"] {
+  background: linear-gradient(150deg, #ef6a95, #a13457);
+}
+.account-swatch[data-tone="slate"] {
+  background: linear-gradient(150deg, #64748b, #334155);
+}
+
+/* Toast (undo notices etc). */
+.toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom) + 84px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-control);
+  background: rgba(19, 21, 25, 0.92);
+  backdrop-filter: blur(var(--blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+  max-width: 480px;
+  margin: 0 auto;
+  animation: toast-in var(--motion);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

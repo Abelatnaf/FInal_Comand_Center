@@ -73,3 +73,21 @@ export async function deleteTransaction(id: string): Promise<{ error?: string }>
   revalidateAffected();
   return {};
 }
+
+export async function bulkDeleteTransactions(ids: string[]): Promise<{ error?: string }> {
+  if (ids.length === 0) return {};
+  const supabase = await createClient();
+  const { error } = await supabase.from("transactions").delete().in("id", ids);
+  if (error) return { error: error.message };
+  revalidateAffected();
+  return {};
+}
+
+export async function bulkRecategorizeTransactions(ids: string[], category: string): Promise<{ error?: string }> {
+  if (ids.length === 0) return {};
+  const supabase = await createClient();
+  const { error } = await supabase.from("transactions").update({ category }).in("id", ids);
+  if (error) return { error: error.message };
+  revalidateAffected();
+  return {};
+}

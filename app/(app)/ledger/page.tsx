@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { TransactionRow, type TransactionRowData } from "@/components/ledger/TransactionRow";
+import type { TransactionRowData } from "@/components/ledger/TransactionRow";
+import { LedgerList } from "@/components/ledger/LedgerList";
 import { CsvExportButton } from "@/components/ledger/CsvExportButton";
 import { formatMoney, type Currency } from "@/lib/money";
 
@@ -120,17 +121,11 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
         </div>
       </div>
 
-      <div className="card">
-        {rows.length === 0 && <p className="row text-[14px] text-muted">Nothing matches these filters.</p>}
-        {rows.map((t) => (
-          <TransactionRow
-            key={t.id}
-            transaction={t}
-            payers={payers}
-            accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[]}
-          />
-        ))}
-      </div>
+      <LedgerList
+        rows={rows}
+        payers={payers}
+        accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[]}
+      />
     </div>
   );
 }

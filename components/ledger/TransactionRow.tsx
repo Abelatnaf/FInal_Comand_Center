@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { updateTransaction, deleteTransaction, type TransactionFormState } from "@/app/(app)/ledger/actions";
 import { Amount } from "@/components/money/Amount";
 import { CurrencyToggle } from "@/components/money/CurrencyToggle";
 import { formatRelativeDay } from "@/lib/date";
 import { categoriesFor, type Direction } from "@/lib/categories";
 import type { Currency } from "@/lib/money";
+import { useUndo } from "@/components/ui/UndoToastProvider";
 
 export type TransactionRowData = {
   id: string;
@@ -32,15 +33,22 @@ export function TransactionRow({
   transaction,
   payers,
   accounts,
+  selectionMode = false,
+  selected = false,
+  onToggleSelect,
 }: {
   transaction: TransactionRowData;
   payers: Payer[];
   accounts: Account[];
+  selectionMode?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [currency, setCurrency] = useState<Currency>(transaction.currency);
   const [direction, setDirection] = useState<Direction>(transaction.direction);
-  const [pendingDelete, startDeleteTransition] = useTransition();
+  const [pendingRemoval, setPendingRemoval] = useState(false);
+  const { scheduleUndo } = useUndo();
 
   const [state, formAction, pending] = useActionState<TransactionFormState, FormData>(updateTransaction, undefined);
 
@@ -51,11 +59,35 @@ export function TransactionRow({
     if (state?.success) setEditing(false);
   }, [state]);
 
+  function handleDelete() {
+    setPendingRemoval(true);
+    scheduleUndo({
+      label: "Entry deleted",
+      onCommit: () => deleteTransaction(transaction.id),
+      onUndo: () => setPendingRemoval(false),
+    });
+  }
+
+  if (pendingRemoval) return null;
+
   if (!editing) {
     const isOut = transaction.direction === "out";
     return (
-      <button type="button" onClick={() => setEditing(true)} className="row w-full text-left flex items-center justify-between gap-3">
-        <div className="min-w-0">
+      <button
+        type="button"
+        onClick={() => (selectionMode ? onToggleSelect?.(transaction.id) : setEditing(true))}
+        className="row w-full text-left flex items-center justify-between gap-3"
+      >
+        {selectionMode && (
+          <input
+            type="checkbox"
+            checked={selected}
+            readOnly
+            className="w-[18px] h-[18px] shrink-0 accent-[var(--accent)]"
+            aria-label="Select entry"
+          />
+        )}
+        <div className="min-w-0 flex-1">
           <p className="text-[15px] text-text truncate">{transaction.category ?? "Uncategorized"}</p>
           <p className="text-[13px] text-muted">
             {formatRelativeDay(transaction.occurred_on)} · {transaction.account_name} · {transaction.payer_label}
@@ -137,13 +169,8 @@ export function TransactionRow({
         <button type="button" className="btn flex-1" onClick={() => setEditing(false)}>
           Cancel
         </button>
-        <button
-          type="button"
-          className="btn btn-destructive"
-          disabled={pendingDelete}
-          onClick={() => startDeleteTransition(async () => { await deleteTransaction(transaction.id); })}
-        >
-          {pendingDelete ? "Deleting…" : "Delete"}
+        <button type="button" className="btn btn-destructive" onClick={handleDelete}>
+          Delete
         </button>
         <button type="submit" disabled={pending} className="btn btn-primary flex-1">
           {pending ? "Saving…" : "Save"}

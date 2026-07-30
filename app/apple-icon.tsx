@@ -10,13 +10,13 @@ export default function AppleIcon() {
         style={{
           width: "100%",
           height: "100%",
-          background: "#0a0a0b",
+          background: "linear-gradient(150deg, #0d5c3f, #07080a)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="#c8cbd0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke="#6fe8bb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 18V7l8-3 8 3v11" />
           <path d="M4 18h16M9 18v-5h6v5" />
         </svg>
