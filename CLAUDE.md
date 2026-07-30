@@ -164,6 +164,8 @@ Asked for "more features with even a much more cleaner UI." "Cleaner" is a taste
 - `get_advisors` flags `restore_from_backup` as authenticated-executable `security definer` — expected and intentional, and correctly **not** anon-executable, confirming the revoke. The only other findings remain the pre-existing two.
 - All six new/changed UI surfaces screenshotted against the real dev-server-compiled CSS. The authenticated pages still can't be click-tested for the standing egress reason.
 
+**Follow-up: the first `get_advisors` *performance* run this era, which caught a real gap in the above.** Every table in this schema carries a `<table>_user_idx` on `user_id` — the column every single RLS policy filters on — and `obligation_installments` had shipped without one (`unindexed_foreign_keys`). Fixed in its own migration rather than folded back into the original. The three remaining findings are all `unused_index` INFO items (`fx_rates_user_idx`, `share_links_user_idx`, and now the new one) — unused only because those tables have little or no data yet, not because they're wrong, so they were deliberately **not** removed. Also confirmed the recurring-bill cron job is genuinely runnable rather than just registered: it's `active`, runs as `postgres` in the `postgres` database, and `has_function_privilege` confirms that role can execute the function it owns, so the `revoke ... from anon, authenticated` doesn't block the scheduler.
+
 ---
 
 # Everything below this line describes Command Deck v2 (superseded)
