@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(app)/actions";
 import { FxRateForm } from "@/components/settings/FxRateForm";
+import { FxRateHistory } from "@/components/settings/FxRateHistory";
 import { AccountsForm } from "@/components/settings/AccountsForm";
 import { PayersForm } from "@/components/settings/PayersForm";
 import { ExportButton } from "@/components/settings/ExportButton";
@@ -17,22 +18,24 @@ export default async function SettingsPage() {
   const [fxRes, accountsRes, payersRes, settingsRes, shareLinksRes] = await Promise.all([
     supabase
       .from("fx_rates")
-      .select("etb_per_usd, effective_on, source")
+      .select("id, etb_per_usd, effective_on, source")
       .order("effective_on", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .order("created_at", { ascending: false }),
     supabase.from("accounts").select("id, name, currency, kind, opening_balance_minor, is_archived").order("kind").order("name"),
     supabase.from("payers").select("id, key, label, class_year").order("is_default", { ascending: false }),
     supabase.from("settings").select("tracking_start_date").maybeSingle(),
     supabase.from("share_links").select("id, label, created_at, revoked_at").order("created_at", { ascending: false }),
   ]);
 
+  const fxRates = fxRes.data ?? [];
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-[20px] font-semibold text-text">Settings</h1>
 
-      <FxRateForm current={fxRes.data ?? null} />
+      <FxRateForm current={fxRates[0] ?? null} />
+
+      <FxRateHistory rates={fxRates} />
 
       <AccountsForm accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency; kind: "bank" | "cash" | "processor"; opening_balance_minor: number; is_archived: boolean }[]} />
 

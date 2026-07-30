@@ -41,6 +41,14 @@ export async function setFxRate(_prevState: ActionState, formData: FormData): Pr
   return { success: true };
 }
 
+export async function deleteFxRate(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("fx_rates").delete().eq("id", id);
+  if (error) return { error: error.message };
+  revalidateAll();
+  return {};
+}
+
 export async function addAccount(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const supabase = await createClient();
   const {

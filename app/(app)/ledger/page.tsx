@@ -1,13 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import type { TransactionRowData } from "@/components/ledger/TransactionRow";
 import { LedgerList } from "@/components/ledger/LedgerList";
+import { LedgerSummary } from "@/components/ledger/LedgerSummary";
 import { CsvExportButton } from "@/components/ledger/CsvExportButton";
 import { formatMoney, type Currency } from "@/lib/money";
 
 type Filters = {
   payer_id?: string;
+  account_id?: string;
   currency?: string;
   category?: string;
+  q?: string;
   from?: string;
   to?: string;
   week?: string;
@@ -22,6 +25,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
     supabase.from("accounts").select("id, name, currency"),
   ]);
   const payers = payersRes.data ?? [];
+  const accounts = (accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[];
 
   let query = supabase
     .from("transactions_with_week")
@@ -32,11 +36,21 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
     .order("created_at", { ascending: false });
 
   if (filters.payer_id) query = query.eq("payer_id", filters.payer_id);
+  if (filters.account_id) query = query.eq("account_id", filters.account_id);
   if (filters.currency) query = query.eq("currency", filters.currency);
   if (filters.category) query = query.ilike("category", `%${filters.category}%`);
   if (filters.from) query = query.gte("occurred_on", filters.from);
   if (filters.to) query = query.lte("occurred_on", filters.to);
   if (filters.week) query = query.eq("week_number", Number(filters.week));
+
+  // Free-text search spans note and category. `or()` takes a raw filter string,
+  // so commas and parens in the term would otherwise be read as filter syntax
+  // rather than as text to match -- strip them instead of building a broken
+  // query out of the user's own words.
+  const searchTerm = filters.q?.trim().replace(/[,()]/g, "");
+  if (searchTerm) {
+    query = query.or(`note.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`);
+  }
 
   const { data } = await query;
 
@@ -82,6 +96,13 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
       </div>
 
       <form method="get" className="card row flex flex-col gap-2">
+        <input
+          name="q"
+          defaultValue={filters.q ?? ""}
+          placeholder="Search notes and categories…"
+          className="input"
+          aria-label="Search"
+        />
         <div className="flex gap-2">
           <select name="payer_id" defaultValue={filters.payer_id ?? ""} className="input">
             <option value="">All payers</option>
@@ -97,6 +118,14 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
             <option value="USD">USD</option>
           </select>
         </div>
+        <select name="account_id" defaultValue={filters.account_id ?? ""} className="input" aria-label="Account">
+          <option value="">All accounts</option>
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name} ({a.currency})
+            </option>
+          ))}
+        </select>
         <input name="category" defaultValue={filters.category ?? ""} placeholder="Category contains…" className="input" />
         <input name="week" type="number" defaultValue={filters.week ?? ""} placeholder="Week #" className="input" aria-label="Week number" />
         <div className="flex gap-2">
@@ -121,11 +150,9 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
         </div>
       </div>
 
-      <LedgerList
-        rows={rows}
-        payers={payers}
-        accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[]}
-      />
+      <LedgerSummary rows={rows} />
+
+      <LedgerList rows={rows} payers={payers} accounts={accounts} />
     </div>
   );
 }

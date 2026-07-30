@@ -11,7 +11,8 @@ export default async function AddPage({
   const { obligation_id, payer_id } = await searchParams;
   const supabase = await createClient();
 
-  const [payersRes, accountsRes, fxRes, obligationsRes, lastEtbRes, lastUsdRes, recentRes] = await Promise.all([
+  const [payersRes, accountsRes, fxRes, obligationsRes, lastEtbRes, lastUsdRes, recentRes, lastEntryRes] =
+    await Promise.all([
     supabase.from("payers").select("id, key, label, is_default").order("is_default", { ascending: false }),
     supabase.from("accounts").select("id, name, currency").eq("is_archived", false),
     supabase.from("fx_rates").select("etb_per_usd, effective_on").order("effective_on", { ascending: false }).order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -22,6 +23,13 @@ export default async function AddPage({
       .from("transactions")
       .select("category, direction")
       .gte("occurred_on", daysAgoIso(90)),
+    supabase
+      .from("transactions")
+      .select("amount_minor, currency, direction, category, account_id, payer_id, note")
+      .order("occurred_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const categoryUsage: { in: Record<string, number>; out: Record<string, number> } = { in: {}, out: {} };
@@ -48,6 +56,7 @@ export default async function AddPage({
         }}
         categoryUsage={categoryUsage}
         defaultCurrency="ETB"
+        lastEntry={lastEntryRes.data ?? null}
         initialObligationId={obligation_id}
         initialPayerId={payer_id}
       />
