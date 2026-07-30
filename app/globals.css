@@ -166,8 +166,48 @@ body {
   pointer-events: none;
 }
 
+/* Standard page heading. Was repeated inline on every page as
+   `text-[20px] font-semibold`; centralised so hierarchy stays consistent. */
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* Horizontal scroller with edge fades, so a row that continues off-screen
+   says so instead of relying on the user guessing they can swipe. The
+   component existed since v1 but its CSS was never carried into v3 -- these
+   are its styles, added the first time it's actually used here. */
+.hscroll {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+.hscroll-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  pointer-events: none;
+}
+
+.hscroll-fade-left {
+  left: 0;
+  background: linear-gradient(90deg, var(--bg), transparent);
+}
+
+.hscroll-fade-right {
+  right: 0;
+  background: linear-gradient(270deg, var(--bg), transparent);
+}
+
 .row {
-  padding: 14px 16px;
+  padding: 16px 18px;
   position: relative;
 }
 

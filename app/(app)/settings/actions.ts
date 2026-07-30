@@ -188,6 +188,35 @@ export async function deleteShareLink(id: string): Promise<{ error?: string }> {
   return {};
 }
 
+/**
+ * Hands the whole backup to a single database function rather than replaying
+ * inserts from here. Two reasons, both load-bearing:
+ *
+ *  - It's atomic. A restore that half-applied would leave the ledger in a state
+ *    worse than either the backup or the current data.
+ *  - Only the database can write historical FX rates faithfully. The freeze
+ *    trigger looks up today's rate for any client insert, so restoring from
+ *    here would silently reprice every historical ETB entry.
+ */
+export async function restoreFromBackup(payload: unknown): Promise<{ error?: string; counts?: string }> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("restore_from_backup", {
+    p_backup: payload as never,
+  });
+
+  if (error) return { error: error.message };
+  revalidateAll();
+
+  const counts = data as Record<string, number> | null;
+  if (!counts) return {};
+  return {
+    counts: Object.entries(counts)
+      .map(([k, v]) => `${v} ${k}`)
+      .join(", "),
+  };
+}
+
 export async function exportAllData(): Promise<Record<string, unknown>> {
   const supabase = await createClient();
   const {
@@ -195,21 +224,25 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
   } = await supabase.auth.getUser();
   if (!user) return {};
 
-  const [payers, accounts, fxRates, obligations, transactions, settings] = await Promise.all([
+  const [payers, accounts, fxRates, obligations, installments, transactions, settings] = await Promise.all([
     supabase.from("payers").select("*"),
     supabase.from("accounts").select("*"),
     supabase.from("fx_rates").select("*"),
     supabase.from("obligations").select("*"),
+    supabase.from("obligation_installments").select("*"),
     supabase.from("transactions").select("*"),
     supabase.from("settings").select("*"),
   ]);
 
+  // Every table restore_from_backup() reads has to be here, or a backup won't
+  // round-trip -- an export that silently omits a table is a broken backup.
   return {
     exported_at: new Date().toISOString(),
     payers: payers.data,
     accounts: accounts.data,
     fx_rates: fxRates.data,
     obligations: obligations.data,
+    obligation_installments: installments.data,
     transactions: transactions.data,
     settings: settings.data,
   };

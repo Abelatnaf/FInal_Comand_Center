@@ -74,6 +74,51 @@ export type Database = {
         }
         Relationships: []
       }
+      obligation_installments: {
+        Row: {
+          amount_usd_minor: number
+          created_at: string
+          due_on: string | null
+          id: string
+          obligation_id: string
+          seq: number
+          user_id: string
+        }
+        Insert: {
+          amount_usd_minor: number
+          created_at?: string
+          due_on?: string | null
+          id?: string
+          obligation_id: string
+          seq: number
+          user_id: string
+        }
+        Update: {
+          amount_usd_minor?: number
+          created_at?: string
+          due_on?: string | null
+          id?: string
+          obligation_id?: string
+          seq?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "obligation_installments_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligation_progress"
+            referencedColumns: ["obligation_id"]
+          },
+          {
+            foreignKeyName: "obligation_installments_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       obligations: {
         Row: {
           amount_usd_minor: number
@@ -81,6 +126,8 @@ export type Database = {
           due_on: string | null
           id: string
           payer_id: string
+          recur_interval_months: number | null
+          recur_spawned_at: string | null
           source_note: string | null
           title: string
           user_id: string
@@ -92,6 +139,8 @@ export type Database = {
           due_on?: string | null
           id?: string
           payer_id: string
+          recur_interval_months?: number | null
+          recur_spawned_at?: string | null
           source_note?: string | null
           title: string
           user_id: string
@@ -103,6 +152,8 @@ export type Database = {
           due_on?: string | null
           id?: string
           payer_id?: string
+          recur_interval_months?: number | null
+          recur_spawned_at?: string | null
           source_note?: string | null
           title?: string
           user_id?: string
@@ -208,6 +259,7 @@ export type Database = {
           obligation_id: string | null
           occurred_on: string
           payer_id: string
+          receipt_path: string | null
           user_id: string
         }
         Insert: {
@@ -224,6 +276,7 @@ export type Database = {
           obligation_id?: string | null
           occurred_on?: string
           payer_id: string
+          receipt_path?: string | null
           user_id: string
         }
         Update: {
@@ -240,6 +293,7 @@ export type Database = {
           obligation_id?: string | null
           occurred_on?: string
           payer_id?: string
+          receipt_path?: string | null
           user_id?: string
         }
         Relationships: [
@@ -294,6 +348,36 @@ export type Database = {
         }
         Relationships: []
       }
+      installment_progress: {
+        Row: {
+          amount_covered_minor: number | null
+          amount_usd_minor: number | null
+          cumulative_before_minor: number | null
+          due_on: string | null
+          installment_id: string | null
+          is_past_due: boolean | null
+          is_settled: boolean | null
+          obligation_id: string | null
+          seq: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "obligation_installments_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligation_progress"
+            referencedColumns: ["obligation_id"]
+          },
+          {
+            foreignKeyName: "obligation_installments_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       liquid_position: {
         Row: {
           fx_rate_effective_on: string | null
@@ -344,6 +428,7 @@ export type Database = {
           obligation_id: string | null
           occurred_on: string | null
           payer_id: string | null
+          receipt_path: string | null
           user_id: string | null
           week_number: number | null
         }
@@ -401,6 +486,8 @@ export type Database = {
           total_liquid_usd_minor: number
         }[]
       }
+      restore_from_backup: { Args: { p_backup: Json }; Returns: Json }
+      spawn_due_recurring_obligations: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never

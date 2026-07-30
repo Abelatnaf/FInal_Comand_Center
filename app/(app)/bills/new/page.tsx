@@ -7,7 +7,7 @@ export default async function NewBillPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-[20px] font-semibold text-text">Add a bill</h1>
+      <h1 className="page-title">Add a bill</h1>
       <ObligationForm payers={payers ?? []} mode="new" />
     </div>
   );

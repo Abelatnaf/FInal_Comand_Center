@@ -5,6 +5,7 @@ import { FxRateHistory } from "@/components/settings/FxRateHistory";
 import { AccountsForm } from "@/components/settings/AccountsForm";
 import { PayersForm } from "@/components/settings/PayersForm";
 import { ExportButton } from "@/components/settings/ExportButton";
+import { RestoreForm } from "@/components/settings/RestoreForm";
 import { TrackingWeekForm } from "@/components/settings/TrackingWeekForm";
 import { ShareLinksForm } from "@/components/settings/ShareLinksForm";
 import type { Currency } from "@/lib/money";
@@ -31,7 +32,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-[20px] font-semibold text-text">Settings</h1>
+      <h1 className="page-title">Settings</h1>
 
       <FxRateForm current={fxRates[0] ?? null} />
 
@@ -48,6 +49,8 @@ export default async function SettingsPage() {
       <div className="card row">
         <ExportButton />
       </div>
+
+      <RestoreForm />
 
       <div className="card row flex flex-col gap-2">
         <p className="text-[14px] text-muted">{user?.email}</p>
