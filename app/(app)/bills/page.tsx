@@ -23,7 +23,7 @@ export default async function BillsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Bills</h1>
+        <h1 className="page-title">Bills</h1>
         <Link href="/bills/new" className="btn btn-primary">
           Add
         </Link>

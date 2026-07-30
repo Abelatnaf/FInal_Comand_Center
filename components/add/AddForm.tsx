@@ -10,6 +10,7 @@ import { sortByUsage, type Direction } from "@/lib/categories";
 import { todayIso } from "@/lib/date";
 import { enqueueTransaction } from "@/lib/offline/queue";
 import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
+import { HScroll } from "@/components/ui/HScroll";
 
 type Payer = { id: string; key: string; label: string; is_default: boolean };
 type Account = { id: string; name: string; currency: Currency };
@@ -61,6 +62,7 @@ export function AddForm({
   const [obligationId, setObligationId] = useState(initialObligationId ?? "");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasReceipt, setHasReceipt] = useState(false);
 
   const accountsForCurrency = useMemo(() => accounts.filter((a) => a.currency === currency), [accounts, currency]);
   const [accountId, setAccountId] = useState<string>(
@@ -142,6 +144,12 @@ export function AddForm({
         setError(result.error);
         return;
       }
+      // The entry saved but its receipt didn't. Stay put and say so rather than
+      // navigating away as if everything worked.
+      if (result?.receiptError) {
+        setError(`Saved, but the receipt didn't upload: ${result.receiptError}`);
+        return;
+      }
       router.push("/");
     } catch {
       // A real network failure mid-request (was online, connection dropped
@@ -183,13 +191,18 @@ export function AddForm({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {categories.map((c) => (
-          <button key={c} type="button" className="chip" data-active={category === c} onClick={() => setCategory(c)}>
-            {c}
-          </button>
-        ))}
-      </div>
+      {/* One scrolling row instead of three wrapped rows -- the single biggest
+          density win on this screen, and "most-used first" already puts the
+          likely pick within reach without scrolling. */}
+      <HScroll className="-mx-4 px-4">
+        <div className="flex gap-2 w-max">
+          {categories.map((c) => (
+            <button key={c} type="button" className="chip" data-active={category === c} onClick={() => setCategory(c)}>
+              {c}
+            </button>
+          ))}
+        </div>
+      </HScroll>
 
       <div className="flex items-center justify-between gap-3">
         <button
@@ -269,6 +282,25 @@ export function AddForm({
               Note
             </label>
             <input id="note" className="input" value={note} onChange={(e) => setNote(e.target.value)} />
+          </div>
+          <div className="row">
+            <label className="section-label block mb-1.5" htmlFor="receipt">
+              Receipt
+            </label>
+            <input
+              id="receipt"
+              name="receipt"
+              type="file"
+              accept="image/*,application/pdf"
+              className="input"
+              onChange={(e) => setHasReceipt(Boolean(e.target.files?.length))}
+            />
+            {hasReceipt && !isOnline && (
+              <p className="text-urgent text-[13px] mt-1.5">
+                Offline — the entry will sync, but the receipt won&rsquo;t. Re-attach it from the Ledger once
+                you&rsquo;re back online.
+              </p>
+            )}
           </div>
         </div>
       )}

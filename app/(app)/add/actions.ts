@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { transactionSchema } from "@/lib/schemas/transaction";
+import { uploadReceipt } from "@/lib/receipts";
 
-export type CreateTransactionState = { error?: string; success?: boolean } | undefined;
+export type CreateTransactionState =
+  | { error?: string; success?: boolean; receiptError?: string }
+  | undefined;
 
 function orUndefined(value: FormDataEntryValue | null): string | undefined {
   const s = String(value ?? "").trim();
@@ -45,25 +48,45 @@ export async function createTransaction(
 
   // fx_rate_etb_per_usd / amount_usd_minor are required by the generated
   // Insert type (the columns have no SQL default) but are always computed
-  // and frozen by the BEFORE INSERT trigger -- these placeholders are
-  // unconditionally overwritten, never actually stored.
-  const { error } = await supabase.from("transactions").insert({
-    user_id: user.id,
-    payer_id: input.payer_id,
-    account_id: input.account_id,
-    occurred_on: input.occurred_on,
-    direction: input.direction,
-    amount_minor: Number(input.amount_minor),
-    currency: input.currency,
-    category: input.category ?? null,
-    note: input.note ?? null,
-    obligation_id: input.obligation_id ?? null,
-    fx_rate_etb_per_usd: 0,
-    amount_usd_minor: 0,
-  });
+  // and frozen by the BEFORE INSERT trigger. The trigger only honours a
+  // caller-supplied rate for the database owner (the restore path), never for
+  // an `authenticated` client, so these placeholders are always overwritten.
+  const { data: inserted, error } = await supabase
+    .from("transactions")
+    .insert({
+      user_id: user.id,
+      payer_id: input.payer_id,
+      account_id: input.account_id,
+      occurred_on: input.occurred_on,
+      direction: input.direction,
+      amount_minor: Number(input.amount_minor),
+      currency: input.currency,
+      category: input.category ?? null,
+      note: input.note ?? null,
+      obligation_id: input.obligation_id ?? null,
+      fx_rate_etb_per_usd: 0,
+      amount_usd_minor: 0,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     return { error: error.message };
+  }
+
+  // The receipt is uploaded after the row exists so its path can include the
+  // transaction id. A failed upload is reported but does NOT fail the entry --
+  // the money is already recorded correctly, and losing the transaction over a
+  // missing attachment would be the worse outcome.
+  const receipt = formData.get("receipt");
+  if (inserted && receipt instanceof File && receipt.size > 0) {
+    const uploadError = await uploadReceipt(supabase, user.id, inserted.id, receipt);
+    if (uploadError) {
+      revalidatePath("/");
+      revalidatePath("/ledger");
+      revalidatePath("/bills");
+      return { success: true, receiptError: uploadError };
+    }
   }
 
   revalidatePath("/");

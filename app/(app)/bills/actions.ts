@@ -110,6 +110,86 @@ export async function deleteObligation(id: string): Promise<{ error?: string }> 
   return {};
 }
 
+/**
+ * Replaces an obligation's whole installment plan in one shot: delete then
+ * re-insert, rather than diffing rows. The plan is small (a handful of parts)
+ * and `seq` is uniquely constrained per obligation, so an in-place edit would
+ * have to juggle ordering conflicts for no real benefit.
+ *
+ * Nothing about payment is written here -- which installment is settled is
+ * derived from cumulative amounts vs. what's actually been paid, so a plan
+ * edit can never contradict the ledger.
+ */
+export async function setInstallmentPlan(
+  obligationId: string,
+  parts: { due_on: string | null; amount: string }[]
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const rows: { user_id: string; obligation_id: string; seq: number; due_on: string | null; amount_usd_minor: number }[] = [];
+  for (const [i, part] of parts.entries()) {
+    const raw = part.amount.trim();
+    if (raw === "") continue;
+    let minor: bigint;
+    try {
+      minor = toMinor(raw);
+    } catch {
+      return { error: `Part ${i + 1} isn't a valid amount.` };
+    }
+    if (minor <= 0n) return { error: `Part ${i + 1} has to be more than zero.` };
+    rows.push({
+      user_id: user.id,
+      obligation_id: obligationId,
+      seq: rows.length + 1,
+      due_on: part.due_on || null,
+      amount_usd_minor: Number(minor),
+    });
+  }
+
+  const { error: deleteError } = await supabase
+    .from("obligation_installments")
+    .delete()
+    .eq("obligation_id", obligationId);
+  if (deleteError) return { error: deleteError.message };
+
+  if (rows.length > 0) {
+    const { error } = await supabase.from("obligation_installments").insert(rows);
+    if (error) return { error: error.message };
+  }
+
+  revalidateAll();
+  revalidatePath(`/bills/${obligationId}`);
+  return {};
+}
+
+/**
+ * Sets or clears a repeat interval. Clearing it also clears recur_spawned_at,
+ * so re-enabling a repeat later starts fresh rather than being permanently
+ * considered "already spawned".
+ */
+export async function setObligationRecurrence(
+  id: string,
+  intervalMonths: number | null
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("obligations")
+    .update({
+      recur_interval_months: intervalMonths,
+      recur_spawned_at: null,
+    })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+  revalidateAll();
+  revalidatePath(`/bills/${id}`);
+  return {};
+}
+
 // Bills like tuition recur every semester with the same payer and usually
 // a similar amount -- duplicating one saves retyping all of that for what
 // will genuinely happen again. due_on and source_note are deliberately left

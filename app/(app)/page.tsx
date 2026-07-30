@@ -10,7 +10,7 @@ import { formatShortDate, daysBetween, todayIso } from "@/lib/date";
 export default async function NowPage() {
   const supabase = await createClient();
 
-  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, openObligationsRes, recentRes, settingsRes] =
+  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, openObligationsRes, recentRes, settingsRes, installmentsRes] =
     await Promise.all([
       supabase.from("payers").select("id, key, label"),
       supabase.from("accounts").select("id, name, currency").eq("is_archived", false),
@@ -24,11 +24,16 @@ export default async function NowPage() {
         .order("due_on", { ascending: true, nullsFirst: false }),
       supabase
         .from("transactions")
-        .select("id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category, note, account_id, payer_id, obligation_id, accounts(name), payers(label)")
+        .select("id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category, note, account_id, payer_id, obligation_id, receipt_path, accounts(name), payers(label)")
         .order("occurred_on", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(3),
       supabase.from("settings").select("tracking_start_date").maybeSingle(),
+      supabase
+        .from("installment_progress")
+        .select("obligation_id, seq, due_on, amount_usd_minor, amount_covered_minor, is_past_due")
+        .eq("is_settled", false)
+        .order("seq", { ascending: true }),
     ]);
 
   const trackingStartDate = settingsRes.data?.tracking_start_date ?? null;
@@ -48,6 +53,13 @@ export default async function NowPage() {
   });
   const nextDue = openObligations[0] ?? null;
   const upcoming = openObligations.slice(1, 4);
+
+  // If the next-due bill has a payment plan, what's actually due next is the
+  // next unsettled part, not the whole remaining balance. Lowest seq wins --
+  // the view already orders by it and excludes settled parts.
+  const nextInstallment = nextDue
+    ? (installmentsRes.data ?? []).find((i) => i.obligation_id === nextDue.obligation_id) ?? null
+    : null;
 
   const liquid = liquidRes.data;
   const hasAnyObligations = (obligationCountRes.count ?? 0) > 0;
@@ -80,13 +92,14 @@ export default async function NowPage() {
     payer_id: t.payer_id,
     payer_label: (t.payers as { label: string } | null)?.label ?? "—",
     obligation_id: t.obligation_id,
+    receipt_path: t.receipt_path,
   }));
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-[20px] font-semibold text-text">Now</h1>
+          <h1 className="page-title">Now</h1>
           {currentWeek !== null && <span className="text-[13px] text-faint">Week {currentWeek}</span>}
         </div>
         <Link href="/settings" aria-label="Settings" className="p-2 -m-2 text-muted">
@@ -120,6 +133,29 @@ export default async function NowPage() {
                   ? `${nextDue.days_until_due} days left · due ${formatShortDate(nextDue.due_on)}`
                   : "No due date set"}
             </p>
+
+            {/* The hero figure stays the full remaining balance; this adds what
+                the plan says to pay next, which is usually the smaller and more
+                actionable number. */}
+            {nextInstallment && (
+              <div className="mt-3 pt-3 border-t border-[var(--border)] flex items-center justify-between">
+                <div>
+                  <p className="section-label">Next part</p>
+                  <p className={`text-[13px] ${nextInstallment.is_past_due ? "text-alarm" : "text-muted"}`}>
+                    Part {nextInstallment.seq}
+                    {nextInstallment.due_on && ` · due ${formatShortDate(nextInstallment.due_on)}`}
+                  </p>
+                </div>
+                <Amount
+                  minor={
+                    BigInt(nextInstallment.amount_usd_minor ?? 0) -
+                    BigInt(nextInstallment.amount_covered_minor ?? 0)
+                  }
+                  currency="USD"
+                  className={nextInstallment.is_past_due ? "text-alarm" : "text-text"}
+                />
+              </div>
+            )}
           </div>
         )
       )}

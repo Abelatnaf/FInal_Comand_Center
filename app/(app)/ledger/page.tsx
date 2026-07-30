@@ -30,7 +30,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   let query = supabase
     .from("transactions_with_week")
     .select(
-      "id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category, note, account_id, payer_id, obligation_id, week_number, accounts(name), payers(label)"
+      "id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category, note, account_id, payer_id, obligation_id, receipt_path, week_number, accounts(name), payers(label)"
     )
     .order("occurred_on", { ascending: false })
     .order("created_at", { ascending: false });
@@ -79,6 +79,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
       payer_id: t.payer_id,
       payer_label: (t.payers as { label: string } | null)?.label ?? "—",
       obligation_id: t.obligation_id,
+      receipt_path: t.receipt_path,
       week_number: t.week_number,
     }));
 
@@ -91,7 +92,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Ledger</h1>
+        <h1 className="page-title">Ledger</h1>
         <CsvExportButton rows={rows} />
       </div>
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { updateTransaction, deleteTransaction, type TransactionFormState } from "@/app/(app)/ledger/actions";
+import { updateTransaction, deleteTransaction, attachReceipt, type TransactionFormState } from "@/app/(app)/ledger/actions";
+import { ReceiptLink } from "@/components/money/ReceiptLink";
 import { Amount } from "@/components/money/Amount";
 import { CurrencyToggle } from "@/components/money/CurrencyToggle";
 import { formatRelativeDay } from "@/lib/date";
@@ -24,6 +25,7 @@ export type TransactionRowData = {
   payer_label: string;
   obligation_id: string | null;
   week_number?: number | null;
+  receipt_path?: string | null;
 };
 
 type Payer = { id: string; label: string };
@@ -48,6 +50,8 @@ export function TransactionRow({
   const [currency, setCurrency] = useState<Currency>(transaction.currency);
   const [direction, setDirection] = useState<Direction>(transaction.direction);
   const [pendingRemoval, setPendingRemoval] = useState(false);
+  const [receiptBusy, setReceiptBusy] = useState(false);
+  const [receiptError, setReceiptError] = useState<string | null>(null);
   const { scheduleUndo } = useUndo();
 
   const [state, formAction, pending] = useActionState<TransactionFormState, FormData>(updateTransaction, undefined);
@@ -162,6 +166,31 @@ export function TransactionRow({
 
       <input name="note" defaultValue={transaction.note ?? ""} placeholder="Note" className="input" />
       <input type="hidden" name="obligation_id" value={transaction.obligation_id ?? ""} />
+
+      {/* Receipt upload is its own action, not part of this form's submit --
+          the edit form goes through useActionState with a Zod schema that has
+          no file field, and a file input would be silently dropped by it. */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {transaction.receipt_path && <ReceiptLink path={transaction.receipt_path} />}
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          className="input flex-1 min-w-[140px]"
+          aria-label={transaction.receipt_path ? "Replace receipt" : "Attach receipt"}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const fd = new FormData();
+            fd.set("receipt", file);
+            setReceiptBusy(true);
+            const res = await attachReceipt(transaction.id, fd);
+            setReceiptBusy(false);
+            setReceiptError(res.error ?? null);
+          }}
+        />
+        {receiptBusy && <span className="text-muted text-[13px]">Uploading…</span>}
+      </div>
+      {receiptError && <p className="text-alarm text-[13px]">{receiptError}</p>}
 
       {state?.error && <p className="text-alarm text-[14px]">{state.error}</p>}
 

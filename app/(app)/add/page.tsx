@@ -41,7 +41,7 @@ export default async function AddPage({
 
   return (
     <div>
-      <h1 className="text-[20px] font-semibold text-text mb-4">Add</h1>
+      <h1 className="page-title mb-4">Add</h1>
       <AddForm
         payers={payersRes.data ?? []}
         accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[]}

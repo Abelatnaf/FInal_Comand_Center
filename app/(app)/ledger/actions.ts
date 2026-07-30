@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { transactionSchema } from "@/lib/schemas/transaction";
+import { uploadReceipt, RECEIPT_BUCKET } from "@/lib/receipts";
 
 export type TransactionFormState = { error?: string; success?: boolean } | undefined;
 
@@ -70,6 +71,38 @@ export async function deleteTransaction(id: string): Promise<{ error?: string }>
   const supabase = await createClient();
   const { error } = await supabase.from("transactions").delete().eq("id", id);
   if (error) return { error: error.message };
+  revalidateAffected();
+  return {};
+}
+
+/**
+ * A short-lived signed URL, fetched on demand rather than stored. The bucket is
+ * private, so there is no durable public link to leak, and a 60-second window
+ * is plenty to open the file without leaving a shareable URL lying around.
+ */
+export async function getReceiptUrl(path: string): Promise<{ url?: string; error?: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage.from(RECEIPT_BUCKET).createSignedUrl(path, 60);
+  if (error) return { error: error.message };
+  return { url: data.signedUrl };
+}
+
+export async function attachReceipt(
+  transactionId: string,
+  formData: FormData
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const file = formData.get("receipt");
+  if (!(file instanceof File) || file.size === 0) return { error: "Pick a file first." };
+
+  const uploadError = await uploadReceipt(supabase, user.id, transactionId, file);
+  if (uploadError) return { error: uploadError };
+
   revalidateAffected();
   return {};
 }

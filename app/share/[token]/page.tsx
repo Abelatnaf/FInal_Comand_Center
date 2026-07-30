@@ -46,7 +46,7 @@ export default async function SharedSnapshotPage({ params }: { params: Promise<{
     <div className="min-h-screen px-4 py-8">
       <div className="max-w-lg mx-auto flex flex-col gap-6">
         <div>
-          <h1 className="text-[20px] font-semibold text-text">Shared status</h1>
+          <h1 className="page-title">Shared status</h1>
           <p className="text-[13px] text-muted">Read-only — nothing here can be edited.</p>
         </div>
 
