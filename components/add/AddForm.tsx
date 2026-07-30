@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createTransaction } from "@/app/(app)/add/actions";
 import { Keypad } from "@/components/money/Keypad";
 import { CurrencyToggle } from "@/components/money/CurrencyToggle";
-import { toMinor, convertToUsdMinor, formatMoney, type Currency } from "@/lib/money";
+import { toMinor, fromMinor, convertToUsdMinor, formatMoney, type Currency } from "@/lib/money";
 import { sortByUsage, type Direction } from "@/lib/categories";
 import { todayIso } from "@/lib/date";
 import { enqueueTransaction } from "@/lib/offline/queue";
@@ -14,6 +14,15 @@ import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
 type Payer = { id: string; key: string; label: string; is_default: boolean };
 type Account = { id: string; name: string; currency: Currency };
 type Obligation = { obligation_id: string; title: string; payer_id: string };
+type LastEntry = {
+  amount_minor: number;
+  currency: string;
+  direction: string;
+  category: string | null;
+  account_id: string;
+  payer_id: string;
+  note: string | null;
+};
 
 export function AddForm({
   payers,
@@ -23,6 +32,7 @@ export function AddForm({
   lastAccountByCurrency,
   categoryUsage,
   defaultCurrency,
+  lastEntry,
   initialObligationId,
   initialPayerId,
 }: {
@@ -33,6 +43,7 @@ export function AddForm({
   lastAccountByCurrency: Record<Currency, string | null>;
   categoryUsage: { in: Record<string, number>; out: Record<string, number> };
   defaultCurrency: Currency;
+  lastEntry: LastEntry | null;
   initialObligationId?: string;
   initialPayerId?: string;
 }) {
@@ -69,6 +80,30 @@ export function AddForm({
   function handleDirection(next: Direction) {
     setDirection(next);
     setCategory(sortByUsage(next, categoryUsage[next])[0]);
+  }
+
+  // Reuses the last entry's shape, not its date -- "repeat" means logging the
+  // same kind of thing again today, not re-dating an old entry. The amount is
+  // prefilled too, since a repeated expense is usually the same price; it's
+  // still fully editable on the keypad before saving.
+  function handleRepeatLast() {
+    if (!lastEntry) return;
+    const repeatCurrency = lastEntry.currency as Currency;
+    const repeatDirection = lastEntry.direction as Direction;
+
+    setCurrency(repeatCurrency);
+    setDirection(repeatDirection);
+    setCategory(lastEntry.category ?? sortByUsage(repeatDirection, categoryUsage[repeatDirection])[0]);
+    setNote(lastEntry.note ?? "");
+    setPayerId(lastEntry.payer_id);
+    setOccurredOn(todayIso());
+    setObligationId("");
+    setAmountRaw(fromMinor(BigInt(lastEntry.amount_minor)));
+
+    // Only reuse the account if it's still live and matches the currency --
+    // an archived or deleted account would otherwise submit a dead id.
+    const account = accounts.find((a) => a.id === lastEntry.account_id && a.currency === repeatCurrency);
+    setAccountId(account?.id ?? lastAccountByCurrency[repeatCurrency] ?? accounts.find((a) => a.currency === repeatCurrency)?.id ?? "");
   }
 
   function handleKey(key: string) {
@@ -156,13 +191,20 @@ export function AddForm({
         ))}
       </div>
 
-      <button
-        type="button"
-        className="text-muted text-[14px] text-left"
-        onClick={() => setShowMore((v) => !v)}
-      >
-        {showMore ? "Less ⌃" : "More ⌄"}
-      </button>
+      <div className="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          className="text-muted text-[14px] text-left"
+          onClick={() => setShowMore((v) => !v)}
+        >
+          {showMore ? "Less ⌃" : "More ⌄"}
+        </button>
+        {lastEntry && !isRecordingPayment && (
+          <button type="button" className="text-silver text-[14px]" onClick={handleRepeatLast}>
+            ↻ Repeat last
+          </button>
+        )}
+      </div>
 
       {showMore && (
         <div className="card">
