@@ -147,7 +147,12 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
 
           <div className="card row flex items-center justify-between">
             <div>
-              <p className="section-label">Still owed{isFiltered && ", filtered"}</p>
+              <div className="flex items-center gap-3">
+                <p className="section-label">Still owed{isFiltered && ", filtered"}</p>
+                <Link href="/upcoming" className="text-silver text-[12px]">
+                  Timeline
+                </Link>
+              </div>
               {pastDueMinor > 0n && (
                 <p className="text-[13px] text-alarm">
                   <Amount minor={pastDueMinor} currency="USD" className="text-alarm" /> past due

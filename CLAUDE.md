@@ -191,6 +191,20 @@ Asked for "WAY MORE FEATURES" -- the fourth such ask in a row, and previous open
 
 **Real-world confirmation of the earlier FX fix, found by accident**: the transfer test's numbers were off by exactly $5.00, which turned out not to be a bug but Abel's own first real transaction -- $5.00 "Personal Care", logged minutes after PR #16 merged, stored with the placeholder rate `1.0000` exactly as designed. The USD-without-a-rate path works in production. The test's expectations were stale (they assumed an empty ledger), not the code; it was re-run against a measured baseline instead.
 
+## 15. Post-launch: transfers in the Ledger, account detail, upcoming timeline
+
+Fifth "more features" ask. Picked from remaining gaps; the first item closes one created by the previous batch.
+
+**Transfers in the Ledger** -- section 14 added transfers but only surfaced them in Settings, so the Ledger claimed to be the history while silently omitting real money movements. They're now interleaved into the timeline by date as read-only `TransferRow`s. Deliberately excluded from bulk selection, the category summary and the net-per-currency total: a transfer has no direction or category, so counting it in any of those would be the same double-counting the transfers table exists to prevent. Filters that can't meaningfully apply (payer, category, search, week) hide transfers entirely rather than pretending to match; date/account/currency filters do apply, with currency matching either side.
+
+**Account detail** (`/accounts/[id]`) -- the balances on Now were dead text. Each now links to its own page showing that account's balance plus a single merged history of its transactions and the transfers touching either side of it.
+
+**Upcoming timeline** (`/upcoming`) -- bills and installments both carry due dates but nothing showed them together. A chronological view grouped by month, with a scheduled total compared against what's actually held. The rule that matters: **a bill with a payment plan is represented by its unsettled parts, never by itself**, or the same money appears twice. Undated bills are excluded rather than given a fake position. Linked from Now and Bills rather than added as a fifth tab, keeping the tab bar at four per the density direction.
+
+**Verified**: `tsc --noEmit`/`npm run lint`/`npm run build` clean (18 routes, up from 16 -- both new pages); `npm test` 12/12. A rollback-only test covered the timeline's real risk: with one unplanned bill and one three-part bill, exactly one obligation counts as planned, the total comes to 120000 rather than the 210000 a double-count would produce, paying part 1 drops it from the schedule and reduces the remainder correctly, and an undated bill is correctly absent. Zero residue.
+
+This batch added **no new CSS** -- every surface reuses already-verified classes (`card`/`row`/`section-label`/`status-pill`/`Amount`), so the screenshot pass used for earlier design work would have had nothing new to catch; correctness here lives in the query and grouping logic, which is what the database test exercises. Authenticated pages remain un-clickable from this sandbox for the standing egress reason.
+
 ---
 
 # Everything below this line describes Command Deck v2 (superseded)

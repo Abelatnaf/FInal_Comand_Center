@@ -162,7 +162,12 @@ export default async function NowPage() {
 
       {upcoming.length > 0 && (
         <div className="card">
-          <p className="section-label row pb-0">Also open</p>
+          <div className="row pb-0 flex items-center justify-between gap-3">
+            <p className="section-label">Also open</p>
+            <Link href="/upcoming" className="text-silver text-[13px]">
+              Timeline
+            </Link>
+          </div>
           {upcoming.map((o) => (
             <Link key={o.obligation_id} href={`/bills/${o.obligation_id}`} className="row flex items-center justify-between gap-3 block">
               <div className="min-w-0">
@@ -213,7 +218,7 @@ export default async function NowPage() {
       <div className="card">
         <p className="section-label row pb-0">Balances</p>
         {(balancesRes.data ?? []).map((a, i) => (
-          <div key={a.account_id} className="row flex items-center gap-3">
+          <Link key={a.account_id} href={`/accounts/${a.account_id}`} className="row flex items-center gap-3 block">
             <AccountSwatch name={a.name ?? "?"} index={i} />
             <span className="text-[15px] text-text flex-1">{a.name}</span>
             <Amount
@@ -221,7 +226,7 @@ export default async function NowPage() {
               currency={(a.currency ?? "USD") as Currency}
               className="text-text"
             />
-          </div>
+          </Link>
         ))}
       </div>
 
