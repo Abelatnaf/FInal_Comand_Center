@@ -6,9 +6,9 @@ import { daysAgoIso } from "@/lib/date";
 export default async function AddPage({
   searchParams,
 }: {
-  searchParams: Promise<{ obligation_id?: string; payer_id?: string }>;
+  searchParams: Promise<{ obligation_id?: string; payer_id?: string; amount?: string }>;
 }) {
-  const { obligation_id, payer_id } = await searchParams;
+  const { obligation_id, payer_id, amount } = await searchParams;
   const supabase = await createClient();
 
   const [payersRes, accountsRes, fxRes, obligationsRes, lastEtbRes, lastUsdRes, recentRes, lastEntryRes] =
@@ -59,6 +59,7 @@ export default async function AddPage({
         lastEntry={lastEntryRes.data ?? null}
         initialObligationId={obligation_id}
         initialPayerId={payer_id}
+        initialAmount={amount}
       />
     </div>
   );

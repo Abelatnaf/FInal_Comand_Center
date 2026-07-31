@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TransactionRow, type TransactionRowData } from "@/components/ledger/TransactionRow";
+import { TransferRow, type TransferRowData } from "@/components/ledger/TransferRow";
 import { bulkDeleteTransactions, bulkRecategorizeTransactions } from "@/app/(app)/ledger/actions";
 import { categoriesFor } from "@/lib/categories";
 import { useUndo } from "@/components/ui/UndoToastProvider";
@@ -11,13 +12,33 @@ import type { Currency } from "@/lib/money";
 type Payer = { id: string; label: string };
 type Account = { id: string; name: string; currency: Currency };
 
-export function LedgerList({ rows, payers, accounts }: { rows: TransactionRowData[]; payers: Payer[]; accounts: Account[] }) {
+export function LedgerList({
+  rows,
+  transfers,
+  payers,
+  accounts,
+}: {
+  rows: TransactionRowData[];
+  transfers: TransferRowData[];
+  payers: Payer[];
+  accounts: Account[];
+}) {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { scheduleUndo } = useUndo();
+
+  // Transfers are interleaved for display only -- they carry no direction or
+  // category, so they stay out of selection, totals and the summary.
+  const timeline: (
+    | { kind: "transaction"; row: TransactionRowData; date: string }
+    | { kind: "transfer"; row: TransferRowData; date: string }
+  )[] = [
+    ...rows.map((row) => ({ kind: "transaction" as const, row, date: row.occurred_on })),
+    ...transfers.map((row) => ({ kind: "transfer" as const, row, date: row.occurred_on })),
+  ].sort((a, b) => b.date.localeCompare(a.date));
 
   const selectedRows = rows.filter((r) => selected.has(r.id));
   const directions = new Set(selectedRows.map((r) => r.direction));
@@ -64,7 +85,7 @@ export function LedgerList({ rows, payers, accounts }: { rows: TransactionRowDat
 
   return (
     <div className="flex flex-col gap-3">
-      {rows.length > 0 && (
+      {(rows.length > 0 || transfers.length > 0) && (
         <div className="flex justify-end">
           <button type="button" className="text-muted text-[13px]" onClick={() => (selectionMode ? exitSelection() : setSelectionMode(true))}>
             {selectionMode ? "Cancel" : "Select"}
@@ -94,18 +115,22 @@ export function LedgerList({ rows, payers, accounts }: { rows: TransactionRowDat
       )}
 
       <div className="card">
-        {rows.length === 0 && <p className="row text-[14px] text-muted">Nothing matches these filters.</p>}
-        {rows.map((t) => (
-          <TransactionRow
-            key={t.id}
-            transaction={t}
-            payers={payers}
-            accounts={accounts}
-            selectionMode={selectionMode}
-            selected={selected.has(t.id)}
-            onToggleSelect={toggle}
-          />
-        ))}
+        {timeline.length === 0 && <p className="row text-[14px] text-muted">Nothing matches these filters.</p>}
+        {timeline.map((item) =>
+          item.kind === "transaction" ? (
+            <TransactionRow
+              key={`t-${item.row.id}`}
+              transaction={item.row}
+              payers={payers}
+              accounts={accounts}
+              selectionMode={selectionMode}
+              selected={selected.has(item.row.id)}
+              onToggleSelect={toggle}
+            />
+          ) : (
+            <TransferRow key={`x-${item.row.id}`} transfer={item.row} />
+          )
+        )}
       </div>
     </div>
   );

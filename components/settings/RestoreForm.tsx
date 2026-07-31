@@ -48,7 +48,7 @@ export function RestoreForm() {
       return;
     }
 
-    const parts = ["accounts", "payers", "fx_rates", "obligations", "obligation_installments", "transactions"]
+    const parts = ["accounts", "payers", "fx_rates", "obligations", "obligation_installments", "transfers", "transactions"]
       .map((k) => (Array.isArray(obj[k]) ? `${(obj[k] as unknown[]).length} ${k}` : null))
       .filter(Boolean)
       .join(", ");

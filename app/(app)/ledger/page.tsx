@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { TransactionRowData } from "@/components/ledger/TransactionRow";
 import { LedgerList } from "@/components/ledger/LedgerList";
+import type { TransferRowData } from "@/components/ledger/TransferRow";
 import { LedgerSummary } from "@/components/ledger/LedgerSummary";
 import { CsvExportButton } from "@/components/ledger/CsvExportButton";
 import { formatMoney, type Currency } from "@/lib/money";
@@ -20,9 +21,13 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   const filters = await searchParams;
   const supabase = await createClient();
 
-  const [payersRes, accountsRes] = await Promise.all([
+  const [payersRes, accountsRes, transfersRes] = await Promise.all([
     supabase.from("payers").select("id, label"),
     supabase.from("accounts").select("id, name, currency"),
+    supabase
+      .from("transfers")
+      .select("id, occurred_on, from_amount_minor, to_amount_minor, note, from_account_id, to_account_id")
+      .order("occurred_on", { ascending: false }),
   ]);
   const payers = payersRes.data ?? [];
   const accounts = (accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[];
@@ -82,6 +87,38 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
       receipt_path: t.receipt_path,
       week_number: t.week_number,
     }));
+
+  // Transfers only make sense against the date/account filters -- they have no
+  // payer, category or direction, so those filters exclude them entirely
+  // rather than pretending to match. A currency filter matches either side.
+  const accountById = new Map(accounts.map((a) => [a.id, a]));
+  const showTransfers = !filters.payer_id && !filters.category && !filters.q && !filters.week;
+  const transfers: TransferRowData[] = !showTransfers
+    ? []
+    : (transfersRes.data ?? [])
+        .filter((t) => {
+          if (filters.from && t.occurred_on < filters.from) return false;
+          if (filters.to && t.occurred_on > filters.to) return false;
+          if (filters.account_id && t.from_account_id !== filters.account_id && t.to_account_id !== filters.account_id)
+            return false;
+          if (filters.currency) {
+            const from = accountById.get(t.from_account_id);
+            const to = accountById.get(t.to_account_id);
+            if (from?.currency !== filters.currency && to?.currency !== filters.currency) return false;
+          }
+          return true;
+        })
+        .map((t) => ({
+          id: t.id,
+          occurred_on: t.occurred_on,
+          from_amount_minor: t.from_amount_minor,
+          to_amount_minor: t.to_amount_minor,
+          from_name: accountById.get(t.from_account_id)?.name ?? "—",
+          to_name: accountById.get(t.to_account_id)?.name ?? "—",
+          from_currency: accountById.get(t.from_account_id)?.currency ?? "USD",
+          to_currency: accountById.get(t.to_account_id)?.currency ?? "USD",
+          note: t.note,
+        }));
 
   const totals = { ETB: 0n, USD: 0n };
   for (const r of rows) {
@@ -153,7 +190,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
 
       <LedgerSummary rows={rows} />
 
-      <LedgerList rows={rows} payers={payers} accounts={accounts} />
+      <LedgerList rows={rows} transfers={transfers} payers={payers} accounts={accounts} />
     </div>
   );
 }

@@ -35,6 +35,7 @@ export function AddForm({
   defaultCurrency,
   lastEntry,
   initialObligationId,
+  initialAmount,
   initialPayerId,
 }: {
   payers: Payer[];
@@ -46,13 +47,16 @@ export function AddForm({
   defaultCurrency: Currency;
   lastEntry: LastEntry | null;
   initialObligationId?: string;
+  /** Prefilled from a bill's "Pay remaining" link, as a decimal string. */
+  initialAmount?: string;
   initialPayerId?: string;
 }) {
   const isRecordingPayment = Boolean(initialObligationId);
   const router = useRouter();
   const isOnline = useOnlineStatus();
 
-  const [amountRaw, setAmountRaw] = useState("");
+  // A "Pay remaining" link carries the exact figure; anything else starts blank.
+  const [amountRaw, setAmountRaw] = useState(initialAmount ?? "");
   const [currency, setCurrency] = useState<Currency>(defaultCurrency);
   const [direction, setDirection] = useState<Direction>("out");
   const [category, setCategory] = useState<string>(sortByUsage("out", categoryUsage.out)[0]);
@@ -63,6 +67,7 @@ export function AddForm({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasReceipt, setHasReceipt] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState(false);
 
   const accountsForCurrency = useMemo(() => accounts.filter((a) => a.currency === currency), [accounts, currency]);
   const [accountId, setAccountId] = useState<string>(
@@ -140,6 +145,12 @@ export function AddForm({
     try {
       const result = await createTransaction(undefined, formData);
       setPending(false);
+      if (result?.duplicateWarning) {
+        // Not an error -- an identical entry already exists today. Surface it
+        // and let the next submit go through with the confirm flag.
+        setDuplicateWarning(true);
+        return;
+      }
       if (result?.error) {
         setError(result.error);
         return;
@@ -165,6 +176,7 @@ export function AddForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <input type="hidden" name="confirm_duplicate" value={duplicateWarning ? "true" : "false"} />
       <div className="text-center py-4">
         <div className="hero-figure num">{amountRaw === "" ? "0" : amountRaw}</div>
         {minor !== null && currency === "ETB" && fxRate && (
@@ -317,8 +329,23 @@ export function AddForm({
 
       {error && <p className="text-alarm text-[15px]">{error}</p>}
 
+      {duplicateWarning && (
+        <div className="card row">
+          <p className="text-[14px] text-urgent">
+            You already logged this exact amount on this account today. Save again if it really happened
+            twice.
+          </p>
+        </div>
+      )}
+
       <button type="submit" disabled={pending || minor === null} className="btn btn-primary w-full">
-        {pending ? "Saving…" : isOnline ? "Save" : "Save (will sync later)"}
+        {pending
+          ? "Saving…"
+          : duplicateWarning
+            ? "Save anyway"
+            : isOnline
+              ? "Save"
+              : "Save (will sync later)"}
       </button>
     </form>
   );

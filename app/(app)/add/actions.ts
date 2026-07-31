@@ -6,7 +6,7 @@ import { transactionSchema } from "@/lib/schemas/transaction";
 import { uploadReceipt } from "@/lib/receipts";
 
 export type CreateTransactionState =
-  | { error?: string; success?: boolean; receiptError?: string }
+  | { error?: string; success?: boolean; receiptError?: string; duplicateWarning?: boolean }
   | undefined;
 
 function orUndefined(value: FormDataEntryValue | null): string | undefined {
@@ -45,6 +45,26 @@ export async function createTransaction(
   }
 
   const input = parsed.data;
+
+  // Warn, don't block. Logging the same coffee twice in a day is real, so this
+  // can't be a hard rule -- but silently double-recording a bill payment is a
+  // genuinely costly mistake, and v1/v2 both had this guard before v3 lost it.
+  // The client resubmits with confirm_duplicate once the user has seen it.
+  if (String(formData.get("confirm_duplicate") ?? "") !== "true") {
+    const { data: existing } = await supabase
+      .from("transactions")
+      .select("id")
+      .eq("occurred_on", input.occurred_on)
+      .eq("amount_minor", Number(input.amount_minor))
+      .eq("currency", input.currency)
+      .eq("direction", input.direction)
+      .eq("account_id", input.account_id)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      return { duplicateWarning: true };
+    }
+  }
 
   // fx_rate_etb_per_usd / amount_usd_minor are required by the generated
   // Insert type (the columns have no SQL default) but are always computed
