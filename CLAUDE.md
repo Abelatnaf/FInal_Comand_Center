@@ -205,6 +205,19 @@ Fifth "more features" ask. Picked from remaining gaps; the first item closes one
 
 This batch added **no new CSS** -- every surface reuses already-verified classes (`card`/`row`/`section-label`/`status-pill`/`Amount`), so the screenshot pass used for earlier design work would have had nothing new to catch; correctness here lives in the query and grouping logic, which is what the database test exercises. Authenticated pages remain un-clickable from this sandbox for the standing egress reason.
 
+## 16. Post-launch: managing the things the app was seeded with
+
+Asked to pick again. Every item here is something the app *had* but gave no way to change -- the seeded state was effectively permanent.
+
+- **Rename an account.** Accounts could be added, rebalanced, archived and deleted, but not renamed. Currency deliberately stays uneditable: an account's transactions are stored in its currency and the database enforces the match, so changing it would either fail outright or silently misrepresent history -- the UI says to make a new account instead.
+- **Add and delete payers.** `PayersForm` only edited labels, so the two seeded payers were permanent and a third (a sponsor, a scholarship) was impossible -- a real limitation once the app was genericized away from being VMI-only. `key` is unique per user and is only an internal handle, so it's derived from the label and disambiguated with a numeric suffix rather than being asked for. Delete is hidden when only one payer remains, since every transaction and bill requires one and deleting the last would make the app unusable. `payer_id` is `on delete restrict` on both `transactions` and `obligations`, so deleting one with history raises -- caught and reported as plain guidance rather than a raw constraint error.
+- **Edit a transfer.** Previously create/delete only, so fixing a typo meant deleting and re-entering. Worth noting this is safe in a way editing a *transaction* is not: a transfer stores both real amounts rather than deriving either from a rate, so there is no frozen-rate concern -- editing one is just correcting a recorded fact.
+- **Attach a statement to a bill.** Receipts proved a payment was made; nothing held the bill itself, which is the document you'd actually need to query a charge. `obligations.statement_path` reuses the existing private `receipts` bucket under `<user_id>/obligations/<id>/...` -- its policies key off the first path segment being `auth.uid()`, so this needed no new storage rules at all.
+
+**Verified**: `tsc --noEmit`/`npm run lint`/`npm run build` clean (18 routes); `npm test` 12/12. One rollback-only test, zero residue: an unused payer deletes cleanly; a payer used by a transaction and one used by a bill are both correctly refused; a duplicate payer key is refused (confirming the add action genuinely has to disambiguate rather than hoping); renaming an account leaves its balance and its transactions untouched; and `statement_path` round-trips.
+
+**Deliberately not built**: due-date push notifications, which is the obvious remaining gap. Web Push needs a push service, VAPID keys and a send-side backend -- real infrastructure plus keys only Abel can supply, so scaffolding it here would produce something non-functional rather than a feature. Called out rather than quietly skipped.
+
 ---
 
 # Everything below this line describes Command Deck v2 (superseded)

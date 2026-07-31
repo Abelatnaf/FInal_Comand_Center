@@ -49,11 +49,24 @@ function AccountRow({ account, index }: { account: Account; index: number }) {
         <form action={formAction} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={account.id} />
           <input
+            name="name"
+            defaultValue={account.name}
+            className="input"
+            aria-label="Account name"
+            placeholder="Account name"
+          />
+          <input
             name="opening_balance"
             defaultValue={fromMinor(BigInt(account.opening_balance_minor))}
             className="input num"
             aria-label="Starting balance"
           />
+          {/* Currency isn't editable: this account's transactions are stored in
+              it and the database enforces the match, so changing it would
+              either fail or misrepresent history. */}
+          <p className="text-[12px] text-faint">
+            {account.currency} · to change currency, make a new account.
+          </p>
           <div className="flex gap-2">
             <button type="submit" disabled={pending} className="btn btn-primary flex-1">
               {pending ? "Saving…" : "Save"}

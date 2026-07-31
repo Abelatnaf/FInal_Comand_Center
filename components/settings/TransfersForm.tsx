@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { createTransfer, deleteTransfer } from "@/app/(app)/settings/transfer-actions";
+import { createTransfer, updateTransfer, deleteTransfer } from "@/app/(app)/settings/transfer-actions";
 import { Amount } from "@/components/money/Amount";
 import { formatShortDate, todayIso } from "@/lib/date";
+import { fromMinor } from "@/lib/money";
 import { useUndo } from "@/components/ui/UndoToastProvider";
 import type { Currency } from "@/lib/money";
 
@@ -20,6 +21,7 @@ export type TransferRow = {
 
 export function TransfersForm({ accounts, transfers }: { accounts: Account[]; transfers: TransferRow[] }) {
   const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState<TransferState, FormData>(createTransfer, undefined);
   const { scheduleUndo } = useUndo();
   const [removed, setRemoved] = useState<Set<string>>(new Set());
@@ -149,6 +151,16 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
       {visible.map((t) => {
         const from = accountById(t.from_account_id);
         const to = accountById(t.to_account_id);
+        if (editingId === t.id) {
+          return (
+            <TransferEditRow
+              key={t.id}
+              transfer={t}
+              accounts={accounts}
+              onDone={() => setEditingId(null)}
+            />
+          );
+        }
         return (
           <div key={t.id} className="row flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -175,6 +187,9 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
                   />
                 )}
               </div>
+              <button type="button" className="text-silver text-[13px]" onClick={() => setEditingId(t.id)}>
+                Edit
+              </button>
               <button type="button" className="text-alarm text-[13px]" onClick={() => handleDelete(t.id)}>
                 Delete
               </button>
@@ -187,3 +202,68 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
 }
 
 type TransferState = { error?: string; success?: boolean } | undefined;
+
+function TransferEditRow({
+  transfer,
+  accounts,
+  onDone,
+}: {
+  transfer: TransferRow;
+  accounts: Account[];
+  onDone: () => void;
+}) {
+  const [state, formAction, pending] = useActionState<TransferState, FormData>(updateTransfer, undefined);
+
+  useEffect(() => {
+    if (state?.success) onDone();
+  }, [state, onDone]);
+
+  return (
+    <form action={formAction} className="row flex flex-col gap-2">
+      <input type="hidden" name="id" value={transfer.id} />
+      <div className="flex gap-2">
+        <select name="from_account_id" defaultValue={transfer.from_account_id} className="input" aria-label="From account">
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              From: {a.name} ({a.currency})
+            </option>
+          ))}
+        </select>
+        <select name="to_account_id" defaultValue={transfer.to_account_id} className="input" aria-label="To account">
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              To: {a.name} ({a.currency})
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex gap-2">
+        <input
+          name="from_amount"
+          inputMode="decimal"
+          defaultValue={fromMinor(BigInt(transfer.from_amount_minor))}
+          className="input num"
+          aria-label="Amount sent"
+        />
+        <input
+          name="to_amount"
+          inputMode="decimal"
+          defaultValue={fromMinor(BigInt(transfer.to_amount_minor))}
+          className="input num"
+          aria-label="Amount received"
+        />
+      </div>
+      <input name="occurred_on" type="date" defaultValue={transfer.occurred_on} className="input" aria-label="Date" />
+      <input name="note" defaultValue={transfer.note ?? ""} placeholder="Note (optional)" className="input" />
+      {state?.error && <p className="text-alarm text-[13px]">{state.error}</p>}
+      <div className="flex gap-2">
+        <button type="button" className="btn flex-1" onClick={onDone}>
+          Cancel
+        </button>
+        <button type="submit" disabled={pending} className="btn btn-primary flex-1">
+          {pending ? "Saving…" : "Save"}
+        </button>
+      </div>
+    </form>
+  );
+}
