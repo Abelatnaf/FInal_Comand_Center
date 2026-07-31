@@ -166,6 +166,31 @@ Asked for "more features with even a much more cleaner UI." "Cleaner" is a taste
 
 **Follow-up: the first `get_advisors` *performance* run this era, which caught a real gap in the above.** Every table in this schema carries a `<table>_user_idx` on `user_id` — the column every single RLS policy filters on — and `obligation_installments` had shipped without one (`unindexed_foreign_keys`). Fixed in its own migration rather than folded back into the original. The three remaining findings are all `unused_index` INFO items (`fx_rates_user_idx`, `share_links_user_idx`, and now the new one) — unused only because those tables have little or no data yet, not because they're wrong, so they were deliberately **not** removed. Also confirmed the recurring-bill cron job is genuinely runnable rather than just registered: it's `active`, runs as `postgres` in the `postgres` database, and `has_function_privilege` confirms that role can execute the function it owns, so the `revoke ... from anon, authenticated` doesn't block the scheduler.
 
+## 14. Post-launch: transfers, duplicate detection, Bills filters, pay-remaining
+
+Asked for "WAY MORE FEATURES" -- the fourth such ask in a row, and previous open-ended questions had come back non-specific, so this batch was picked from real gaps rather than by asking again.
+
+**Transfers between accounts** (`transfers` table) -- the biggest genuine hole in a two-currency app. Moving money between your own accounts had no representation at all, so the only way to record a USD -> ETB move was a fake expense plus a fake income, which inflates both totals and corrupts every category, ledger and coverage figure derived from them. v1 had transfers; v3 dropped them and never replaced them.
+- **Both sides of the amount are stored explicitly** (`from_amount_minor` / `to_amount_minor`) rather than deriving one from the other via a rate. For a cross-currency move those are two independent facts -- what left and what arrived -- and any spread or fee is simply the visible difference. Inferring one from a rate would be inventing a number, which is the thing this app exists not to do. Equal amounts are *not* enforced, since a wire fee legitimately makes them differ.
+- `balance_by_account` was rewritten with scalar subqueries instead of joins: joining both `transactions` and `transfers` fans out the rows and double-counts the sums. `liquid_position` had to be dropped and rebuilt around it (it reads that view), though its own definition is unchanged.
+- Transfers live in their own table, so every income/spending view ignores them for free -- no filtering to remember and get wrong later.
+
+**Duplicate detection on `/add`** -- v1 and v2 both had this; v3 lost it. Warns (never blocks) when an identical date/amount/currency/direction/account entry already exists, and the second submit carries a confirm flag through. Deliberately a warning: logging the same coffee twice in a day is real, but silently double-recording a bill payment is costly.
+
+**Bills filters** -- the Ledger had seven filters and Bills had none. Added search, payer and status filters, three sorts, a "still owed" total for the filtered set (with past-due called out separately), and CSV export. Filtering happens in the page rather than the query because `obligation_progress` derives `status`/`is_past_due` at read time -- they aren't columns the database can filter on.
+
+**Pay-remaining shortcut** -- one tap from a bill into `/add` prefilled with the exact outstanding figure, instead of reading the number off the screen and retyping it. Only offered when something is actually outstanding.
+
+**A gap this batch created and closed in the same pass**: adding `transfers` without teaching `restore_from_backup` about it would have made every backup silently lossy -- export/restore would wipe transfer history and leave balances wrong. `exportAllData`, the restore function, and the restore preview all learned about transfers, and the FK-safe delete order was updated (transfers reference accounts with `on delete restrict`, so they must be cleared first).
+
+**Verified**: `tsc --noEmit`/`npm run lint`/`npm run build` clean (16 routes); `npm test` 12/12. Rollback-only tests against the live database, zero residue confirmed:
+- **Transfers**: exact deltas on both sides of a cross-currency move, no transaction rows created, liquid position consistent, deletion fully reverses, same-account and zero-amount refused, and an account with transfer history can't be deleted.
+- **Duplicate detection, 5 cases**: an exact match warns, while a different amount, the opposite direction (a refund), and a different account all correctly do *not*; and confirming through really does save the second row.
+- **Backup round-trip**: a transfer restored verbatim with both balances landing correctly.
+- `get_advisors` shows no new findings -- still only the three known intentional items.
+
+**Real-world confirmation of the earlier FX fix, found by accident**: the transfer test's numbers were off by exactly $5.00, which turned out not to be a bug but Abel's own first real transaction -- $5.00 "Personal Care", logged minutes after PR #16 merged, stored with the placeholder rate `1.0000` exactly as designed. The USD-without-a-rate path works in production. The test's expectations were stale (they assumed an empty ledger), not the code; it was re-run against a measured baseline instead.
+
 ---
 
 # Everything below this line describes Command Deck v2 (superseded)

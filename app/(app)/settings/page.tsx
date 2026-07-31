@@ -3,6 +3,7 @@ import { signOut } from "@/app/(app)/actions";
 import { FxRateForm } from "@/components/settings/FxRateForm";
 import { FxRateHistory } from "@/components/settings/FxRateHistory";
 import { AccountsForm } from "@/components/settings/AccountsForm";
+import { TransfersForm, type TransferRow } from "@/components/settings/TransfersForm";
 import { PayersForm } from "@/components/settings/PayersForm";
 import { ExportButton } from "@/components/settings/ExportButton";
 import { RestoreForm } from "@/components/settings/RestoreForm";
@@ -16,7 +17,7 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [fxRes, accountsRes, payersRes, settingsRes, shareLinksRes] = await Promise.all([
+  const [fxRes, accountsRes, payersRes, settingsRes, shareLinksRes, transfersRes] = await Promise.all([
     supabase
       .from("fx_rates")
       .select("id, etb_per_usd, effective_on, source")
@@ -26,6 +27,7 @@ export default async function SettingsPage() {
     supabase.from("payers").select("id, key, label, class_year").order("is_default", { ascending: false }),
     supabase.from("settings").select("tracking_start_date").maybeSingle(),
     supabase.from("share_links").select("id, label, created_at, revoked_at").order("created_at", { ascending: false }),
+    supabase.from("transfers").select("id, occurred_on, from_amount_minor, to_amount_minor, note, from_account_id, to_account_id").order("occurred_on", { ascending: false }).limit(25),
   ]);
 
   const fxRates = fxRes.data ?? [];
@@ -39,6 +41,11 @@ export default async function SettingsPage() {
       <FxRateHistory rates={fxRates} />
 
       <AccountsForm accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency; kind: "bank" | "cash" | "processor"; opening_balance_minor: number; is_archived: boolean }[]} />
+
+      <TransfersForm
+        accounts={(accountsRes.data ?? []).filter((a) => !a.is_archived) as { id: string; name: string; currency: Currency }[]}
+        transfers={(transfersRes.data ?? []) as TransferRow[]}
+      />
 
       <PayersForm payers={payersRes.data ?? []} />
 

@@ -334,6 +334,57 @@ export type Database = {
           },
         ]
       }
+      transfers: {
+        Row: {
+          created_at: string
+          from_account_id: string
+          from_amount_minor: number
+          id: string
+          note: string | null
+          occurred_on: string
+          to_account_id: string
+          to_amount_minor: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_account_id: string
+          from_amount_minor: number
+          id?: string
+          note?: string | null
+          occurred_on?: string
+          to_account_id: string
+          to_amount_minor: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_account_id?: string
+          from_amount_minor?: number
+          id?: string
+          note?: string | null
+          occurred_on?: string
+          to_account_id?: string
+          to_amount_minor?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfers_from_account_id_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_to_account_id_fkey"
+            columns: ["to_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       balance_by_account: {

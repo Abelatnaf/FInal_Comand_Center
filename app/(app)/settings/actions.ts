@@ -224,15 +224,17 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
   } = await supabase.auth.getUser();
   if (!user) return {};
 
-  const [payers, accounts, fxRates, obligations, installments, transactions, settings] = await Promise.all([
-    supabase.from("payers").select("*"),
-    supabase.from("accounts").select("*"),
-    supabase.from("fx_rates").select("*"),
-    supabase.from("obligations").select("*"),
-    supabase.from("obligation_installments").select("*"),
-    supabase.from("transactions").select("*"),
-    supabase.from("settings").select("*"),
-  ]);
+  const [payers, accounts, fxRates, obligations, installments, transfers, transactions, settings] =
+    await Promise.all([
+      supabase.from("payers").select("*"),
+      supabase.from("accounts").select("*"),
+      supabase.from("fx_rates").select("*"),
+      supabase.from("obligations").select("*"),
+      supabase.from("obligation_installments").select("*"),
+      supabase.from("transfers").select("*"),
+      supabase.from("transactions").select("*"),
+      supabase.from("settings").select("*"),
+    ]);
 
   // Every table restore_from_backup() reads has to be here, or a backup won't
   // round-trip -- an export that silently omits a table is a broken backup.
@@ -243,6 +245,7 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
     fx_rates: fxRates.data,
     obligations: obligations.data,
     obligation_installments: installments.data,
+    transfers: transfers.data,
     transactions: transactions.data,
     settings: settings.data,
   };

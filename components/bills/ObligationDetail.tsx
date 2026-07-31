@@ -7,6 +7,7 @@ import { setObligationWaived, deleteObligation, duplicateObligation } from "@/ap
 import { ObligationForm } from "@/components/bills/ObligationForm";
 import { Amount } from "@/components/money/Amount";
 import { formatShortDate } from "@/lib/date";
+import { fromMinor } from "@/lib/money";
 import { useUndo } from "@/components/ui/UndoToastProvider";
 
 type Payer = { id: string; label: string };
@@ -33,6 +34,7 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
   const { scheduleUndo } = useUndo();
 
   const total = BigInt(obligation.amount_usd_minor);
+  const remaining = BigInt(obligation.amount_remaining_usd_minor);
   const paidPct = total > 0n ? Number((BigInt(obligation.amount_paid_usd_minor) * 100n) / total) : 0;
 
   if (editing) {
@@ -99,12 +101,25 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
         {obligation.source_note && <p className="text-[13px] text-faint">{obligation.source_note}</p>}
       </div>
 
-      <Link
-        href={`/add?obligation_id=${obligation.obligation_id}&payer_id=${obligation.payer_id}`}
-        className="btn btn-primary w-full"
-      >
-        Record a payment
-      </Link>
+      <div className="flex flex-col gap-2">
+        {/* Prefills the exact figure so the common case -- clearing what's
+            left -- doesn't mean reading the number above and retyping it.
+            Only offered when something is actually outstanding. */}
+        {remaining > 0n && (
+          <Link
+            href={`/add?obligation_id=${obligation.obligation_id}&payer_id=${obligation.payer_id}&amount=${fromMinor(remaining)}`}
+            className="btn btn-primary w-full"
+          >
+            Pay remaining <Amount minor={remaining} currency="USD" className="text-[inherit]" />
+          </Link>
+        )}
+        <Link
+          href={`/add?obligation_id=${obligation.obligation_id}&payer_id=${obligation.payer_id}`}
+          className={remaining > 0n ? "btn w-full" : "btn btn-primary w-full"}
+        >
+          Record a different amount
+        </Link>
+      </div>
 
       <div className="flex gap-2">
         <button type="button" className="btn flex-1" onClick={() => setEditing(true)}>
