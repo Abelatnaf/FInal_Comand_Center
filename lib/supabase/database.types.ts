@@ -129,6 +129,7 @@ export type Database = {
           recur_interval_months: number | null
           recur_spawned_at: string | null
           source_note: string | null
+          statement_path: string | null
           title: string
           user_id: string
           waived_at: string | null
@@ -142,6 +143,7 @@ export type Database = {
           recur_interval_months?: number | null
           recur_spawned_at?: string | null
           source_note?: string | null
+          statement_path?: string | null
           title: string
           user_id: string
           waived_at?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           recur_interval_months?: number | null
           recur_spawned_at?: string | null
           source_note?: string | null
+          statement_path?: string | null
           title?: string
           user_id?: string
           waived_at?: string | null

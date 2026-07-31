@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { toMinor } from "@/lib/money";
+import { RECEIPT_BUCKET, MAX_RECEIPT_BYTES } from "@/lib/receipts";
 
 export type ActionState = { error?: string } | undefined;
 
@@ -88,6 +89,38 @@ export async function updateObligation(_prevState: ActionState, formData: FormDa
   revalidateAll();
   revalidatePath(`/bills/${id}`);
   return undefined;
+}
+
+/**
+ * Attaches the bill's own statement. Stored in the same private bucket as
+ * receipts under "<user_id>/obligations/<id>/..." -- the bucket's policies key
+ * off the first path segment being auth.uid(), so this needs no new rules.
+ */
+export async function attachStatement(obligationId: string, formData: FormData): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const file = formData.get("statement");
+  if (!(file instanceof File) || file.size === 0) return { error: "Pick a file first." };
+  if (file.size > MAX_RECEIPT_BYTES) return { error: "That file is over 8MB." };
+
+  const ext = file.name.includes(".") ? file.name.split(".").pop()!.toLowerCase().slice(0, 5) : "bin";
+  const path = `${user.id}/obligations/${obligationId}/statement.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(RECEIPT_BUCKET)
+    .upload(path, file, { upsert: true, contentType: file.type || undefined });
+  if (uploadError) return { error: uploadError.message };
+
+  const { error } = await supabase.from("obligations").update({ statement_path: path }).eq("id", obligationId);
+  if (error) return { error: error.message };
+
+  revalidateAll();
+  revalidatePath(`/bills/${obligationId}`);
+  return {};
 }
 
 export async function setObligationWaived(id: string, waived: boolean): Promise<{ error?: string }> {

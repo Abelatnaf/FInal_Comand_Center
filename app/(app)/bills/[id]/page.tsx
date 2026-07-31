@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ObligationDetail } from "@/components/bills/ObligationDetail";
 import { InstallmentPlan, type InstallmentRow } from "@/components/bills/InstallmentPlan";
 import { RecurrenceControl } from "@/components/bills/RecurrenceControl";
+import { StatementUpload } from "@/components/bills/StatementUpload";
 import { ReceiptLink } from "@/components/money/ReceiptLink";
 import { Amount } from "@/components/money/Amount";
 import { formatRelativeDay } from "@/lib/date";
@@ -25,7 +26,7 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
       .select("installment_id, seq, due_on, amount_usd_minor, amount_covered_minor, is_settled, is_past_due")
       .eq("obligation_id", id)
       .order("seq", { ascending: true }),
-    supabase.from("obligations").select("recur_interval_months").eq("id", id).maybeSingle(),
+    supabase.from("obligations").select("recur_interval_months, statement_path").eq("id", id).maybeSingle(),
   ]);
 
   const row = obligationRes.data;
@@ -79,6 +80,8 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
         installments={installments}
         obligationTotalMinor={obligation.amount_usd_minor}
       />
+
+      <StatementUpload obligationId={obligation.obligation_id} statementPath={recurRes.data?.statement_path ?? null} />
 
       <RecurrenceControl
         obligationId={obligation.obligation_id}

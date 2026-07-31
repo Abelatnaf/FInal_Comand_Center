@@ -89,7 +89,9 @@ export async function updateAccountBalance(_prevState: ActionState, formData: Fo
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
   const openingBalance = String(formData.get("opening_balance") ?? "0").trim() || "0";
+  const name = String(formData.get("name") ?? "").trim();
   if (!id) return { error: "Missing account." };
+  if (!name) return { error: "An account needs a name." };
 
   let openingMinor: bigint;
   try {
@@ -98,9 +100,12 @@ export async function updateAccountBalance(_prevState: ActionState, formData: Fo
     return { error: "Enter a valid amount." };
   }
 
+  // Currency is deliberately not editable: existing transactions on this
+  // account are stored in its currency and the database enforces the match,
+  // so changing it would either fail or silently misrepresent history.
   const { error } = await supabase
     .from("accounts")
-    .update({ opening_balance_minor: Number(openingMinor) })
+    .update({ opening_balance_minor: Number(openingMinor), name })
     .eq("id", id);
 
   if (error) return { error: error.message };
@@ -136,6 +141,44 @@ export async function updatePayerLabel(_prevState: ActionState, formData: FormDa
   if (error) return { error: error.message };
   revalidateAll();
   return { success: true };
+}
+
+export async function addPayer(_prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in." };
+
+  const label = String(formData.get("label") ?? "").trim();
+  if (!label) return { error: "Name the payer." };
+
+  // `key` is unique per user and is only an internal handle, so derive it from
+  // the label and disambiguate rather than asking for it. Two payers called
+  // the same thing is the user's business, but their keys still can't collide.
+  const base = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "payer";
+  const { data: existing } = await supabase.from("payers").select("key");
+  const taken = new Set((existing ?? []).map((p) => p.key));
+  let key = base;
+  for (let i = 2; taken.has(key); i++) key = `${base}-${i}`;
+
+  const { error } = await supabase.from("payers").insert({ user_id: user.id, key, label });
+  if (error) return { error: error.message };
+  revalidateAll();
+  return { success: true };
+}
+
+export async function deletePayer(id: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("payers").delete().eq("id", id);
+  if (error) {
+    // payer_id is ON DELETE RESTRICT on both transactions and obligations, so
+    // this fires whenever the payer has any history -- say what to do about it
+    // rather than surfacing a raw constraint error.
+    return { error: "This payer is used by existing entries or bills, so it can't be deleted." };
+  }
+  revalidateAll();
+  return {};
 }
 
 export async function updateTrackingStartDate(_prevState: ActionState, formData: FormData): Promise<ActionState> {
