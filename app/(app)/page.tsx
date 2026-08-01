@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SettingsIcon } from "@/components/nav/icons";
 import { Amount } from "@/components/money/Amount";
 import { AccountSwatch } from "@/components/money/AccountSwatch";
+import { FxRateNotice } from "@/components/money/FxRateNotice";
 import { TransactionRow, type TransactionRowData } from "@/components/ledger/TransactionRow";
 import { formatMoney, type Currency } from "@/lib/money";
 import { formatShortDate, daysBetween, todayIso } from "@/lib/date";
@@ -10,7 +11,7 @@ import { formatShortDate, daysBetween, todayIso } from "@/lib/date";
 export default async function NowPage() {
   const supabase = await createClient();
 
-  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, openObligationsRes, recentRes, settingsRes, installmentsRes] =
+  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, openObligationsRes, recentRes, settingsRes, fxRes, installmentsRes] =
     await Promise.all([
       supabase.from("payers").select("id, key, label"),
       supabase.from("accounts").select("id, name, currency").eq("is_archived", false),
@@ -29,6 +30,13 @@ export default async function NowPage() {
         .order("created_at", { ascending: false })
         .limit(3),
       supabase.from("settings").select("tracking_start_date").maybeSingle(),
+      supabase
+        .from("fx_rates")
+        .select("etb_per_usd, effective_on")
+        .order("effective_on", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
       supabase
         .from("installment_progress")
         .select("obligation_id, seq, due_on, amount_usd_minor, amount_covered_minor, is_past_due")
@@ -106,6 +114,11 @@ export default async function NowPage() {
           <SettingsIcon className="w-6 h-6" />
         </Link>
       </div>
+
+      <FxRateNotice
+        rate={fxRes.data}
+        hasEtbAccounts={(accountsAllRes.data ?? []).some((a) => a.currency === "ETB")}
+      />
 
       {!hasAnyObligations ? (
         <div className="card row flex flex-col gap-3">
