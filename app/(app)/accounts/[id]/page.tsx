@@ -5,6 +5,7 @@ import { Amount } from "@/components/money/Amount";
 import { AccountSwatch } from "@/components/money/AccountSwatch";
 import { TransferRow, type TransferRowData } from "@/components/ledger/TransferRow";
 import { formatRelativeDay } from "@/lib/date";
+import { colorVar } from "@/lib/categories";
 import type { Currency } from "@/lib/money";
 
 export default async function AccountDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -15,8 +16,8 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
     supabase.from("balance_by_account").select("*").eq("account_id", id).maybeSingle(),
     supabase.from("accounts").select("id, name, currency"),
     supabase
-      .from("transactions")
-      .select("id, occurred_on, direction, amount_minor, currency, category, note")
+      .from("transactions_with_week")
+      .select("id, occurred_on, direction, amount_minor, currency, category_name, category_icon, category_color, note")
       .eq("account_id", id)
       .order("occurred_on", { ascending: false })
       .order("created_at", { ascending: false })
@@ -49,15 +50,29 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
 
   // One chronological history for this account: what was spent or received on
   // it, and what moved in or out of it.
+  // The view exposes every column as nullable; normalise once here so the
+  // markup below doesn't have to guard each field individually.
+  const entries = (transactionsRes.data ?? []).map((t) => ({
+    id: t.id ?? "",
+    occurred_on: t.occurred_on ?? "",
+    direction: t.direction ?? "out",
+    amount_minor: t.amount_minor ?? 0,
+    currency: (t.currency ?? "USD") as Currency,
+    category_name: t.category_name,
+    category_icon: t.category_icon,
+    category_color: t.category_color,
+    note: t.note,
+  }));
+
   const timeline = [
-    ...(transactionsRes.data ?? []).map((t) => ({ kind: "transaction" as const, row: t, date: t.occurred_on })),
+    ...entries.map((row) => ({ kind: "transaction" as const, row, date: row.occurred_on })),
     ...transfers.map((row) => ({ kind: "transfer" as const, row, date: row.occurred_on })),
   ].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <div className="flex flex-col gap-6">
       <Link href="/" className="text-muted text-[14px]">
-        ← Now
+        ← Home
       </Link>
 
       <div className="card row flex items-center gap-3">
@@ -80,17 +95,26 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
             <TransferRow key={`x-${item.row.id}`} transfer={item.row} />
           ) : (
             <div key={`t-${item.row.id}`} className="row flex items-center justify-between gap-3">
+              <div
+                className="cat-icon"
+                style={{ ["--cat-color" as string]: colorVar(item.row.category_color) }}
+                aria-hidden
+              >
+                {item.row.category_icon ?? "•"}
+              </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] text-text truncate">{item.row.category ?? "Uncategorized"}</p>
-                <p className="text-[13px] text-muted">
+                <p className="text-[15px] font-medium truncate">
+                  {item.row.note?.trim() || item.row.category_name || "Uncategorized"}
+                </p>
+                <p className="text-[13px] text-muted truncate">
+                  {item.row.note?.trim() && item.row.category_name ? `${item.row.category_name} · ` : ""}
                   {formatRelativeDay(item.row.occurred_on)}
-                  {item.row.note && ` · ${item.row.note}`}
                 </p>
               </div>
               <Amount
                 minor={BigInt(item.row.direction === "out" ? -item.row.amount_minor : item.row.amount_minor)}
-                currency={item.row.currency as Currency}
-                className={item.row.direction === "out" ? "text-text shrink-0" : "text-positive shrink-0"}
+                currency={item.row.currency}
+                className={item.row.direction === "out" ? "shrink-0" : "text-positive shrink-0"}
               />
             </div>
           )

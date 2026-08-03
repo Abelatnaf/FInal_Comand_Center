@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          is_archived: boolean
+          kind: string
+          monthly_budget_usd_minor: number | null
+          name: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_archived?: boolean
+          kind: string
+          monthly_budget_usd_minor?: number | null
+          name: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_archived?: boolean
+          kind?: string
+          monthly_budget_usd_minor?: number | null
+          name?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       fx_rates: {
         Row: {
           created_at: string
@@ -202,6 +241,154 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_expenses: {
+        Row: {
+          account_id: string
+          amount_minor: number
+          auto_post: boolean
+          cadence: string
+          category_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          last_posted_on: string | null
+          name: string
+          next_due_on: string
+          note: string | null
+          payer_id: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount_minor: number
+          auto_post?: boolean
+          cadence: string
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_posted_on?: string | null
+          name: string
+          next_due_on: string
+          note?: string | null
+          payer_id: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount_minor?: number
+          auto_post?: boolean
+          cadence?: string
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_posted_on?: string | null
+          name?: string
+          next_due_on?: string
+          note?: string | null
+          payer_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_expenses_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_status"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_month"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_payer_id_fkey"
+            columns: ["payer_id"]
+            isOneToOne: false
+            referencedRelation: "payers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      savings_goals: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          name: string
+          note: string | null
+          saved_manual_minor: number
+          target_date: string | null
+          target_minor: number
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          currency: string
+          id?: string
+          name: string
+          note?: string | null
+          saved_manual_minor?: number
+          target_date?: string | null
+          target_minor: number
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          name?: string
+          note?: string | null
+          saved_manual_minor?: number
+          target_date?: string | null
+          target_minor?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_goals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "savings_goals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
+          },
+        ]
+      }
       settings: {
         Row: {
           created_at: string
@@ -252,7 +439,7 @@ export type Database = {
           account_id: string
           amount_minor: number
           amount_usd_minor: number
-          category: string | null
+          category_id: string | null
           created_at: string
           currency: string
           direction: string
@@ -269,7 +456,7 @@ export type Database = {
           account_id: string
           amount_minor: number
           amount_usd_minor: number
-          category?: string | null
+          category_id?: string | null
           created_at?: string
           currency: string
           direction: string
@@ -286,7 +473,7 @@ export type Database = {
           account_id?: string
           amount_minor?: number
           amount_usd_minor?: number
-          category?: string | null
+          category_id?: string | null
           created_at?: string
           currency?: string
           direction?: string
@@ -313,6 +500,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "balance_by_account"
             referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_status"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_month"
+            referencedColumns: ["category_id"]
           },
           {
             foreignKeyName: "transactions_obligation_id_fkey"
@@ -380,11 +588,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transfers_from_account_id_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
+          },
+          {
             foreignKeyName: "transfers_to_account_id_fkey"
             columns: ["to_account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_to_account_id_fkey"
+            columns: ["to_account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
           },
         ]
       }
@@ -398,6 +620,52 @@ export type Database = {
           is_archived: boolean | null
           kind: string | null
           name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          balance_minor?: never
+          currency?: string | null
+          is_archived?: boolean | null
+          kind?: string | null
+          name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          balance_minor?: never
+          currency?: string | null
+          is_archived?: boolean | null
+          kind?: string | null
+          name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      budget_status: {
+        Row: {
+          category_id: string | null
+          color: string | null
+          icon: string | null
+          monthly_budget_usd_minor: number | null
+          name: string | null
+          percent_used: number | null
+          remaining_usd_minor: number | null
+          sort_order: number | null
+          spent_usd_minor: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      category_spend_by_month: {
+        Row: {
+          category_color: string | null
+          category_icon: string | null
+          category_id: string | null
+          category_name: string | null
+          entry_count: number | null
+          month: string | null
+          spent_usd_minor: number | null
           user_id: string | null
         }
         Relationships: []
@@ -441,6 +709,17 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_summary: {
+        Row: {
+          entry_count: number | null
+          income_usd_minor: number | null
+          month: string | null
+          net_usd_minor: number | null
+          spent_usd_minor: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       obligation_progress: {
         Row: {
           amount_paid_usd_minor: number | null
@@ -467,12 +746,48 @@ export type Database = {
           },
         ]
       }
+      savings_goal_progress: {
+        Row: {
+          account_id: string | null
+          account_name: string | null
+          created_at: string | null
+          currency: string | null
+          days_until_target: number | null
+          id: string | null
+          name: string | null
+          note: string | null
+          remaining_minor: number | null
+          saved_minor: number | null
+          target_date: string | null
+          target_minor: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_goals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "savings_goals_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
+          },
+        ]
+      }
       transactions_with_week: {
         Row: {
           account_id: string | null
           amount_minor: number | null
           amount_usd_minor: number | null
-          category: string | null
+          category_color: string | null
+          category_icon: string | null
+          category_id: string | null
+          category_name: string | null
           created_at: string | null
           currency: string | null
           direction: string | null
@@ -500,6 +815,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "balance_by_account"
             referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_status"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_month"
+            referencedColumns: ["category_id"]
           },
           {
             foreignKeyName: "transactions_obligation_id_fkey"
@@ -540,6 +876,7 @@ export type Database = {
           total_liquid_usd_minor: number
         }[]
       }
+      post_due_recurring_expenses: { Args: never; Returns: number }
       restore_from_backup: { Args: { p_backup: Json }; Returns: Json }
       spawn_due_recurring_obligations: { Args: never; Returns: number }
     }

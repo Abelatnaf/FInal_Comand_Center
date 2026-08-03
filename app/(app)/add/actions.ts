@@ -32,7 +32,7 @@ export async function createTransaction(
     amount_minor: orUndefined(formData.get("amount_minor")),
     currency: orUndefined(formData.get("currency")),
     direction: orUndefined(formData.get("direction")),
-    category: orUndefined(formData.get("category")),
+    category_id: orUndefined(formData.get("category_id")),
     occurred_on: orUndefined(formData.get("occurred_on")),
     account_id: orUndefined(formData.get("account_id")),
     payer_id: orUndefined(formData.get("payer_id")),
@@ -81,7 +81,7 @@ export async function createTransaction(
       direction: input.direction,
       amount_minor: Number(input.amount_minor),
       currency: input.currency,
-      category: input.category ?? null,
+      category_id: input.category_id ?? null,
       note: input.note ?? null,
       obligation_id: input.obligation_id ?? null,
       fx_rate_etb_per_usd: 0,
@@ -112,5 +112,7 @@ export async function createTransaction(
   revalidatePath("/");
   revalidatePath("/ledger");
   revalidatePath("/bills");
+  revalidatePath("/budgets");
+  revalidatePath("/insights");
   return { success: true };
 }

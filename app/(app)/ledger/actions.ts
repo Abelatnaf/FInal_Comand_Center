@@ -16,6 +16,8 @@ function revalidateAffected() {
   revalidatePath("/");
   revalidatePath("/ledger");
   revalidatePath("/bills");
+  revalidatePath("/budgets");
+  revalidatePath("/insights");
 }
 
 export async function updateTransaction(
@@ -30,7 +32,7 @@ export async function updateTransaction(
     amount_minor: orUndefined(formData.get("amount_minor")),
     currency: orUndefined(formData.get("currency")),
     direction: orUndefined(formData.get("direction")),
-    category: orUndefined(formData.get("category")),
+    category_id: orUndefined(formData.get("category_id")),
     occurred_on: orUndefined(formData.get("occurred_on")),
     account_id: orUndefined(formData.get("account_id")),
     payer_id: orUndefined(formData.get("payer_id")),
@@ -53,7 +55,7 @@ export async function updateTransaction(
       direction: input.direction,
       amount_minor: Number(input.amount_minor),
       currency: input.currency,
-      category: input.category ?? null,
+      category_id: input.category_id ?? null,
       note: input.note ?? null,
       obligation_id: input.obligation_id ?? null,
     })
@@ -116,10 +118,13 @@ export async function bulkDeleteTransactions(ids: string[]): Promise<{ error?: s
   return {};
 }
 
-export async function bulkRecategorizeTransactions(ids: string[], category: string): Promise<{ error?: string }> {
+export async function bulkRecategorizeTransactions(
+  ids: string[],
+  categoryId: string
+): Promise<{ error?: string }> {
   if (ids.length === 0) return {};
   const supabase = await createClient();
-  const { error } = await supabase.from("transactions").update({ category }).in("id", ids);
+  const { error } = await supabase.from("transactions").update({ category_id: categoryId }).in("id", ids);
   if (error) return { error: error.message };
   revalidateAffected();
   return {};

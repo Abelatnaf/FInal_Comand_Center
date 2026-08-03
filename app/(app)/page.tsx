@@ -5,54 +5,107 @@ import { Amount } from "@/components/money/Amount";
 import { AccountSwatch } from "@/components/money/AccountSwatch";
 import { FxRateNotice } from "@/components/money/FxRateNotice";
 import { TransactionRow, type TransactionRowData } from "@/components/ledger/TransactionRow";
+import { CategoryBars } from "@/components/charts/CategoryBars";
+import { SpendTrend } from "@/components/charts/SpendTrend";
 import { formatMoney, type Currency } from "@/lib/money";
-import { formatShortDate, daysBetween, todayIso } from "@/lib/date";
+import type { Category } from "@/lib/categories";
+import { formatShortDate, monthStartIso, recentMonthStarts, formatMonthLong } from "@/lib/date";
 
-export default async function NowPage() {
+const TREND_MONTHS = 6;
+
+export default async function HomePage() {
   const supabase = await createClient();
 
-  const [payersRes, accountsAllRes, balancesRes, liquidRes, obligationCountRes, openObligationsRes, recentRes, settingsRes, fxRes, installmentsRes] =
-    await Promise.all([
-      supabase.from("payers").select("id, key, label"),
-      supabase.from("accounts").select("id, name, currency").eq("is_archived", false),
-      supabase.from("balance_by_account").select("*").eq("is_archived", false).order("kind").order("name"),
-      supabase.from("liquid_position").select("*").maybeSingle(),
-      supabase.from("obligations").select("id", { count: "exact", head: true }),
-      supabase
-        .from("obligation_progress")
-        .select("*")
-        .in("status", ["open", "partial"])
-        .order("due_on", { ascending: true, nullsFirst: false }),
-      supabase
-        .from("transactions")
-        .select("id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category, note, account_id, payer_id, obligation_id, receipt_path, accounts(name), payers(label)")
-        .order("occurred_on", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(3),
-      supabase.from("settings").select("tracking_start_date").maybeSingle(),
-      supabase
-        .from("fx_rates")
-        .select("etb_per_usd, effective_on")
-        .order("effective_on", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase
-        .from("installment_progress")
-        .select("obligation_id, seq, due_on, amount_usd_minor, amount_covered_minor, is_past_due")
-        .eq("is_settled", false)
-        .order("seq", { ascending: true }),
-    ]);
+  const thisMonth = monthStartIso(0);
+  const lastMonth = monthStartIso(1);
+  const trendFrom = monthStartIso(TREND_MONTHS - 1);
 
-  const trackingStartDate = settingsRes.data?.tracking_start_date ?? null;
-  const currentWeek = trackingStartDate ? Math.floor(daysBetween(trackingStartDate, todayIso()) / 7) + 1 : null;
+  const [
+    payersRes,
+    accountsAllRes,
+    categoriesRes,
+    balancesRes,
+    monthlyRes,
+    categorySpendRes,
+    budgetsRes,
+    openObligationsRes,
+    recentRes,
+    fxRes,
+  ] = await Promise.all([
+    supabase.from("payers").select("id, key, label"),
+    supabase.from("accounts").select("id, name, currency").eq("is_archived", false),
+    supabase
+      .from("categories")
+      .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
+      .order("sort_order"),
+    supabase.from("balance_by_account").select("*").eq("is_archived", false).order("kind").order("name"),
+    supabase.from("monthly_summary").select("*").gte("month", trendFrom).order("month"),
+    supabase.from("category_spend_by_month").select("*").eq("month", thisMonth),
+    supabase.from("budget_status").select("*").not("monthly_budget_usd_minor", "is", null),
+    supabase
+      .from("obligation_progress")
+      .select("*")
+      .in("status", ["open", "partial"])
+      .order("due_on", { ascending: true, nullsFirst: false }),
+    supabase
+      .from("transactions_with_week")
+      .select(
+        "id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category_id, category_name, category_icon, category_color, note, account_id, payer_id, obligation_id, receipt_path, accounts(name), payers(label)"
+      )
+      .order("occurred_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("fx_rates")
+      .select("etb_per_usd, effective_on")
+      .order("effective_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   const payers = payersRes.data ?? [];
-  const payerLabel = (id: string) => payers.find((p) => p.id === id)?.label ?? "—";
+  const accounts = (accountsAllRes.data ?? []) as { id: string; name: string; currency: Currency }[];
+  const categories = (categoriesRes.data ?? []) as Category[];
 
-  // Past-due sorts first even among open obligations, since due_on for a
-  // past-due bill is earlier than today -- but re-sort explicitly so this
-  // doesn't quietly depend on that coincidence.
+  const monthly = monthlyRes.data ?? [];
+  const byMonth = new Map(monthly.map((m) => [m.month as string, m]));
+  const current = byMonth.get(thisMonth);
+  const previous = byMonth.get(lastMonth);
+
+  const spentThisMonth = BigInt(current?.spent_usd_minor ?? 0);
+  const incomeThisMonth = BigInt(current?.income_usd_minor ?? 0);
+  const netThisMonth = BigInt(current?.net_usd_minor ?? 0);
+  const spentLastMonth = BigInt(previous?.spent_usd_minor ?? 0);
+
+  // Only claim a comparison when there is a real prior month to compare to.
+  const spendDelta = previous ? spentThisMonth - spentLastMonth : null;
+  const deltaPercent =
+    spendDelta !== null && spentLastMonth > 0n
+      ? Number((spendDelta * 100n) / spentLastMonth)
+      : null;
+
+  const trend = recentMonthStarts(TREND_MONTHS).map((month) => ({
+    month,
+    minor: BigInt(byMonth.get(month)?.spent_usd_minor ?? 0),
+  }));
+
+  const slices = (categorySpendRes.data ?? []).map((c) => ({
+    id: c.category_id ?? "",
+    name: c.category_name ?? "Uncategorized",
+    icon: c.category_icon,
+    color: c.category_color,
+    minor: BigInt(c.spent_usd_minor ?? 0),
+  }));
+
+  const budgets = budgetsRes.data ?? [];
+  const budgetTotal = budgets.reduce((s, b) => s + BigInt(b.monthly_budget_usd_minor ?? 0), 0n);
+  const budgetSpent = budgets.reduce((s, b) => s + BigInt(b.spent_usd_minor ?? 0), 0n);
+  const overBudget = budgets.filter(
+    (b) => BigInt(b.spent_usd_minor ?? 0) > BigInt(b.monthly_budget_usd_minor ?? 0)
+  );
+  const budgetPercent = budgetTotal > 0n ? Number((budgetSpent * 100n) / budgetTotal) : 0;
+
   const openObligations = [...(openObligationsRes.data ?? [])].sort((a, b) => {
     if (a.is_past_due !== b.is_past_due) return a.is_past_due ? -1 : 1;
     if (a.due_on == null) return 1;
@@ -60,198 +113,189 @@ export default async function NowPage() {
     return a.due_on.localeCompare(b.due_on);
   });
   const nextDue = openObligations[0] ?? null;
-  const upcoming = openObligations.slice(1, 4);
-
-  // If the next-due bill has a payment plan, what's actually due next is the
-  // next unsettled part, not the whole remaining balance. Lowest seq wins --
-  // the view already orders by it and excludes settled parts.
-  const nextInstallment = nextDue
-    ? (installmentsRes.data ?? []).find((i) => i.obligation_id === nextDue.obligation_id) ?? null
-    : null;
-
-  const liquid = liquidRes.data;
-  const hasAnyObligations = (obligationCountRes.count ?? 0) > 0;
-
-  const isCovered =
-    nextDue && liquid?.total_liquid_usd_minor != null
-      ? BigInt(liquid.total_liquid_usd_minor) >= BigInt(nextDue.amount_remaining_usd_minor ?? 0)
-      : null;
-
-  // Informational only -- this sums what each payer's obligations still
-  // add up to. It is not a claim that liquid funds are earmarked per payer;
-  // there's only ever one shared pool, shown separately above.
-  const byPayer = new Map<string, bigint>();
-  for (const o of openObligations) {
-    if (!o.payer_id) continue;
-    byPayer.set(o.payer_id, (byPayer.get(o.payer_id) ?? 0n) + BigInt(o.amount_remaining_usd_minor ?? 0));
-  }
+  const payerLabel = (id: string) => payers.find((p) => p.id === id)?.label ?? "—";
 
   const recent: TransactionRowData[] = (recentRes.data ?? []).map((t) => ({
-    id: t.id,
-    occurred_on: t.occurred_on,
+    id: t.id ?? "",
+    occurred_on: t.occurred_on ?? "",
     direction: t.direction as "in" | "out",
-    amount_minor: t.amount_minor,
-    currency: t.currency as Currency,
-    amount_usd_minor: t.amount_usd_minor,
-    category: t.category,
+    amount_minor: t.amount_minor ?? 0,
+    currency: (t.currency ?? "USD") as Currency,
+    amount_usd_minor: t.amount_usd_minor ?? 0,
+    category_id: t.category_id,
+    category_name: t.category_name,
+    category_icon: t.category_icon,
+    category_color: t.category_color,
     note: t.note,
-    account_id: t.account_id,
+    account_id: t.account_id ?? "",
     account_name: (t.accounts as { name: string } | null)?.name ?? "—",
-    payer_id: t.payer_id,
+    payer_id: t.payer_id ?? "",
     payer_label: (t.payers as { label: string } | null)?.label ?? "—",
     obligation_id: t.obligation_id,
     receipt_path: t.receipt_path,
   }));
 
+  const hasAnyActivity = monthly.length > 0;
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-2">
-          <h1 className="page-title">Now</h1>
-          {currentWeek !== null && <span className="text-[13px] text-faint">Week {currentWeek}</span>}
-        </div>
+        <h1 className="page-title">{formatMonthLong(thisMonth)}</h1>
         <Link href="/settings" aria-label="Settings" className="p-2 -m-2 text-muted">
           <SettingsIcon className="w-6 h-6" />
         </Link>
       </div>
 
-      <FxRateNotice
-        rate={fxRes.data}
-        hasEtbAccounts={(accountsAllRes.data ?? []).some((a) => a.currency === "ETB")}
-      />
+      <FxRateNotice rate={fxRes.data} hasEtbAccounts={accounts.some((a) => a.currency === "ETB")} />
 
-      {!hasAnyObligations ? (
+      {/* Spending is the headline figure: this is an expense tracker first. */}
+      <div className="card card-hero row">
+        <p className="section-label mb-2">Spent this month</p>
+        <Amount minor={spentThisMonth} currency="USD" className="hero-figure block" />
+        {spendDelta !== null && (
+          <p className="text-[14px] text-muted mt-1">
+            {spendDelta === 0n ? (
+              "Same as last month"
+            ) : (
+              <>
+                <span className={spendDelta > 0n ? "text-alarm" : "text-positive"}>
+                  {spendDelta > 0n ? "↑" : "↓"} {formatMoney(spendDelta < 0n ? -spendDelta : spendDelta, "USD")}
+                  {deltaPercent !== null && ` (${Math.abs(deltaPercent)}%)`}
+                </span>{" "}
+                vs last month
+              </>
+            )}
+          </p>
+        )}
+
+        <div className="flex gap-6 mt-4 pt-4 border-t">
+          <div>
+            <p className="section-label">Income</p>
+            <Amount minor={incomeThisMonth} currency="USD" className="text-[17px] font-semibold text-positive" />
+          </div>
+          <div>
+            <p className="section-label">Net</p>
+            <Amount
+              minor={netThisMonth}
+              currency="USD"
+              className={`text-[17px] font-semibold ${netThisMonth < 0n ? "text-alarm" : ""}`}
+            />
+          </div>
+        </div>
+      </div>
+
+      {!hasAnyActivity && (
         <div className="card row flex flex-col gap-3">
-          <p className="text-[15px] text-text">No obligations yet.</p>
-          <Link href="/bills/new" className="btn btn-primary self-start">
-            Add the first bill
+          <p className="text-[15px]">Nothing logged yet. Add your first expense to get started.</p>
+          <Link href="/add" className="btn btn-primary self-start">
+            Add an expense
           </Link>
         </div>
-      ) : (
-        nextDue && (
-          <div className="card row">
-            <p className="section-label mb-2">Next due</p>
-            <p className="text-[17px] text-text font-medium">{nextDue.title}</p>
-            <p className="text-[13px] text-muted mb-2">{payerLabel(nextDue.payer_id ?? "")}</p>
+      )}
+
+      {hasAnyActivity && (
+        <div className="card row">
+          <p className="section-label mb-3">Spending, last {TREND_MONTHS} months</p>
+          <SpendTrend points={trend} />
+        </div>
+      )}
+
+      {budgets.length > 0 && (
+        <Link href="/budgets" className="card row row-link block">
+          <div className="flex items-center justify-between mb-2">
+            <p className="section-label">Budgets</p>
+            <span className="text-[13px] text-accent font-semibold">All →</span>
+          </div>
+          <div className="flex items-baseline justify-between mb-2 text-[15px]">
+            <Amount minor={budgetSpent} currency="USD" className="font-semibold" />
+            <span className="text-muted num text-[13px]">of {formatMoney(budgetTotal, "USD")}</span>
+          </div>
+          <div className="progress-track">
+            <div
+              className="progress-fill"
+              data-tone={budgetPercent > 100 ? "alarm" : budgetPercent > 85 ? "urgent" : undefined}
+              style={{ width: `${Math.min(budgetPercent, 100)}%` }}
+            />
+          </div>
+          {overBudget.length > 0 && (
+            <p className="text-[13px] text-alarm mt-2">
+              {overBudget.length} {overBudget.length === 1 ? "category is" : "categories are"} over budget
+            </p>
+          )}
+        </Link>
+      )}
+
+      {slices.length > 0 && (
+        <div className="card row">
+          <div className="flex items-center justify-between mb-3">
+            <p className="section-label">Where it went</p>
+            <Link href="/insights" className="text-[13px] text-accent font-semibold">
+              Insights →
+            </Link>
+          </div>
+          <CategoryBars slices={slices} limit={5} />
+        </div>
+      )}
+
+      <div className="card">
+        <p className="section-label row pb-0">Accounts</p>
+        {(balancesRes.data ?? []).map((a, i) => (
+          <Link
+            key={a.account_id}
+            href={`/accounts/${a.account_id}`}
+            className="row row-link flex items-center gap-3"
+          >
+            <AccountSwatch name={a.name ?? "?"} index={i} />
+            <span className="text-[15px] flex-1">{a.name}</span>
+            <Amount minor={BigInt(a.balance_minor ?? 0)} currency={(a.currency ?? "USD") as Currency} />
+          </Link>
+        ))}
+        {(balancesRes.data ?? []).length === 0 && (
+          <p className="row text-[14px] text-muted">No accounts yet — add one in Settings.</p>
+        )}
+      </div>
+
+      {nextDue && (
+        <Link href={`/bills/${nextDue.obligation_id}`} className="card row row-link block">
+          <div className="flex items-center justify-between mb-2">
+            <p className="section-label">Next bill due</p>
+            <span className="text-[13px] text-accent font-semibold">All bills →</span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[15px] font-medium truncate">{nextDue.title}</p>
+              <p className={`text-[13px] ${nextDue.is_past_due ? "text-alarm" : "text-muted"}`}>
+                {nextDue.is_past_due
+                  ? `${Math.abs(nextDue.days_until_due ?? 0)} days past due`
+                  : nextDue.due_on
+                    ? `${nextDue.days_until_due} days left · ${formatShortDate(nextDue.due_on)}`
+                    : payerLabel(nextDue.payer_id ?? "")}
+              </p>
+            </div>
             <Amount
               minor={BigInt(nextDue.amount_remaining_usd_minor ?? 0)}
               currency="USD"
-              className="hero-figure block"
-              tone={nextDue.is_past_due ? "alarm" : (nextDue.days_until_due ?? 99) <= 14 ? "urgent" : undefined}
+              className={`shrink-0 font-semibold ${nextDue.is_past_due ? "text-alarm" : ""}`}
             />
-            <p className={`text-[14px] mt-1 ${nextDue.is_past_due ? "text-alarm" : "text-muted"}`}>
-              {nextDue.is_past_due
-                ? `${Math.abs(nextDue.days_until_due ?? 0)} days past due`
-                : nextDue.due_on
-                  ? `${nextDue.days_until_due} days left · due ${formatShortDate(nextDue.due_on)}`
-                  : "No due date set"}
-            </p>
-
-            {/* The hero figure stays the full remaining balance; this adds what
-                the plan says to pay next, which is usually the smaller and more
-                actionable number. */}
-            {nextInstallment && (
-              <div className="mt-3 pt-3 border-t border-[var(--border)] flex items-center justify-between">
-                <div>
-                  <p className="section-label">Next part</p>
-                  <p className={`text-[13px] ${nextInstallment.is_past_due ? "text-alarm" : "text-muted"}`}>
-                    Part {nextInstallment.seq}
-                    {nextInstallment.due_on && ` · due ${formatShortDate(nextInstallment.due_on)}`}
-                  </p>
-                </div>
-                <Amount
-                  minor={
-                    BigInt(nextInstallment.amount_usd_minor ?? 0) -
-                    BigInt(nextInstallment.amount_covered_minor ?? 0)
-                  }
-                  currency="USD"
-                  className={nextInstallment.is_past_due ? "text-alarm" : "text-text"}
-                />
-              </div>
-            )}
           </div>
-        )
-      )}
-
-      {upcoming.length > 0 && (
-        <div className="card">
-          <div className="row pb-0 flex items-center justify-between gap-3">
-            <p className="section-label">Also open</p>
-            <Link href="/upcoming" className="text-silver text-[13px]">
-              Timeline
-            </Link>
-          </div>
-          {upcoming.map((o) => (
-            <Link key={o.obligation_id} href={`/bills/${o.obligation_id}`} className="row flex items-center justify-between gap-3 block">
-              <div className="min-w-0">
-                <p className="text-[14px] text-text truncate">{o.title}</p>
-                <p className="text-[12px] text-muted">{payerLabel(o.payer_id ?? "")}</p>
-              </div>
-              <Amount
-                minor={BigInt(o.amount_remaining_usd_minor ?? 0)}
-                currency="USD"
-                className={`shrink-0 ${o.is_past_due ? "text-alarm" : "text-text"}`}
-              />
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {hasAnyObligations && nextDue && (
-        <div className="card row flex flex-col gap-3">
-          <div>
-            <p className="section-label mb-2">Coverage</p>
-            {liquid?.total_liquid_usd_minor != null ? (
-              <p className="text-[15px] text-text">
-                You have{" "}
-                <span className={`num estimate ${isCovered ? "text-positive" : "text-alarm"}`}>
-                  ~{formatMoney(BigInt(liquid.total_liquid_usd_minor), "USD")}
-                </span>{" "}
-                liquid against{" "}
-                <Amount minor={BigInt(nextDue.amount_remaining_usd_minor ?? 0)} currency="USD" className="text-text" />{" "}
-                due.
-              </p>
-            ) : (
-              <p className="text-[14px] text-muted">Set today&rsquo;s rate in Settings to see this.</p>
-            )}
-          </div>
-          {byPayer.size > 1 && (
-            <div className="pt-1 border-t border-[var(--border)] flex flex-col gap-1.5">
-              {[...byPayer.entries()].map(([payerId, minor]) => (
-                <div key={payerId} className="flex items-center justify-between text-[13px]">
-                  <span className="text-muted">{payerLabel(payerId)}</span>
-                  <Amount minor={minor} currency="USD" className="text-text" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        </Link>
       )}
 
       <div className="card">
-        <p className="section-label row pb-0">Balances</p>
-        {(balancesRes.data ?? []).map((a, i) => (
-          <Link key={a.account_id} href={`/accounts/${a.account_id}`} className="row flex items-center gap-3 block">
-            <AccountSwatch name={a.name ?? "?"} index={i} />
-            <span className="text-[15px] text-text flex-1">{a.name}</span>
-            <Amount
-              minor={BigInt(a.balance_minor ?? 0)}
-              currency={(a.currency ?? "USD") as Currency}
-              className="text-text"
-            />
+        <div className="row pb-0 flex items-center justify-between">
+          <p className="section-label">Recent</p>
+          <Link href="/ledger" className="text-[13px] text-accent font-semibold">
+            All →
           </Link>
-        ))}
-      </div>
-
-      <div className="card">
-        <p className="section-label row pb-0">Last 3</p>
+        </div>
         {recent.length === 0 && <p className="row text-[14px] text-muted">Nothing logged yet.</p>}
         {recent.map((t) => (
           <TransactionRow
             key={t.id}
             transaction={t}
             payers={payers.map((p) => ({ id: p.id, label: p.label }))}
-            accounts={(accountsAllRes.data ?? []) as { id: string; name: string; currency: Currency }[]}
+            accounts={accounts}
+            categories={categories}
           />
         ))}
       </div>

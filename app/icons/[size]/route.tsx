@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ size: s
         style={{
           width: "100%",
           height: "100%",
-          background: "linear-gradient(150deg, #0d5c3f, #07080a)",
+          background: "linear-gradient(150deg, #4f46e5, #1e1b4b)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -24,7 +24,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ size: s
           height={glyph}
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#6fe8bb"
+          stroke="#c7d2fe"
           strokeWidth="1.4"
           strokeLinecap="round"
           strokeLinejoin="round"

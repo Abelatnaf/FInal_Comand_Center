@@ -149,7 +149,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
             <div>
               <div className="flex items-center gap-3">
                 <p className="section-label">Still owed{isFiltered && ", filtered"}</p>
-                <Link href="/upcoming" className="text-silver text-[12px]">
+                <Link href="/upcoming" className="text-accent text-[12px]">
                   Timeline
                 </Link>
               </div>

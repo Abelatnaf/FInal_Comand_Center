@@ -5,12 +5,13 @@ import type { TransferRowData } from "@/components/ledger/TransferRow";
 import { LedgerSummary } from "@/components/ledger/LedgerSummary";
 import { CsvExportButton } from "@/components/ledger/CsvExportButton";
 import { formatMoney, type Currency } from "@/lib/money";
+import type { Category } from "@/lib/categories";
 
 type Filters = {
   payer_id?: string;
   account_id?: string;
   currency?: string;
-  category?: string;
+  category_id?: string;
   q?: string;
   from?: string;
   to?: string;
@@ -21,9 +22,13 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   const filters = await searchParams;
   const supabase = await createClient();
 
-  const [payersRes, accountsRes, transfersRes] = await Promise.all([
+  const [payersRes, accountsRes, categoriesRes, transfersRes] = await Promise.all([
     supabase.from("payers").select("id, label"),
     supabase.from("accounts").select("id, name, currency"),
+    supabase
+      .from("categories")
+      .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
+      .order("sort_order"),
     supabase
       .from("transfers")
       .select("id, occurred_on, from_amount_minor, to_amount_minor, note, from_account_id, to_account_id")
@@ -31,11 +36,12 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   ]);
   const payers = payersRes.data ?? [];
   const accounts = (accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[];
+  const categories = (categoriesRes.data ?? []) as Category[];
 
   let query = supabase
     .from("transactions_with_week")
     .select(
-      "id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category, note, account_id, payer_id, obligation_id, receipt_path, week_number, accounts(name), payers(label)"
+      "id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category_id, category_name, category_icon, category_color, note, account_id, payer_id, obligation_id, receipt_path, week_number, accounts(name), payers(label)"
     )
     .order("occurred_on", { ascending: false })
     .order("created_at", { ascending: false });
@@ -43,18 +49,18 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   if (filters.payer_id) query = query.eq("payer_id", filters.payer_id);
   if (filters.account_id) query = query.eq("account_id", filters.account_id);
   if (filters.currency) query = query.eq("currency", filters.currency);
-  if (filters.category) query = query.ilike("category", `%${filters.category}%`);
+  if (filters.category_id) query = query.eq("category_id", filters.category_id);
   if (filters.from) query = query.gte("occurred_on", filters.from);
   if (filters.to) query = query.lte("occurred_on", filters.to);
   if (filters.week) query = query.eq("week_number", Number(filters.week));
 
-  // Free-text search spans note and category. `or()` takes a raw filter string,
-  // so commas and parens in the term would otherwise be read as filter syntax
-  // rather than as text to match -- strip them instead of building a broken
-  // query out of the user's own words.
+  // Free-text search spans note and category name. `or()` takes a raw filter
+  // string, so commas and parens in the term would otherwise be read as filter
+  // syntax rather than as text to match -- strip them instead of building a
+  // broken query out of the user's own words.
   const searchTerm = filters.q?.trim().replace(/[,()]/g, "");
   if (searchTerm) {
-    query = query.or(`note.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`);
+    query = query.or(`note.ilike.%${searchTerm}%,category_name.ilike.%${searchTerm}%`);
   }
 
   const { data } = await query;
@@ -77,7 +83,10 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
       amount_minor: t.amount_minor,
       currency: t.currency as Currency,
       amount_usd_minor: t.amount_usd_minor,
-      category: t.category,
+      category_id: t.category_id,
+      category_name: t.category_name,
+      category_icon: t.category_icon,
+      category_color: t.category_color,
       note: t.note,
       account_id: t.account_id,
       account_name: (t.accounts as { name: string } | null)?.name ?? "—",
@@ -92,7 +101,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   // payer, category or direction, so those filters exclude them entirely
   // rather than pretending to match. A currency filter matches either side.
   const accountById = new Map(accounts.map((a) => [a.id, a]));
-  const showTransfers = !filters.payer_id && !filters.category && !filters.q && !filters.week;
+  const showTransfers = !filters.payer_id && !filters.category_id && !filters.q && !filters.week;
   const transfers: TransferRowData[] = !showTransfers
     ? []
     : (transfersRes.data ?? [])
@@ -127,70 +136,89 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <h1 className="page-title">Ledger</h1>
         <CsvExportButton rows={rows} />
       </div>
 
-      <form method="get" className="card row flex flex-col gap-2">
-        <input
-          name="q"
-          defaultValue={filters.q ?? ""}
-          placeholder="Search notes and categories…"
-          className="input"
-          aria-label="Search"
-        />
-        <div className="flex gap-2">
-          <select name="payer_id" defaultValue={filters.payer_id ?? ""} className="input">
-            <option value="">All payers</option>
-            {payers.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
+      <details className="card">
+        <summary className="row cursor-pointer list-none flex items-center justify-between">
+          <span className="text-[15px] font-semibold">Filter &amp; search</span>
+          <span className="text-muted text-[13px]">{rows.length} entries</span>
+        </summary>
+        <form method="get" className="row flex flex-col gap-2 border-t">
+          <input
+            name="q"
+            defaultValue={filters.q ?? ""}
+            placeholder="Search notes and categories…"
+            className="input"
+            aria-label="Search"
+          />
+          <div className="flex gap-2">
+            <select name="payer_id" defaultValue={filters.payer_id ?? ""} className="input">
+              <option value="">All payers</option>
+              {payers.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+            <select name="currency" defaultValue={filters.currency ?? ""} className="input">
+              <option value="">Both currencies</option>
+              <option value="ETB">ETB</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+          <select name="account_id" defaultValue={filters.account_id ?? ""} className="input" aria-label="Account">
+            <option value="">All accounts</option>
+            {accounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name} ({a.currency})
               </option>
             ))}
           </select>
-          <select name="currency" defaultValue={filters.currency ?? ""} className="input">
-            <option value="">Both currencies</option>
-            <option value="ETB">ETB</option>
-            <option value="USD">USD</option>
+          <select name="category_id" defaultValue={filters.category_id ?? ""} className="input" aria-label="Category">
+            <option value="">All categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.icon} {c.name}
+              </option>
+            ))}
           </select>
-        </div>
-        <select name="account_id" defaultValue={filters.account_id ?? ""} className="input" aria-label="Account">
-          <option value="">All accounts</option>
-          {accounts.map((a) => (
-            <option key={a.id} value={a.id}>
-              {a.name} ({a.currency})
-            </option>
-          ))}
-        </select>
-        <input name="category" defaultValue={filters.category ?? ""} placeholder="Category contains…" className="input" />
-        <input name="week" type="number" defaultValue={filters.week ?? ""} placeholder="Week #" className="input" aria-label="Week number" />
-        <div className="flex gap-2">
-          <input name="from" type="date" defaultValue={filters.from ?? ""} className="input" aria-label="From" />
-          <input name="to" type="date" defaultValue={filters.to ?? ""} className="input" aria-label="To" />
-        </div>
-        <div className="flex gap-2">
-          <button type="submit" className="btn btn-primary flex-1">
-            Filter
-          </button>
-          <a href="/ledger" className="btn flex-1 text-center">
-            Clear
-          </a>
-        </div>
-      </form>
+          <input name="week" type="number" defaultValue={filters.week ?? ""} placeholder="Week #" className="input" aria-label="Week number" />
+          <div className="flex gap-2">
+            <input name="from" type="date" defaultValue={filters.from ?? ""} className="input" aria-label="From" />
+            <input name="to" type="date" defaultValue={filters.to ?? ""} className="input" aria-label="To" />
+          </div>
+          <div className="flex gap-2">
+            <button type="submit" className="btn btn-primary flex-1">
+              Apply
+            </button>
+            <a href="/ledger" className="btn flex-1 text-center">
+              Clear
+            </a>
+          </div>
+        </form>
+      </details>
 
       <div className="card row flex items-center justify-between">
         <p className="section-label">Net, filtered</p>
         <div className="text-right num text-[15px]">
-          <p className={totals.ETB >= 0n ? "text-positive" : "text-text"}>{formatMoney(totals.ETB, "ETB")}</p>
-          <p className={totals.USD >= 0n ? "text-positive" : "text-text"}>{formatMoney(totals.USD, "USD")}</p>
+          <p className={totals.ETB >= 0n ? "text-positive" : ""}>{formatMoney(totals.ETB, "ETB")}</p>
+          <p className={totals.USD >= 0n ? "text-positive" : ""}>{formatMoney(totals.USD, "USD")}</p>
         </div>
       </div>
 
       <LedgerSummary rows={rows} />
 
-      <LedgerList rows={rows} transfers={transfers} payers={payers} accounts={accounts} />
+      <LedgerList
+        rows={rows}
+        transfers={transfers}
+        payers={payers}
+        accounts={accounts}
+        categories={categories}
+      />
     </div>
   );
 }

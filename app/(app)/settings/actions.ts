@@ -267,15 +267,29 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
   } = await supabase.auth.getUser();
   if (!user) return {};
 
-  const [payers, accounts, fxRates, obligations, installments, transfers, transactions, settings] =
-    await Promise.all([
+  const [
+    payers,
+    categories,
+    accounts,
+    fxRates,
+    obligations,
+    installments,
+    transfers,
+    transactions,
+    recurring,
+    goals,
+    settings,
+  ] = await Promise.all([
       supabase.from("payers").select("*"),
+      supabase.from("categories").select("*"),
       supabase.from("accounts").select("*"),
       supabase.from("fx_rates").select("*"),
       supabase.from("obligations").select("*"),
       supabase.from("obligation_installments").select("*"),
       supabase.from("transfers").select("*"),
       supabase.from("transactions").select("*"),
+      supabase.from("recurring_expenses").select("*"),
+      supabase.from("savings_goals").select("*"),
       supabase.from("settings").select("*"),
     ]);
 
@@ -284,12 +298,15 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
   return {
     exported_at: new Date().toISOString(),
     payers: payers.data,
+    categories: categories.data,
     accounts: accounts.data,
     fx_rates: fxRates.data,
     obligations: obligations.data,
     obligation_installments: installments.data,
     transfers: transfers.data,
     transactions: transactions.data,
+    recurring_expenses: recurring.data,
+    savings_goals: goals.data,
     settings: settings.data,
   };
 }

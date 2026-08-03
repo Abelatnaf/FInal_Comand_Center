@@ -19,7 +19,7 @@ export function BillsExportButton({ rows }: { rows: BillExportRow[] }) {
   return (
     <button
       type="button"
-      className="text-silver text-[14px]"
+      className="text-accent text-[14px]"
       onClick={() => {
         const header = ["Title", "Payer", "Status", "Due", "Total USD", "Paid USD", "Remaining USD"];
         const body = rows.map((r) => [

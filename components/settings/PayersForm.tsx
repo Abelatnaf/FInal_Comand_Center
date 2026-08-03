@@ -56,7 +56,7 @@ export function PayersForm({ payers }: { payers: Payer[] }) {
       <div className="row pb-0 flex items-center justify-between gap-3">
         <p className="section-label">Payers</p>
         {!adding && (
-          <button type="button" className="text-silver text-[13px]" onClick={() => setAdding(true)}>
+          <button type="button" className="text-accent text-[13px]" onClick={() => setAdding(true)}>
             Add
           </button>
         )}

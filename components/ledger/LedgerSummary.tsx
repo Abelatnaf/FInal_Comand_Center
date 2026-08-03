@@ -22,7 +22,7 @@ export function LedgerSummary({ rows }: { rows: TransactionRowData[] }) {
   for (const r of rows) {
     if (r.direction !== "out") continue;
     const month = r.occurred_on.slice(0, 7);
-    const category = r.category ?? "Uncategorized";
+    const category = r.category_name ?? "Uncategorized";
     if (!byMonth.has(month)) byMonth.set(month, new Map());
     const cats = byMonth.get(month)!;
     cats.set(category, (cats.get(category) ?? 0n) + BigInt(r.amount_usd_minor));

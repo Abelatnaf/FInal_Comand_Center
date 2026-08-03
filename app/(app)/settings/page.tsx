@@ -3,6 +3,7 @@ import { signOut } from "@/app/(app)/actions";
 import { FxRateForm } from "@/components/settings/FxRateForm";
 import { FxRateHistory } from "@/components/settings/FxRateHistory";
 import { AccountsForm } from "@/components/settings/AccountsForm";
+import { CategoriesForm } from "@/components/settings/CategoriesForm";
 import { TransfersForm, type TransferRow } from "@/components/settings/TransfersForm";
 import { PayersForm } from "@/components/settings/PayersForm";
 import { ExportButton } from "@/components/settings/ExportButton";
@@ -10,6 +11,7 @@ import { RestoreForm } from "@/components/settings/RestoreForm";
 import { TrackingWeekForm } from "@/components/settings/TrackingWeekForm";
 import { ShareLinksForm } from "@/components/settings/ShareLinksForm";
 import type { Currency } from "@/lib/money";
+import type { Category } from "@/lib/categories";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -17,13 +19,14 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [fxRes, accountsRes, payersRes, settingsRes, shareLinksRes, transfersRes] = await Promise.all([
+  const [fxRes, accountsRes, categoriesRes, payersRes, settingsRes, shareLinksRes, transfersRes] = await Promise.all([
     supabase
       .from("fx_rates")
       .select("id, etb_per_usd, effective_on, source")
       .order("effective_on", { ascending: false })
       .order("created_at", { ascending: false }),
     supabase.from("accounts").select("id, name, currency, kind, opening_balance_minor, is_archived").order("kind").order("name"),
+    supabase.from("categories").select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived").order("sort_order"),
     supabase.from("payers").select("id, key, label, class_year").order("is_default", { ascending: false }),
     supabase.from("settings").select("tracking_start_date").maybeSingle(),
     supabase.from("share_links").select("id, label, created_at, revoked_at").order("created_at", { ascending: false }),
@@ -46,6 +49,8 @@ export default async function SettingsPage() {
         accounts={(accountsRes.data ?? []).filter((a) => !a.is_archived) as { id: string; name: string; currency: Currency }[]}
         transfers={(transfersRes.data ?? []) as TransferRow[]}
       />
+
+      <CategoriesForm categories={(categoriesRes.data ?? []) as Category[]} />
 
       <PayersForm payers={payersRes.data ?? []} />
 
