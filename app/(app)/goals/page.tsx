@@ -1,13 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { GoalsManager, type GoalItem } from "@/components/goals/GoalsManager";
-import type { Currency } from "@/lib/money";
 
 export default async function GoalsPage() {
   const supabase = await createClient();
 
   const [goalsRes, accountsRes] = await Promise.all([
     supabase.from("savings_goal_progress").select("*").order("created_at"),
-    supabase.from("accounts").select("id, name, currency").eq("is_archived", false).order("name"),
+    supabase.from("accounts").select("id, name").eq("is_archived", false).order("name"),
   ]);
 
   const goals: GoalItem[] = (goalsRes.data ?? []).map((g) => ({
@@ -16,7 +15,6 @@ export default async function GoalsPage() {
     target_minor: g.target_minor ?? 0,
     saved_minor: g.saved_minor ?? 0,
     remaining_minor: g.remaining_minor ?? 0,
-    currency: (g.currency ?? "USD") as Currency,
     target_date: g.target_date,
     days_until_target: g.days_until_target,
     account_id: g.account_id,
@@ -30,10 +28,7 @@ export default async function GoalsPage() {
         <p className="text-[14px] text-muted mt-0.5">What you&rsquo;re saving towards</p>
       </div>
 
-      <GoalsManager
-        goals={goals}
-        accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[]}
-      />
+      <GoalsManager goals={goals} accounts={accountsRes.data ?? []} />
     </div>
   );
 }

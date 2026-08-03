@@ -1,9 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { Amount } from "@/components/money/Amount";
 import { formatMoney } from "@/lib/money";
-import { formatShortDate } from "@/lib/date";
 
-type Balance = { name: string; currency: "ETB" | "USD"; balance_minor: number };
+type Balance = { name: string; balance_minor: number };
 
 export default async function SharedSnapshotPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -54,10 +53,8 @@ export default async function SharedSnapshotPage({ params }: { params: Promise<{
           <div className="card row">
             <p className="section-label mb-2">Next due</p>
             <p className="text-[17px] text-text font-medium">{data.next_due_title}</p>
-            {data.next_due_payer_label && <p className="text-[13px] text-muted mb-2">{data.next_due_payer_label}</p>}
             <Amount
               minor={BigInt(data.next_due_remaining_usd_minor ?? 0)}
-              currency="USD"
               className={`text-[28px] font-light block ${data.next_due_is_past_due ? "text-alarm" : (data.next_due_days_until_due ?? 99) <= 14 ? "text-urgent" : "text-text"}`}
             />
             <p className={`text-[14px] mt-1 ${data.next_due_is_past_due ? "text-alarm" : "text-muted"}`}>
@@ -76,14 +73,14 @@ export default async function SharedSnapshotPage({ params }: { params: Promise<{
           <p className="section-label mb-2">Coverage</p>
           {data.total_liquid_usd_minor != null ? (
             <p className="text-[15px] text-text">
-              <span className={`num estimate ${isCovered ? "text-positive" : "text-alarm"}`}>
-                ~{formatMoney(BigInt(data.total_liquid_usd_minor), "USD")}
+              <span className={`num ${isCovered ? "text-positive" : "text-alarm"}`}>
+                {formatMoney(BigInt(data.total_liquid_usd_minor))}
               </span>{" "}
               liquid
               {data.next_due_remaining_usd_minor != null && (
                 <>
                   {" "}
-                  against <Amount minor={BigInt(data.next_due_remaining_usd_minor)} currency="USD" className="text-text" /> due
+                  against <Amount minor={BigInt(data.next_due_remaining_usd_minor)} className="text-text" /> due
                 </>
               )}
               .
@@ -91,8 +88,10 @@ export default async function SharedSnapshotPage({ params }: { params: Promise<{
           ) : (
             <p className="text-[14px] text-muted">Not available.</p>
           )}
-          {data.fx_rate_effective_on && (
-            <p className="text-[12px] text-faint mt-1">Rate as of {formatShortDate(data.fx_rate_effective_on)}</p>
+          {data.net_worth_usd_minor != null && (
+            <p className="text-[13px] text-muted mt-1">
+              Net worth <Amount minor={BigInt(data.net_worth_usd_minor)} className="text-text" />
+            </p>
           )}
         </div>
 
@@ -101,7 +100,7 @@ export default async function SharedSnapshotPage({ params }: { params: Promise<{
           {balances.map((b) => (
             <div key={b.name} className="row flex items-center justify-between">
               <span className="text-[15px] text-text">{b.name}</span>
-              <Amount minor={BigInt(b.balance_minor)} currency={b.currency} className="text-text" />
+              <Amount minor={BigInt(b.balance_minor)} className="text-text" />
             </div>
           ))}
         </div>

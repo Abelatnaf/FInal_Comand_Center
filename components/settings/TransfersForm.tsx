@@ -6,14 +6,12 @@ import { Amount } from "@/components/money/Amount";
 import { formatShortDate, todayIso } from "@/lib/date";
 import { fromMinor } from "@/lib/money";
 import { useUndo } from "@/components/ui/UndoToastProvider";
-import type { Currency } from "@/lib/money";
 
-type Account = { id: string; name: string; currency: Currency };
+type Account = { id: string; name: string };
 export type TransferRow = {
   id: string;
   occurred_on: string;
-  from_amount_minor: number;
-  to_amount_minor: number;
+  amount_minor: number;
   note: string | null;
   from_account_id: string;
   to_account_id: string;
@@ -26,18 +24,12 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
   const { scheduleUndo } = useUndo();
   const [removed, setRemoved] = useState<Set<string>>(new Set());
 
-  const [fromId, setFromId] = useState(accounts[0]?.id ?? "");
-  const [toId, setToId] = useState(accounts[1]?.id ?? "");
-
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (state?.success) setAdding(false);
   }, [state]);
 
   const accountById = (id: string) => accounts.find((a) => a.id === id);
-  const fromAccount = accountById(fromId);
-  const toAccount = accountById(toId);
-  const crossCurrency = fromAccount && toAccount && fromAccount.currency !== toAccount.currency;
 
   function handleDelete(id: string) {
     setRemoved((prev) => new Set(prev).add(id));
@@ -61,7 +53,8 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
         <div>
           <p className="section-label mb-1">Transfers</p>
           <p className="text-[13px] text-muted">
-            Moving money between your own accounts. Never counted as income or spending.
+            Moving money between your own accounts — including a credit card payment. Never counted as
+            income or spending.
           </p>
         </div>
         {!adding && (
@@ -74,60 +67,23 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
       {adding && (
         <form action={formAction} className="row flex flex-col gap-3">
           <div className="flex gap-2">
-            <select
-              name="from_account_id"
-              value={fromId}
-              onChange={(e) => setFromId(e.target.value)}
-              className="input"
-              aria-label="From account"
-            >
+            <select name="from_account_id" defaultValue={accounts[0]?.id} className="input" aria-label="From account">
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
-                  From: {a.name} ({a.currency})
+                  From: {a.name}
                 </option>
               ))}
             </select>
-            <select
-              name="to_account_id"
-              value={toId}
-              onChange={(e) => setToId(e.target.value)}
-              className="input"
-              aria-label="To account"
-            >
+            <select name="to_account_id" defaultValue={accounts[1]?.id} className="input" aria-label="To account">
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
-                  To: {a.name} ({a.currency})
+                  To: {a.name}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="flex gap-2">
-            <input
-              name="from_amount"
-              inputMode="decimal"
-              placeholder={`Sent${fromAccount ? ` (${fromAccount.currency})` : ""}`}
-              className="input num"
-              aria-label="Amount sent"
-            />
-            <input
-              name="to_amount"
-              inputMode="decimal"
-              placeholder={`Received${toAccount ? ` (${toAccount.currency})` : ""}`}
-              className="input num"
-              aria-label="Amount received"
-            />
-          </div>
-
-          {/* Both figures are asked for on purpose. Deriving one from a rate
-              would invent a number; this way the record is what actually
-              landed, and a spread or fee simply shows up as the difference. */}
-          <p className="text-[12px] text-faint">
-            {crossCurrency
-              ? "Different currencies — enter what actually left and what actually arrived, so any spread or fee is recorded rather than guessed."
-              : "Usually the same figure both sides; they can differ if a fee was taken."}
-          </p>
-
+          <input name="amount" inputMode="decimal" placeholder="Amount" className="input num" aria-label="Amount" />
           <input name="occurred_on" type="date" defaultValue={todayIso()} className="input" aria-label="Date" />
           <input name="note" placeholder="Note (optional)" className="input" />
 
@@ -144,21 +100,14 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
         </form>
       )}
 
-      {visible.length === 0 && !adding && (
-        <p className="row text-[14px] text-muted">No transfers yet.</p>
-      )}
+      {visible.length === 0 && !adding && <p className="row text-[14px] text-muted">No transfers yet.</p>}
 
       {visible.map((t) => {
         const from = accountById(t.from_account_id);
         const to = accountById(t.to_account_id);
         if (editingId === t.id) {
           return (
-            <TransferEditRow
-              key={t.id}
-              transfer={t}
-              accounts={accounts}
-              onDone={() => setEditingId(null)}
-            />
+            <TransferEditRow key={t.id} transfer={t} accounts={accounts} onDone={() => setEditingId(null)} />
           );
         }
         return (
@@ -173,20 +122,7 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
               </p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
-              <div className="text-right">
-                <Amount
-                  minor={BigInt(t.from_amount_minor)}
-                  currency={from?.currency ?? "USD"}
-                  className="text-text block"
-                />
-                {from?.currency !== to?.currency && (
-                  <Amount
-                    minor={BigInt(t.to_amount_minor)}
-                    currency={to?.currency ?? "USD"}
-                    className="text-muted text-[13px] block"
-                  />
-                )}
-              </div>
+              <Amount minor={BigInt(t.amount_minor)} className="text-text" />
               <button type="button" className="text-accent text-[13px]" onClick={() => setEditingId(t.id)}>
                 Edit
               </button>
@@ -222,37 +158,38 @@ function TransferEditRow({
     <form action={formAction} className="row flex flex-col gap-2">
       <input type="hidden" name="id" value={transfer.id} />
       <div className="flex gap-2">
-        <select name="from_account_id" defaultValue={transfer.from_account_id} className="input" aria-label="From account">
+        <select
+          name="from_account_id"
+          defaultValue={transfer.from_account_id}
+          className="input"
+          aria-label="From account"
+        >
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
-              From: {a.name} ({a.currency})
+              From: {a.name}
             </option>
           ))}
         </select>
-        <select name="to_account_id" defaultValue={transfer.to_account_id} className="input" aria-label="To account">
+        <select
+          name="to_account_id"
+          defaultValue={transfer.to_account_id}
+          className="input"
+          aria-label="To account"
+        >
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
-              To: {a.name} ({a.currency})
+              To: {a.name}
             </option>
           ))}
         </select>
       </div>
-      <div className="flex gap-2">
-        <input
-          name="from_amount"
-          inputMode="decimal"
-          defaultValue={fromMinor(BigInt(transfer.from_amount_minor))}
-          className="input num"
-          aria-label="Amount sent"
-        />
-        <input
-          name="to_amount"
-          inputMode="decimal"
-          defaultValue={fromMinor(BigInt(transfer.to_amount_minor))}
-          className="input num"
-          aria-label="Amount received"
-        />
-      </div>
+      <input
+        name="amount"
+        inputMode="decimal"
+        defaultValue={fromMinor(BigInt(transfer.amount_minor))}
+        className="input num"
+        aria-label="Amount"
+      />
       <input name="occurred_on" type="date" defaultValue={transfer.occurred_on} className="input" aria-label="Date" />
       <input name="note" defaultValue={transfer.note ?? ""} placeholder="Note (optional)" className="input" />
       {state?.error && <p className="text-alarm text-[13px]">{state.error}</p>}

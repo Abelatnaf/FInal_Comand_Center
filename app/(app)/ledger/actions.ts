@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { transactionSchema } from "@/lib/schemas/transaction";
+import { transactionSchema, parseTags } from "@/lib/schemas/transaction";
 import { uploadReceipt, RECEIPT_BUCKET } from "@/lib/receipts";
 
 export type TransactionFormState = { error?: string; success?: boolean } | undefined;
@@ -18,6 +18,8 @@ function revalidateAffected() {
   revalidatePath("/bills");
   revalidatePath("/budgets");
   revalidatePath("/insights");
+  revalidatePath("/net-worth");
+  revalidatePath("/reports");
 }
 
 export async function updateTransaction(
@@ -30,14 +32,14 @@ export async function updateTransaction(
 
   const parsed = transactionSchema.safeParse({
     amount_minor: orUndefined(formData.get("amount_minor")),
-    currency: orUndefined(formData.get("currency")),
     direction: orUndefined(formData.get("direction")),
     category_id: orUndefined(formData.get("category_id")),
     occurred_on: orUndefined(formData.get("occurred_on")),
     account_id: orUndefined(formData.get("account_id")),
-    payer_id: orUndefined(formData.get("payer_id")),
     note: orUndefined(formData.get("note")),
     obligation_id: orUndefined(formData.get("obligation_id")),
+    tags: parseTags(orUndefined(formData.get("tags"))),
+    is_tax_deductible: String(formData.get("is_tax_deductible") ?? "") === "true",
   });
 
   if (!parsed.success) {
@@ -49,15 +51,15 @@ export async function updateTransaction(
   const { error } = await supabase
     .from("transactions")
     .update({
-      payer_id: input.payer_id,
       account_id: input.account_id,
       occurred_on: input.occurred_on,
       direction: input.direction,
       amount_minor: Number(input.amount_minor),
-      currency: input.currency,
       category_id: input.category_id ?? null,
       note: input.note ?? null,
       obligation_id: input.obligation_id ?? null,
+      tags: input.tags ?? [],
+      is_tax_deductible: input.is_tax_deductible ?? false,
     })
     .eq("id", id);
 

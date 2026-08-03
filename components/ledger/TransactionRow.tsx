@@ -4,10 +4,8 @@ import { useActionState, useEffect, useState } from "react";
 import { updateTransaction, deleteTransaction, attachReceipt, type TransactionFormState } from "@/app/(app)/ledger/actions";
 import { ReceiptLink } from "@/components/money/ReceiptLink";
 import { Amount } from "@/components/money/Amount";
-import { CurrencyToggle } from "@/components/money/CurrencyToggle";
 import { formatRelativeDay } from "@/lib/date";
 import { kindForDirection, colorVar, type Category, type Direction } from "@/lib/categories";
-import type { Currency } from "@/lib/money";
 import { useUndo } from "@/components/ui/UndoToastProvider";
 
 export type TransactionRowData = {
@@ -15,8 +13,6 @@ export type TransactionRowData = {
   occurred_on: string;
   direction: Direction;
   amount_minor: number;
-  currency: Currency;
-  amount_usd_minor: number;
   category_id: string | null;
   category_name: string | null;
   category_icon: string | null;
@@ -24,19 +20,17 @@ export type TransactionRowData = {
   note: string | null;
   account_id: string;
   account_name: string;
-  payer_id: string;
-  payer_label: string;
   obligation_id: string | null;
+  tags?: string[] | null;
+  is_tax_deductible?: boolean | null;
   week_number?: number | null;
   receipt_path?: string | null;
 };
 
-type Payer = { id: string; label: string };
-type Account = { id: string; name: string; currency: Currency };
+type Account = { id: string; name: string };
 
 export function TransactionRow({
   transaction,
-  payers,
   accounts,
   categories,
   selectionMode = false,
@@ -44,7 +38,6 @@ export function TransactionRow({
   onToggleSelect,
 }: {
   transaction: TransactionRowData;
-  payers: Payer[];
   accounts: Account[];
   categories: Category[];
   selectionMode?: boolean;
@@ -52,7 +45,6 @@ export function TransactionRow({
   onToggleSelect?: (id: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [currency, setCurrency] = useState<Currency>(transaction.currency);
   const [direction, setDirection] = useState<Direction>(transaction.direction);
   const [pendingRemoval, setPendingRemoval] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
@@ -112,35 +104,29 @@ export function TransactionRow({
           <p className="text-[13px] text-muted truncate">
             {transaction.note?.trim() && transaction.category_name ? `${transaction.category_name} · ` : ""}
             {formatRelativeDay(transaction.occurred_on)} · {transaction.account_name}
+            {transaction.tags?.length ? ` · ${transaction.tags.map((t) => `#${t}`).join(" ")}` : ""}
           </p>
         </div>
         <Amount
           minor={BigInt(isOut ? -transaction.amount_minor : transaction.amount_minor)}
-          currency={transaction.currency}
           className={`shrink-0 ${isOut ? "text-text" : "text-positive"}`}
         />
       </button>
     );
   }
 
-  const accountsForCurrency = accounts.filter((a) => a.currency === currency);
-
   return (
     <form action={formAction} className="row flex flex-col gap-3">
       <input type="hidden" name="id" value={transaction.id} />
-      <input type="hidden" name="currency" value={currency} />
       <input type="hidden" name="direction" value={direction} />
 
-      <div className="flex items-center justify-between gap-3">
-        <CurrencyToggle value={currency} onChange={setCurrency} />
-        <div className="segmented" role="group" aria-label="Direction">
-          <button type="button" data-active={direction === "out"} onClick={() => setDirection("out")}>
-            Out
-          </button>
-          <button type="button" data-active={direction === "in"} onClick={() => setDirection("in")}>
-            In
-          </button>
-        </div>
+      <div className="segmented" role="group" aria-label="Direction">
+        <button type="button" data-active={direction === "out"} onClick={() => setDirection("out")}>
+          Spent
+        </button>
+        <button type="button" data-active={direction === "in"} onClick={() => setDirection("in")}>
+          Received
+        </button>
       </div>
 
       <input
@@ -150,7 +136,7 @@ export function TransactionRow({
         min="1"
         defaultValue={transaction.amount_minor}
         className="input num"
-        aria-label="Amount (minor units)"
+        aria-label="Amount in cents"
       />
 
       <div className="flex flex-wrap gap-2">
@@ -174,22 +160,29 @@ export function TransactionRow({
       <input name="occurred_on" type="date" defaultValue={transaction.occurred_on} className="input" />
 
       <select name="account_id" defaultValue={transaction.account_id} className="input">
-        {accountsForCurrency.map((a) => (
+        {accounts.map((a) => (
           <option key={a.id} value={a.id}>
             {a.name}
           </option>
         ))}
       </select>
 
-      <select name="payer_id" defaultValue={transaction.payer_id} className="input">
-        {payers.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.label}
-          </option>
-        ))}
-      </select>
-
-      <input name="note" defaultValue={transaction.note ?? ""} placeholder="Note" className="input" />
+      <input name="note" defaultValue={transaction.note ?? ""} placeholder="Description" className="input" />
+      <input
+        name="tags"
+        defaultValue={(transaction.tags ?? []).join(", ")}
+        placeholder="Tags, comma separated"
+        className="input"
+      />
+      <label className="flex items-center gap-2.5 text-[15px] text-text">
+        <input
+          type="checkbox"
+          name="is_tax_deductible"
+          value="true"
+          defaultChecked={Boolean(transaction.is_tax_deductible)}
+        />
+        Possibly tax deductible
+      </label>
       <input type="hidden" name="obligation_id" value={transaction.obligation_id ?? ""} />
 
       {/* Receipt upload is its own action, not part of this form's submit --

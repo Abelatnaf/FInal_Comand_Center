@@ -1,16 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(app)/actions";
-import { FxRateForm } from "@/components/settings/FxRateForm";
-import { FxRateHistory } from "@/components/settings/FxRateHistory";
 import { AccountsForm } from "@/components/settings/AccountsForm";
 import { CategoriesForm } from "@/components/settings/CategoriesForm";
+import { CategoryRulesForm, type CategoryRule } from "@/components/settings/CategoryRulesForm";
 import { TransfersForm, type TransferRow } from "@/components/settings/TransfersForm";
-import { PayersForm } from "@/components/settings/PayersForm";
 import { ExportButton } from "@/components/settings/ExportButton";
 import { RestoreForm } from "@/components/settings/RestoreForm";
 import { TrackingWeekForm } from "@/components/settings/TrackingWeekForm";
 import { ShareLinksForm } from "@/components/settings/ShareLinksForm";
-import type { Currency } from "@/lib/money";
+import { AccountDangerZone } from "@/components/settings/AccountDangerZone";
 import type { Category } from "@/lib/categories";
 
 export default async function SettingsPage() {
@@ -19,40 +17,46 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [fxRes, accountsRes, categoriesRes, payersRes, settingsRes, shareLinksRes, transfersRes] = await Promise.all([
-    supabase
-      .from("fx_rates")
-      .select("id, etb_per_usd, effective_on, source")
-      .order("effective_on", { ascending: false })
-      .order("created_at", { ascending: false }),
-    supabase.from("accounts").select("id, name, currency, kind, opening_balance_minor, is_archived").order("kind").order("name"),
-    supabase.from("categories").select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived").order("sort_order"),
-    supabase.from("payers").select("id, key, label, class_year").order("is_default", { ascending: false }),
-    supabase.from("settings").select("tracking_start_date").maybeSingle(),
-    supabase.from("share_links").select("id, label, created_at, revoked_at").order("created_at", { ascending: false }),
-    supabase.from("transfers").select("id, occurred_on, from_amount_minor, to_amount_minor, note, from_account_id, to_account_id").order("occurred_on", { ascending: false }).limit(25),
-  ]);
+  const [accountsRes, categoriesRes, rulesRes, settingsRes, shareLinksRes, transfersRes] =
+    await Promise.all([
+      supabase
+        .from("accounts")
+        .select("id, name, kind, institution, credit_limit_minor, opening_balance_minor, is_archived")
+        .order("kind")
+        .order("name"),
+      supabase
+        .from("categories")
+        .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
+        .order("sort_order"),
+      supabase.from("category_rules").select("id, match_text, category_id").order("priority"),
+      supabase.from("settings").select("tracking_start_date").maybeSingle(),
+      supabase
+        .from("share_links")
+        .select("id, label, created_at, revoked_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("transfers")
+        .select("id, occurred_on, amount_minor, note, from_account_id, to_account_id")
+        .order("occurred_on", { ascending: false })
+        .limit(25),
+    ]);
 
-  const fxRates = fxRes.data ?? [];
+  const categories = (categoriesRes.data ?? []) as Category[];
 
   return (
     <div className="flex flex-col gap-6">
       <h1 className="page-title">Settings</h1>
 
-      <FxRateForm current={fxRates[0] ?? null} />
-
-      <FxRateHistory rates={fxRates} />
-
-      <AccountsForm accounts={(accountsRes.data ?? []) as { id: string; name: string; currency: Currency; kind: "bank" | "cash" | "processor"; opening_balance_minor: number; is_archived: boolean }[]} />
+      <AccountsForm accounts={accountsRes.data ?? []} />
 
       <TransfersForm
-        accounts={(accountsRes.data ?? []).filter((a) => !a.is_archived) as { id: string; name: string; currency: Currency }[]}
+        accounts={(accountsRes.data ?? []).filter((a) => !a.is_archived)}
         transfers={(transfersRes.data ?? []) as TransferRow[]}
       />
 
-      <CategoriesForm categories={(categoriesRes.data ?? []) as Category[]} />
+      <CategoriesForm categories={categories} />
 
-      <PayersForm payers={payersRes.data ?? []} />
+      <CategoryRulesForm rules={(rulesRes.data ?? []) as CategoryRule[]} categories={categories} />
 
       <TrackingWeekForm trackingStartDate={settingsRes.data?.tracking_start_date ?? null} />
 
@@ -64,10 +68,11 @@ export default async function SettingsPage() {
 
       <RestoreForm />
 
-      <div className="card row flex flex-col gap-2">
-        <p className="text-[14px] text-muted">{user?.email}</p>
+      <AccountDangerZone email={user?.email} />
+
+      <div className="card row">
         <form action={signOut}>
-          <button type="submit" className="btn btn-destructive w-full">
+          <button type="submit" className="btn w-full">
             Sign out
           </button>
         </form>

@@ -18,13 +18,11 @@ export async function createSavingsGoal(formData: FormData): Promise<{ error?: s
 
   const name = String(formData.get("name") ?? "").trim();
   const target = String(formData.get("target") ?? "").trim();
-  const currency = String(formData.get("currency") ?? "USD");
   const targetDate = String(formData.get("target_date") ?? "").trim();
   const accountId = String(formData.get("account_id") ?? "");
   const saved = String(formData.get("saved_manual") ?? "").trim();
 
   if (!name) return { error: "Give the goal a name." };
-  if (currency !== "USD" && currency !== "ETB") return { error: "Pick a currency." };
 
   let targetMinor: bigint;
   try {
@@ -43,26 +41,10 @@ export async function createSavingsGoal(formData: FormData): Promise<{ error?: s
     }
   }
 
-  // A linked goal must match its account's currency: progress is read straight
-  // off that account's balance, so a mismatch would compare two different
-  // units and silently overstate or understate the goal.
-  if (accountId) {
-    const { data: account } = await supabase
-      .from("accounts")
-      .select("currency")
-      .eq("id", accountId)
-      .maybeSingle();
-    if (!account) return { error: "That account no longer exists." };
-    if (account.currency !== currency) {
-      return { error: "Pick an account in the same currency as the goal, or track it manually." };
-    }
-  }
-
   const { error } = await supabase.from("savings_goals").insert({
     user_id: user.id,
     name,
     target_minor: Number(targetMinor),
-    currency,
     target_date: targetDate || null,
     account_id: accountId || null,
     saved_manual_minor: Number(savedMinor),

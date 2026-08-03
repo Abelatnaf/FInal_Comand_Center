@@ -35,7 +35,7 @@ export function RecurrenceControl({
       <div className="row">
         <p className="section-label mb-1">Repeat</p>
         <p className="text-[13px] text-muted">
-          The next copy is created automatically once this one&rsquo;s due date passes — same title, payer and
+          The next copy is created automatically once this one&rsquo;s due date passes — same title and
           amount, dated one interval later.
         </p>
       </div>

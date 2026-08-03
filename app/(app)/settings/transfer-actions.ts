@@ -35,28 +35,19 @@ export async function createTransfer(_prev: TransferState, formData: FormData): 
   if (!fromId || !toId) return { error: "Pick both accounts." };
   if (fromId === toId) return { error: "Pick two different accounts." };
 
-  let fromMinorAmount: bigint;
-  let toMinorAmount: bigint;
+  let amountMinor: bigint;
   try {
-    fromMinorAmount = toMinor(String(formData.get("from_amount") ?? "").trim());
+    amountMinor = toMinor(String(formData.get("amount") ?? "").trim());
   } catch {
-    return { error: "Enter a valid amount to send." };
+    return { error: "Enter a valid amount." };
   }
-  try {
-    toMinorAmount = toMinor(String(formData.get("to_amount") ?? "").trim());
-  } catch {
-    return { error: "Enter a valid amount received." };
-  }
-  if (fromMinorAmount <= 0n || toMinorAmount <= 0n) {
-    return { error: "Both amounts have to be more than zero." };
-  }
+  if (amountMinor <= 0n) return { error: "The amount has to be more than zero." };
 
   const { error } = await supabase.from("transfers").insert({
     user_id: user.id,
     from_account_id: fromId,
     to_account_id: toId,
-    from_amount_minor: Number(fromMinorAmount),
-    to_amount_minor: Number(toMinorAmount),
+    amount_minor: Number(amountMinor),
     occurred_on: occurredOn || undefined,
     note,
   });
@@ -76,32 +67,20 @@ export async function updateTransfer(_prev: TransferState, formData: FormData): 
   if (!fromId || !toId) return { error: "Pick both accounts." };
   if (fromId === toId) return { error: "Pick two different accounts." };
 
-  let fromMinorAmount: bigint;
-  let toMinorAmount: bigint;
+  let amountMinor: bigint;
   try {
-    fromMinorAmount = toMinor(String(formData.get("from_amount") ?? "").trim());
+    amountMinor = toMinor(String(formData.get("amount") ?? "").trim());
   } catch {
-    return { error: "Enter a valid amount to send." };
+    return { error: "Enter a valid amount." };
   }
-  try {
-    toMinorAmount = toMinor(String(formData.get("to_amount") ?? "").trim());
-  } catch {
-    return { error: "Enter a valid amount received." };
-  }
-  if (fromMinorAmount <= 0n || toMinorAmount <= 0n) {
-    return { error: "Both amounts have to be more than zero." };
-  }
+  if (amountMinor <= 0n) return { error: "The amount has to be more than zero." };
 
-  // No frozen-rate concern here, unlike transactions: a transfer stores both
-  // real amounts rather than deriving either from a rate, so editing one is
-  // just correcting a recorded fact.
   const { error } = await supabase
     .from("transfers")
     .update({
       from_account_id: fromId,
       to_account_id: toId,
-      from_amount_minor: Number(fromMinorAmount),
-      to_amount_minor: Number(toMinorAmount),
+      amount_minor: Number(amountMinor),
       occurred_on: String(formData.get("occurred_on") ?? "").trim() || undefined,
       note: String(formData.get("note") ?? "").trim() || null,
     })

@@ -22,13 +22,11 @@ export async function createObligation(_prevState: ActionState, formData: FormDa
   if (!user) return { error: "Not signed in." };
 
   const title = String(formData.get("title") ?? "").trim();
-  const payerId = String(formData.get("payer_id") ?? "");
   const dueOn = String(formData.get("due_on") ?? "").trim() || null;
   const amount = String(formData.get("amount") ?? "").trim();
   const sourceNote = String(formData.get("source_note") ?? "").trim() || null;
 
   if (!title) return { error: "Give it a title." };
-  if (!payerId) return { error: "Pick who owes this." };
 
   let amountMinor: bigint;
   try {
@@ -41,7 +39,6 @@ export async function createObligation(_prevState: ActionState, formData: FormDa
     .from("obligations")
     .insert({
       user_id: user.id,
-      payer_id: payerId,
       title,
       due_on: dueOn,
       amount_usd_minor: Number(amountMinor),
@@ -59,7 +56,6 @@ export async function updateObligation(_prevState: ActionState, formData: FormDa
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
-  const payerId = String(formData.get("payer_id") ?? "");
   const dueOn = String(formData.get("due_on") ?? "").trim() || null;
   const amount = String(formData.get("amount") ?? "").trim();
   const sourceNote = String(formData.get("source_note") ?? "").trim() || null;
@@ -78,7 +74,6 @@ export async function updateObligation(_prevState: ActionState, formData: FormDa
     .from("obligations")
     .update({
       title,
-      payer_id: payerId,
       due_on: dueOn,
       amount_usd_minor: Number(amountMinor),
       source_note: sourceNote,
@@ -223,11 +218,10 @@ export async function setObligationRecurrence(
   return {};
 }
 
-// Bills like tuition recur every semester with the same payer and usually
-// a similar amount -- duplicating one saves retyping all of that for what
-// will genuinely happen again. due_on and source_note are deliberately left
-// blank rather than copied: the whole point is a new bill's own date and
-// paperwork, not a stale copy of the last one's.
+// Bills like insurance premiums or tuition come round again for a similar
+// amount, so duplicating one saves retyping it. due_on and source_note are
+// deliberately left blank rather than copied: the point is the new bill's own
+// date and paperwork, not a stale copy of the last one's.
 export async function duplicateObligation(id: string): Promise<{ error?: string; newId?: string }> {
   const supabase = await createClient();
   const {
@@ -237,7 +231,7 @@ export async function duplicateObligation(id: string): Promise<{ error?: string;
 
   const { data: source, error: fetchError } = await supabase
     .from("obligations")
-    .select("title, payer_id, amount_usd_minor")
+    .select("title, amount_usd_minor")
     .eq("id", id)
     .single();
 
@@ -247,7 +241,6 @@ export async function duplicateObligation(id: string): Promise<{ error?: string;
     .from("obligations")
     .insert({
       user_id: user.id,
-      payer_id: source.payer_id,
       title: source.title,
       amount_usd_minor: source.amount_usd_minor,
       due_on: null,

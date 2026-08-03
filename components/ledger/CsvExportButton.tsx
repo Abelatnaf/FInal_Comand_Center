@@ -1,7 +1,7 @@
 "use client";
 
 import { downloadCsv } from "@/lib/csv";
-import { fromMinor, type Currency } from "@/lib/money";
+import { fromMinor } from "@/lib/money";
 import { todayIso } from "@/lib/date";
 import type { TransactionRowData } from "@/components/ledger/TransactionRow";
 
@@ -15,23 +15,21 @@ export function CsvExportButton({ rows }: { rows: TransactionRowData[] }) {
           "Date",
           "Direction",
           "Amount",
-          "Currency",
-          "Amount (USD)",
           "Category",
-          "Payer",
           "Account",
-          "Note",
+          "Description",
+          "Tags",
+          "Tax deductible",
         ];
         const body = rows.map((t) => [
           t.occurred_on,
-          t.direction,
+          t.direction === "out" ? "Spent" : "Received",
           fromMinor(BigInt(t.amount_minor)),
-          t.currency as Currency,
-          fromMinor(BigInt(t.amount_usd_minor)),
           t.category_name ?? "",
-          t.payer_label,
           t.account_name,
           t.note ?? "",
+          (t.tags ?? []).join(" "),
+          t.is_tax_deductible ? "Yes" : "",
         ]);
         downloadCsv([header, ...body], `ledger-${todayIso()}.csv`);
       }}

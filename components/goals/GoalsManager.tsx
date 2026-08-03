@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSavingsGoal, deleteSavingsGoal, updateGoalSaved } from "@/app/(app)/goals/actions";
 import { Amount } from "@/components/money/Amount";
-import { formatMoney, fromMinor, type Currency } from "@/lib/money";
+import { formatMoney, fromMinor } from "@/lib/money";
 import { formatShortDate } from "@/lib/date";
 
 export type GoalItem = {
@@ -13,14 +13,13 @@ export type GoalItem = {
   target_minor: number;
   saved_minor: number;
   remaining_minor: number;
-  currency: Currency;
   target_date: string | null;
   days_until_target: number | null;
   account_id: string | null;
   account_name: string | null;
 };
 
-type Account = { id: string; name: string; currency: Currency };
+type Account = { id: string; name: string };
 
 export function GoalsManager({ goals, accounts }: { goals: GoalItem[]; accounts: Account[] }) {
   const [adding, setAdding] = useState(false);
@@ -73,10 +72,6 @@ export function GoalsManager({ goals, accounts }: { goals: GoalItem[]; accounts:
                 placeholder="1200"
                 required
               />
-              <select name="currency" className="input w-[100px]" defaultValue="USD">
-                <option value="USD">USD</option>
-                <option value="ETB">ETB</option>
-              </select>
             </div>
           </div>
           <div className="row">
@@ -93,7 +88,7 @@ export function GoalsManager({ goals, accounts }: { goals: GoalItem[]; accounts:
               <option value="">Track manually</option>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.name} ({a.currency})
+                  {a.name}
                 </option>
               ))}
             </select>
@@ -184,8 +179,8 @@ function GoalCard({ goal }: { goal: GoalItem }) {
       </div>
 
       <div className="flex items-baseline justify-between text-[15px]">
-        <Amount minor={saved} currency={goal.currency} className="font-semibold" />
-        <span className="text-muted num text-[13px]">of {formatMoney(target, goal.currency)}</span>
+        <Amount minor={saved} className="font-semibold" />
+        <span className="text-muted num text-[13px]">of {formatMoney(target)}</span>
       </div>
 
       <div className="progress-track">
@@ -201,11 +196,11 @@ function GoalCard({ goal }: { goal: GoalItem }) {
           "You're there."
         ) : (
           <>
-            <Amount minor={remaining} currency={goal.currency} /> to go
+            <Amount minor={remaining} /> to go
             {perMonth != null && (
               <>
                 {" · "}
-                <Amount minor={perMonth} currency={goal.currency} />/month to make it
+                <Amount minor={perMonth} />/month to make it
               </>
             )}
             {goal.days_until_target != null && goal.days_until_target <= 0 && (

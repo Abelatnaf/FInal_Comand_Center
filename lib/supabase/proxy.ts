@@ -2,7 +2,14 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  // The path is forwarded as a request header so a server layout can read it.
+  // Layouts don't otherwise get the pathname, and the app layout needs it to
+  // send a brand-new account to first-run setup without /welcome redirecting
+  // to itself.
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-current-path', request.nextUrl.pathname)
+
+  let supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +21,7 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet, headers) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
+          supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -31,13 +38,23 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
 
-  // No public signup route in v3 -- nobody else logs in (see CLAUDE.md v3
-  // plan, assumption A6). The one account is created directly, not through
-  // a public flow.
   const pathname = request.nextUrl.pathname
-  const isAuthRoute = pathname.startsWith('/login')
+
+  // Signup is open, so these are the routes a signed-out visitor legitimately
+  // needs. /reset-password is deliberately NOT in this list: arriving there
+  // means the emailed token was already exchanged for a session by
+  // /auth/confirm, so a signed-out visit to it has nothing to reset.
+  const isAuthRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/forgot-password')
+
   const isPublicRoute =
-    isAuthRoute || pathname.startsWith('/privacy') || pathname.startsWith('/terms') || pathname.startsWith('/share/')
+    isAuthRoute ||
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/privacy') ||
+    pathname.startsWith('/terms') ||
+    pathname.startsWith('/share/')
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()

@@ -25,7 +25,6 @@ export async function createRecurringExpense(formData: FormData): Promise<{ erro
   const cadence = String(formData.get("cadence") ?? "monthly");
   const nextDueOn = String(formData.get("next_due_on") ?? "").trim();
   const accountId = String(formData.get("account_id") ?? "");
-  const payerId = String(formData.get("payer_id") ?? "");
   const categoryId = String(formData.get("category_id") ?? "");
   const autoPost = String(formData.get("auto_post") ?? "") === "on";
 
@@ -33,7 +32,6 @@ export async function createRecurringExpense(formData: FormData): Promise<{ erro
   if (!(CADENCES as readonly string[]).includes(cadence)) return { error: "Pick how often it repeats." };
   if (!nextDueOn) return { error: "Pick the next date it's due." };
   if (!accountId) return { error: "Pick an account." };
-  if (!payerId) return { error: "Pick who it's for." };
 
   let minor: bigint;
   try {
@@ -50,7 +48,6 @@ export async function createRecurringExpense(formData: FormData): Promise<{ erro
     cadence,
     next_due_on: nextDueOn,
     account_id: accountId,
-    payer_id: payerId,
     category_id: categoryId || null,
     auto_post: autoPost,
   });
@@ -86,9 +83,9 @@ export async function deleteRecurringExpense(id: string): Promise<{ error?: stri
 
 /**
  * Logs this cycle now and moves the schedule on, for a subscription that
- * isn't set to post itself (or one the user wants recorded early). Written
- * as a normal insert so the rate is frozen exactly as it would be for a
- * hand-entered row.
+ * isn't set to post itself (or one the user wants recorded early). Written as
+ * a normal insert, so it picks up auto-categorisation rules the same way a
+ * hand-entered row would.
  */
 export async function postRecurringNow(id: string): Promise<{ error?: string }> {
   const supabase = await createClient();
@@ -99,29 +96,20 @@ export async function postRecurringNow(id: string): Promise<{ error?: string }> 
 
   const { data: rec, error: readError } = await supabase
     .from("recurring_expenses")
-    .select("*, accounts(currency)")
+    .select("*")
     .eq("id", id)
     .single();
 
   if (readError || !rec) return { error: readError?.message ?? "Not found." };
 
-  const currency = (rec.accounts as { currency: string } | null)?.currency;
-  if (!currency) return { error: "That account no longer exists." };
-
   const { error: insertError } = await supabase.from("transactions").insert({
     user_id: user.id,
-    payer_id: rec.payer_id,
     account_id: rec.account_id,
     occurred_on: rec.next_due_on,
     direction: "out",
     amount_minor: rec.amount_minor,
-    currency,
     category_id: rec.category_id,
     note: rec.note?.trim() || rec.name,
-    // Overwritten by the freeze trigger; required by the generated Insert type
-    // because the columns have no SQL default.
-    fx_rate_etb_per_usd: 0,
-    amount_usd_minor: 0,
   });
 
   if (insertError) return { error: insertError.message };

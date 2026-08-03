@@ -6,7 +6,6 @@ import { todayIso } from "@/lib/date";
 
 export type BillExportRow = {
   title: string;
-  payer_label: string;
   status: string;
   due_on: string | null;
   amount_usd_minor: number;
@@ -21,10 +20,9 @@ export function BillsExportButton({ rows }: { rows: BillExportRow[] }) {
       type="button"
       className="text-accent text-[14px]"
       onClick={() => {
-        const header = ["Title", "Payer", "Status", "Due", "Total USD", "Paid USD", "Remaining USD"];
+        const header = ["Title", "Status", "Due", "Total", "Paid", "Remaining"];
         const body = rows.map((r) => [
           r.title,
-          r.payer_label,
           r.status,
           r.due_on ?? "",
           fromMinor(BigInt(r.amount_usd_minor)),

@@ -11,12 +11,12 @@ export default function PrivacyPage() {
         </Link>
 
         <h1 className="text-[28px] font-semibold text-text mt-4 mb-1">Privacy Policy</h1>
-        <p className="text-[13px] text-faint mb-8">Last updated July 27, 2026</p>
+        <p className="text-[13px] text-faint mb-8">Last updated August 3, 2026</p>
 
         <div className="card row mb-8">
           <p className="text-[14px] text-muted">
-            Command Deck is a small, personal tool built for one person&apos;s own use. This page describes what
-            actually happens to your data in plain language — it has not been drafted or reviewed by a lawyer.
+            Command Deck is a small, independent expense tracker. This page describes what actually happens to
+            your data in plain language — it has not been drafted or reviewed by a lawyer.
           </p>
         </div>
 
@@ -24,8 +24,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-[17px] font-medium text-text mb-2">What we collect</h2>
             <p>
-              An email address and password (used only to authenticate you), and whatever financial data you choose
-              to enter: transactions, accounts, obligations, and the FX rate you type in. Nothing else is collected.
+              An email address and password (used only to sign you in), and whatever financial data you choose to
+              enter or import: transactions, accounts, budgets, bills and goals. Nothing else is collected. There is
+              no analytics or tracking of any kind.
             </p>
           </section>
 
@@ -48,9 +49,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-[17px] font-medium text-text mb-2">What we don&apos;t do</h2>
             <p>
-              We don&apos;t sell your data or share it with advertisers. We don&apos;t connect to your bank — every
-              entry is typed in by hand. We don&apos;t fetch a live FX rate on your behalf; the rate is whatever you
-              enter in Settings. We don&apos;t use your financial data to train any model.
+              We don&apos;t sell your data or share it with advertisers. We don&apos;t connect to your bank — entries
+              are typed in or imported from a CSV file you choose, and no credentials for any bank are ever asked
+              for or stored. We don&apos;t use your financial data to train any model.
             </p>
           </section>
 
@@ -65,7 +66,9 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-[17px] font-medium text-text mb-2">Your data, your control</h2>
             <p>
-              You can export everything logged as a single JSON file at any time from Settings.
+              You can export everything as a single JSON file at any time from Settings, and delete your account and
+              every record attached to it from the same screen. Deletion is immediate and permanent, so take an
+              export first if you want a copy.
             </p>
           </section>
         </div>

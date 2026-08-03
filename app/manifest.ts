@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Command Deck",
     short_name: "Command Deck",
-    description: "What's due, what covers it, logged in three taps.",
+    description: "Track every expense in one place — budgets, bills and net worth.",
     start_url: "/",
     display: "standalone",
     background_color: "#f6f7f9",

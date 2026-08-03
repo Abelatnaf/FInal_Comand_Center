@@ -12,6 +12,11 @@ export function daysAgoIso(days: number): string {
   return format(subDays(new Date(), days), "yyyy-MM-dd");
 }
 
+/** `days` calendar days after today, as 'yyyy-MM-dd'. */
+export function daysAheadIso(days: number): string {
+  return format(subDays(new Date(), -days), "yyyy-MM-dd");
+}
+
 /** Calendar days from `from` to `to` (positive when `to` is later). */
 export function daysBetween(from: string, to: string): number {
   return differenceInCalendarDays(parseISO(to), parseISO(from));

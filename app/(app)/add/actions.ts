@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { transactionSchema } from "@/lib/schemas/transaction";
+import { transactionSchema, parseTags } from "@/lib/schemas/transaction";
 import { uploadReceipt } from "@/lib/receipts";
 
 export type CreateTransactionState =
@@ -30,14 +30,14 @@ export async function createTransaction(
 
   const parsed = transactionSchema.safeParse({
     amount_minor: orUndefined(formData.get("amount_minor")),
-    currency: orUndefined(formData.get("currency")),
     direction: orUndefined(formData.get("direction")),
     category_id: orUndefined(formData.get("category_id")),
     occurred_on: orUndefined(formData.get("occurred_on")),
     account_id: orUndefined(formData.get("account_id")),
-    payer_id: orUndefined(formData.get("payer_id")),
     note: orUndefined(formData.get("note")),
     obligation_id: orUndefined(formData.get("obligation_id")),
+    tags: parseTags(orUndefined(formData.get("tags"))),
+    is_tax_deductible: String(formData.get("is_tax_deductible") ?? "") === "true",
   });
 
   if (!parsed.success) {
@@ -56,7 +56,6 @@ export async function createTransaction(
       .select("id")
       .eq("occurred_on", input.occurred_on)
       .eq("amount_minor", Number(input.amount_minor))
-      .eq("currency", input.currency)
       .eq("direction", input.direction)
       .eq("account_id", input.account_id)
       .limit(1);
@@ -66,26 +65,23 @@ export async function createTransaction(
     }
   }
 
-  // fx_rate_etb_per_usd / amount_usd_minor are required by the generated
-  // Insert type (the columns have no SQL default) but are always computed
-  // and frozen by the BEFORE INSERT trigger. The trigger only honours a
-  // caller-supplied rate for the database owner (the restore path), never for
-  // an `authenticated` client, so these placeholders are always overwritten.
+  // category_id is left null when nothing was picked rather than defaulted
+  // here -- the database trigger applies the user's auto-categorisation rules
+  // to a null category, and doing it in this one action would skip the import,
+  // recurring-post and offline-replay paths.
   const { data: inserted, error } = await supabase
     .from("transactions")
     .insert({
       user_id: user.id,
-      payer_id: input.payer_id,
       account_id: input.account_id,
       occurred_on: input.occurred_on,
       direction: input.direction,
       amount_minor: Number(input.amount_minor),
-      currency: input.currency,
       category_id: input.category_id ?? null,
       note: input.note ?? null,
       obligation_id: input.obligation_id ?? null,
-      fx_rate_etb_per_usd: 0,
-      amount_usd_minor: 0,
+      tags: input.tags ?? [],
+      is_tax_deductible: input.is_tax_deductible ?? false,
     })
     .select("id")
     .single();

@@ -7,21 +7,17 @@ import { TransferRow, type TransferRowData } from "@/components/ledger/TransferR
 import { bulkDeleteTransactions, bulkRecategorizeTransactions } from "@/app/(app)/ledger/actions";
 import { kindForDirection, type Category } from "@/lib/categories";
 import { useUndo } from "@/components/ui/UndoToastProvider";
-import type { Currency } from "@/lib/money";
 
-type Payer = { id: string; label: string };
-type Account = { id: string; name: string; currency: Currency };
+type Account = { id: string; name: string };
 
 export function LedgerList({
   rows,
   transfers,
-  payers,
   accounts,
   categories,
 }: {
   rows: TransactionRowData[];
   transfers: TransferRowData[];
-  payers: Payer[];
   accounts: Account[];
   categories: Category[];
 }) {
@@ -132,7 +128,6 @@ export function LedgerList({
             <TransactionRow
               key={`t-${item.row.id}`}
               transaction={item.row}
-              payers={payers}
               accounts={accounts}
               categories={categories}
               selectionMode={selectionMode}

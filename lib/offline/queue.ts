@@ -4,13 +4,13 @@ export type QueuedTransaction = {
   id: string;
   queued_at: string;
   amount_minor: string;
-  currency: string;
   direction: string;
   category_id: string;
   occurred_on: string;
   account_id: string;
-  payer_id: string;
   note: string;
+  tags: string;
+  is_tax_deductible: string;
   obligation_id: string;
 };
 

@@ -10,10 +10,8 @@ import { formatShortDate } from "@/lib/date";
 import { fromMinor } from "@/lib/money";
 import { useUndo } from "@/components/ui/UndoToastProvider";
 
-type Payer = { id: string; label: string };
 type Obligation = {
   obligation_id: string;
-  payer_id: string;
   title: string;
   due_on: string | null;
   amount_usd_minor: number;
@@ -26,7 +24,7 @@ type Obligation = {
   waived_at: string | null;
 };
 
-export function ObligationDetail({ obligation, payers, payerLabel }: { obligation: Obligation; payers: Payer[]; payerLabel: string }) {
+export function ObligationDetail({ obligation }: { obligation: Obligation }) {
   const [editing, setEditing] = useState(false);
   const [busy, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -41,12 +39,10 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
     return (
       <div className="flex flex-col gap-3">
         <ObligationForm
-          payers={payers}
           mode="edit"
           initial={{
             id: obligation.obligation_id,
             title: obligation.title,
-            payer_id: obligation.payer_id,
             due_on: obligation.due_on,
             amount_usd_minor: obligation.amount_usd_minor,
             source_note: obligation.source_note,
@@ -66,8 +62,7 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
           <div>
             <p className="text-[18px] text-text font-medium">{obligation.title}</p>
             <p className="text-[13px] text-muted">
-              {payerLabel}
-              {obligation.due_on && ` · due ${formatShortDate(obligation.due_on)}`}
+              {obligation.due_on ? `Due ${formatShortDate(obligation.due_on)}` : "No due date"}
             </p>
           </div>
           <span className="status-pill" data-status={obligation.is_past_due ? "past-due" : obligation.status}>
@@ -82,19 +77,18 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
         <div className="flex items-center justify-between">
           <div>
             <p className="section-label">Paid</p>
-            <Amount minor={BigInt(obligation.amount_paid_usd_minor)} currency="USD" className="text-text" />
+            <Amount minor={BigInt(obligation.amount_paid_usd_minor)} className="text-text" />
           </div>
           <div>
             <p className="section-label">Remaining</p>
             <Amount
               minor={BigInt(obligation.amount_remaining_usd_minor)}
-              currency="USD"
               className={obligation.is_past_due ? "text-alarm" : "text-text"}
             />
           </div>
           <div>
             <p className="section-label">Total</p>
-            <Amount minor={total} currency="USD" className="text-text" />
+            <Amount minor={total} className="text-text" />
           </div>
         </div>
 
@@ -107,14 +101,14 @@ export function ObligationDetail({ obligation, payers, payerLabel }: { obligatio
             Only offered when something is actually outstanding. */}
         {remaining > 0n && (
           <Link
-            href={`/add?obligation_id=${obligation.obligation_id}&payer_id=${obligation.payer_id}&amount=${fromMinor(remaining)}`}
+            href={`/add?obligation_id=${obligation.obligation_id}&amount=${fromMinor(remaining)}`}
             className="btn btn-primary w-full"
           >
-            Pay remaining <Amount minor={remaining} currency="USD" className="text-[inherit]" />
+            Pay remaining <Amount minor={remaining} className="text-[inherit]" />
           </Link>
         )}
         <Link
-          href={`/add?obligation_id=${obligation.obligation_id}&payer_id=${obligation.payer_id}`}
+          href={`/add?obligation_id=${obligation.obligation_id}`}
           className={remaining > 0n ? "btn w-full" : "btn btn-primary w-full"}
         >
           Record a different amount
