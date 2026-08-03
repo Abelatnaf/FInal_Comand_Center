@@ -26,7 +26,7 @@ export function ReceiptLink({ path }: { path: string }) {
 
   return (
     <>
-      <button type="button" onClick={open} disabled={busy} className="text-silver text-[13px]">
+      <button type="button" onClick={open} disabled={busy} className="text-accent text-[13px]">
         {busy ? "Opening…" : "Receipt"}
       </button>
       {error && <span className="text-alarm text-[12px] ml-2">{error}</span>}

@@ -1,52 +1,180 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Command Deck v3 — "Dark Premium." A deliberate visual reset
-   (Abel signed off on overriding the v3 spec's original monochrome-
-   silver lock-in for a real redesign): deep near-black base, ambient
-   emerald glow, genuine glassmorphism (blur, layered fill, top-edge
-   highlight), a gradient-text hero treatment, and a mono accent for
-   small metadata/labels — the "precision" note real premium fintech
-   products lean on. Money still reads as tabular and exact; the
-   richness is in material and light, not in inventing new meaning.
+   Command Deck v4 — a general expense tracker.
+
+   Light and dark, both selected rather than one flipped from the
+   other. The app is opened many times a day, often outdoors, so
+   daylight legibility is a first-class requirement — this is the
+   first design system in this project's history to treat light
+   mode as the default case rather than an afterthought.
+
+   Indigo is the interactive accent. Income/expense carry real
+   semantic colour (emerald/rose) because in an expense tracker
+   direction is the primary thing you scan for; category colour is
+   identity only, and is always paired with a name or an icon so
+   nothing depends on hue alone.
    ============================================================ */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  --bg: #07080a;
-  --bg-glow-1: rgba(20, 184, 138, 0.16);
-  --bg-glow-2: rgba(88, 101, 242, 0.09);
-  --bg-glow-3: rgba(20, 184, 138, 0.05);
+  --bg: #f6f7f9;
+  --bg-subtle: #eef0f4;
+  --surface: #ffffff;
+  --surface-2: #f4f5f8;
+  --surface-raised: #ffffff;
+  --surface-inset: #eef0f4;
 
-  --surface: rgba(255, 255, 255, 0.045);
-  --surface-2: rgba(255, 255, 255, 0.02);
-  --surface-raised: rgba(255, 255, 255, 0.075);
-  --surface-solid: #131519;
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  --border: rgba(16, 24, 40, 0.09);
+  --border-strong: rgba(16, 24, 40, 0.18);
 
-  --text: #f5f7f8;
-  --text-muted: #9ba0aa;
-  --text-faint: #82868f;
+  --text: #0f1729;
+  --text-muted: #55617a;
+  /* Measured, not eyeballed: #6b7688 came in at 4.28:1 on the page and
+     4.03:1 on the inset surface — both under AA. This step clears 4.5:1
+     against all three light surfaces. */
+  --text-faint: #646e7e;
 
-  --accent: #22c58e;
-  --accent-bright: #6fe8bb;
-  --accent-dim: #157a56;
-  --accent-ink: #04150f;
-  --silver: var(--accent-bright);
+  --accent: #4f46e5;
+  --accent-bright: #4338ca;
+  --accent-soft: rgba(79, 70, 229, 0.1);
+  --accent-ink: #ffffff;
 
-  --urgent: #f0b043;
-  --alarm: #ef6a5d;
-  --positive: var(--accent);
+  --positive: #047857;
+  --positive-soft: rgba(4, 120, 87, 0.12);
+  --alarm: #be123c;
+  --alarm-soft: rgba(190, 18, 60, 0.1);
+  --urgent: #b05109;
+  /* 8%, not 12%: the "partial" pill puts --urgent text on a tint of its
+     own colour, so a heavier mix darkens the background and drags the
+     pair back under AA (measured 4.41:1 at 12%, 4.67:1 here). */
+  --urgent-soft: rgba(176, 81, 9, 0.08);
 
-  --radius-card: 20px;
-  --radius-control: 12px;
-  --motion: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  --blur: 22px;
+  /* Category identity. Always shown with a name or icon beside it —
+     never the sole carrier of meaning. */
+  --cat-emerald: #047857;
+  --cat-blue: #1d4ed8;
+  --cat-violet: #6d28d9;
+  --cat-amber: #b45309;
+  --cat-rose: #be123c;
+  --cat-cyan: #0e7490;
+  --cat-orange: #c2410c;
+  --cat-pink: #a21caf;
+  --cat-teal: #0f766e;
+  --cat-indigo: #4338ca;
+  --cat-lime: #4d7c0f;
+  --cat-slate: #475569;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.07), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --shadow-lifted: 0 10px 30px -10px rgba(16, 24, 40, 0.2);
+
+  --radius-card: 16px;
+  --radius-control: 10px;
+  --motion: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
   --font-sans: var(--font-inter), -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-mono-accent), ui-monospace, "SF Mono", monospace;
+}
+
+/* Dark is its own set of steps chosen for a dark surface, not an
+   inversion. Declared under both the OS media query and the explicit
+   data-theme stamp so a manual toggle wins in either direction. */
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+
+    --bg: #0a0c11;
+    --bg-subtle: #0f1218;
+    --surface: #151922;
+    --surface-2: #1a1f2a;
+    --surface-raised: #1e2430;
+    --surface-inset: #11151c;
+
+    --border: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.2);
+
+    --text: #eef1f6;
+    --text-muted: #99a4b8;
+    --text-faint: #8590a3;
+
+    --accent: #8b85f5;
+    --accent-bright: #a5a0f8;
+    --accent-soft: rgba(139, 133, 245, 0.16);
+    --accent-ink: #0b0a1f;
+
+    --positive: #34d399;
+    --positive-soft: rgba(52, 211, 153, 0.14);
+    --alarm: #fb7185;
+    --alarm-soft: rgba(251, 113, 133, 0.14);
+    --urgent: #fbbf24;
+    --urgent-soft: rgba(251, 191, 36, 0.14);
+
+    --cat-emerald: #34d399;
+    --cat-blue: #60a5fa;
+    --cat-violet: #a78bfa;
+    --cat-amber: #fbbf24;
+    --cat-rose: #fb7185;
+    --cat-cyan: #22d3ee;
+    --cat-orange: #fb923c;
+    --cat-pink: #e879f9;
+    --cat-teal: #2dd4bf;
+    --cat-indigo: #818cf8;
+    --cat-lime: #a3e635;
+    --cat-slate: #94a3b8;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-lifted: 0 14px 36px -12px rgba(0, 0, 0, 0.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0a0c11;
+  --bg-subtle: #0f1218;
+  --surface: #151922;
+  --surface-2: #1a1f2a;
+  --surface-raised: #1e2430;
+  --surface-inset: #11151c;
+
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  --text: #eef1f6;
+  --text-muted: #99a4b8;
+  --text-faint: #8590a3;
+
+  --accent: #8b85f5;
+  --accent-bright: #a5a0f8;
+  --accent-soft: rgba(139, 133, 245, 0.16);
+  --accent-ink: #0b0a1f;
+
+  --positive: #34d399;
+  --positive-soft: rgba(52, 211, 153, 0.14);
+  --alarm: #fb7185;
+  --alarm-soft: rgba(251, 113, 133, 0.14);
+  --urgent: #fbbf24;
+  --urgent-soft: rgba(251, 191, 36, 0.14);
+
+  --cat-emerald: #34d399;
+  --cat-blue: #60a5fa;
+  --cat-violet: #a78bfa;
+  --cat-amber: #fbbf24;
+  --cat-rose: #fb7185;
+  --cat-cyan: #22d3ee;
+  --cat-orange: #fb923c;
+  --cat-pink: #e879f9;
+  --cat-teal: #2dd4bf;
+  --cat-indigo: #818cf8;
+  --cat-lime: #a3e635;
+  --cat-slate: #94a3b8;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-lifted: 0 14px 36px -12px rgba(0, 0, 0, 0.7);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -69,116 +197,91 @@ html {
 body {
   color: var(--text);
   font-family: var(--font-sans);
-  background:
-    radial-gradient(ellipse 900px 640px at 15% -8%, var(--bg-glow-1), transparent 60%),
-    radial-gradient(ellipse 700px 560px at 105% 8%, var(--bg-glow-2), transparent 62%),
-    radial-gradient(ellipse 800px 500px at 50% 115%, var(--bg-glow-3), transparent 60%),
-    var(--bg);
-  background-attachment: fixed;
+  background: var(--bg);
   min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
   border-color: var(--border);
 }
 
-/* Tabular figures for every money value — never a mono font for the
-   figures themselves (the mono accent below is for labels/metadata). */
+/* Every money figure. Tabular so columns of numbers line up. */
 .num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* The one hero figure per screen — big, and the only gradient-lit thing
-   on it. Weight stays light: big and refined, not big and bold. */
+/* One hero figure per screen. Proportional figures at this size read
+   better than tabular; the .num rule is for aligned columns. */
 .hero-figure {
-  font-size: clamp(2.6rem, 12vw, 3.75rem);
-  font-weight: 300;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.25rem, 10vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
   line-height: 1.05;
-  background: linear-gradient(160deg, #ffffff 10%, var(--accent-bright) 95%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: var(--accent-bright);
-  -webkit-text-fill-color: transparent;
+  color: var(--text);
 }
 
-/* Plain color utilities (.text-alarm etc.) can't override a background-clip
-   gradient in WebKit -- these explicit tone variants swap the gradient
-   itself instead, so the hero figure can still turn urgent/alarm without
-   losing the gradient treatment. */
-.hero-figure[data-tone="urgent"] {
-  background: linear-gradient(160deg, #ffffff 10%, var(--urgent) 95%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: var(--urgent);
-  -webkit-text-fill-color: transparent;
-}
-
-.hero-figure[data-tone="alarm"] {
-  background: linear-gradient(160deg, #ffffff 10%, var(--alarm) 95%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: var(--alarm);
-  -webkit-text-fill-color: transparent;
-}
-
-/* Any figure computed with today's rate, not a frozen one. The ~ prefix
-   is written in the JSX text itself, not injected via CSS content, so it
-   still reads correctly when copied or read by a screen reader. */
+/* Any figure computed with today's FX rate rather than a frozen one.
+   The ~ prefix is written in the JSX so it survives copy and screen
+   readers; this only carries the muted styling. */
 .estimate {
   color: var(--text-muted);
 }
 
 .section-label {
-  font-family: var(--font-mono);
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-faint);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
-/* Grouped-list glass card: layered fill, blur, a soft top-edge highlight,
-   and real elevation via shadow — the "material" this redesign is built
-   around. */
-.card {
-  position: relative;
-  background: linear-gradient(165deg, var(--surface) 0%, var(--surface-2) 55%, var(--surface) 100%);
-  backdrop-filter: blur(var(--blur)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(140%);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
-    0 12px 40px -12px rgba(0, 0, 0, 0.55);
-  overflow: hidden;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 18px;
-  right: 18px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-  pointer-events: none;
-}
-
-/* Standard page heading. Was repeated inline on every page as
-   `text-[20px] font-semibold`; centralised so hierarchy stays consistent. */
 .page-title {
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 24px;
+  font-weight: 680;
+  letter-spacing: -0.02em;
   color: var(--text);
 }
 
-/* Horizontal scroller with edge fades, so a row that continues off-screen
-   says so instead of relying on the user guessing they can swipe. The
-   component existed since v1 but its CSS was never carried into v3 -- these
-   are its styles, added the first time it's actually used here. */
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* A card that should read as the primary object on the screen. */
+.card-hero {
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+  box-shadow: var(--shadow-lifted);
+}
+
+.row {
+  padding: 14px 16px;
+  position: relative;
+}
+
+.row + .row {
+  border-top: 1px solid var(--border);
+}
+
+.row-link {
+  transition: background-color var(--motion);
+}
+
+.row-link:active {
+  background: var(--surface-2);
+}
+
+@media (hover: hover) {
+  .row-link:hover {
+    background: var(--surface-2);
+  }
+}
+
 .hscroll {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -206,16 +309,6 @@ body {
   background: linear-gradient(270deg, var(--bg), transparent);
 }
 
-.row {
-  padding: 16px 18px;
-  position: relative;
-}
-
-.row + .row {
-  border-top: 1px solid var(--border);
-}
-
-/* Buttons. 12px radius, controls always ≥44px touch target. */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -224,44 +317,46 @@ body {
   min-height: 44px;
   padding: 10px 18px;
   border-radius: var(--radius-control);
-  font-size: 16px;
-  font-weight: 500;
-  background: var(--surface-raised);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--surface);
   color: var(--text);
-  border: 1px solid var(--border);
-  transition: background-color var(--motion), transform var(--motion), opacity var(--motion), box-shadow var(--motion);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--motion), transform var(--motion), opacity var(--motion);
 }
 
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.975);
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
 }
 
-/* The one rich, glowing button style — a real emerald gradient with an
-   inner highlight, reserved for the primary action per screen. */
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dim));
+  background: var(--accent);
   color: var(--accent-ink);
-  border-color: rgba(255, 255, 255, 0.2);
-  font-weight: 600;
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.35) inset,
-    0 6px 24px -6px rgba(34, 197, 142, 0.45);
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:active {
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.25) inset,
-    0 3px 14px -6px rgba(34, 197, 142, 0.4);
+  background: var(--accent-bright);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
 }
 
 .btn-destructive {
   background: transparent;
   color: var(--alarm);
-  border-color: var(--border);
+  border-color: var(--border-strong);
+  box-shadow: none;
 }
 
 .btn:focus-visible,
@@ -269,7 +364,7 @@ body {
 a:focus-visible,
 button:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--accent-bright);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -279,92 +374,93 @@ button:focus-visible,
   min-height: 44px;
   padding: 10px 14px;
   border-radius: var(--radius-control);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
   color: var(--text);
   font-size: 16px;
-  transition: border-color var(--motion), background-color var(--motion);
+  transition: border-color var(--motion), box-shadow var(--motion);
 }
 
 .input:focus {
-  border-color: var(--border-strong);
-  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  outline: none;
 }
 
 .input::placeholder {
   color: var(--text-faint);
 }
 
-/* Two/three-way segmented toggle -- currency, direction, tabs. */
 .segmented {
   display: inline-flex;
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
   padding: 3px;
   gap: 3px;
-  background: var(--surface-2);
+  background: var(--surface-inset);
 }
 
 .segmented button {
-  min-height: 38px;
-  padding: 0 16px;
+  min-height: 36px;
+  padding: 0 14px;
   border-radius: calc(var(--radius-control) - 4px);
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-muted);
   transition: background-color var(--motion), color var(--motion), box-shadow var(--motion);
 }
 
 .segmented button[data-active="true"] {
-  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dim));
-  color: var(--accent-ink);
-  font-weight: 600;
-  box-shadow: 0 2px 10px -2px rgba(34, 197, 142, 0.5);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Fixed category chip row -- no dropdown, no search. */
 .chip {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding: 0 16px;
-  border-radius: var(--radius-control);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
   color: var(--text-muted);
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
   transition: background-color var(--motion), color var(--motion), border-color var(--motion);
 }
 
 .chip[data-active="true"] {
-  background: linear-gradient(135deg, var(--accent-bright), var(--accent-dim));
+  background: var(--accent);
   color: var(--accent-ink);
   border-color: transparent;
-  font-weight: 600;
 }
 
-/* Obligation / balance progress bar -- partial payments must read at a
-   glance. Gradient fill with a soft glow, not flat. */
+/* Progress bars — budgets, goals, bill payments. */
 .progress-track {
   height: 8px;
   border-radius: 999px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: var(--surface-inset);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent-dim), var(--accent-bright));
-  box-shadow: 0 0 14px rgba(34, 197, 142, 0.55);
+  background: var(--accent);
   transition: width var(--motion);
 }
 
-.progress-fill[data-alarm="true"] {
-  background: linear-gradient(90deg, #b5382f, var(--alarm));
-  box-shadow: 0 0 14px rgba(239, 106, 93, 0.55);
+.progress-fill[data-tone="positive"] {
+  background: var(--positive);
+}
+.progress-fill[data-tone="urgent"] {
+  background: var(--urgent);
+}
+.progress-fill[data-tone="alarm"] {
+  background: var(--alarm);
 }
 
 .status-pill {
@@ -372,35 +468,39 @@ button:focus-visible,
   align-items: center;
   padding: 3px 9px;
   border-radius: 999px;
-  font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .status-pill[data-status="open"] {
-  background: color-mix(in srgb, var(--text-muted) 18%, transparent);
+  background: var(--surface-inset);
   color: var(--text-muted);
 }
-
 .status-pill[data-status="partial"] {
-  background: color-mix(in srgb, var(--urgent) 20%, transparent);
+  background: var(--urgent-soft);
   color: var(--urgent);
 }
-
 .status-pill[data-status="paid"] {
-  background: color-mix(in srgb, var(--positive) 20%, transparent);
+  background: var(--positive-soft);
   color: var(--positive);
 }
-
 .status-pill[data-status="waived"] {
-  background: color-mix(in srgb, var(--text-faint) 8%, transparent);
+  background: var(--surface-inset);
   color: var(--text-faint);
 }
-
 .status-pill[data-status="past-due"] {
-  background: color-mix(in srgb, var(--alarm) 20%, transparent);
+  background: var(--alarm-soft);
+  color: var(--alarm);
+}
+
+/* Amount's optional `tone` prop. Kept as real styling rather than a dead
+   attribute so passing a tone always visibly does something. */
+[data-tone="urgent"] {
+  color: var(--urgent);
+}
+[data-tone="alarm"] {
   color: var(--alarm);
 }
 
@@ -410,8 +510,8 @@ button:focus-visible,
 .text-faint {
   color: var(--text-faint);
 }
-.text-silver {
-  color: var(--accent-bright);
+.text-accent {
+  color: var(--accent);
 }
 .text-urgent {
   color: var(--urgent);
@@ -423,8 +523,7 @@ button:focus-visible,
   color: var(--positive);
 }
 
-/* Bottom tab bar -- thumb-reachable, no hover-dependent UI. Real glass,
-   matching the redesign's material language for overlay chrome. */
+/* Bottom tab bar. Five slots with Add raised in the centre. */
 .tab-bar {
   position: fixed;
   bottom: 0;
@@ -432,9 +531,9 @@ button:focus-visible,
   right: 0;
   display: flex;
   border-top: 1px solid var(--border);
-  background: rgba(10, 11, 13, 0.72);
-  backdrop-filter: blur(var(--blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 40;
 }
@@ -449,38 +548,76 @@ button:focus-visible,
   min-height: 56px;
   padding: 8px 0;
   color: var(--text-faint);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 10.5px;
+  font-weight: 600;
   transition: color var(--motion);
 }
 
 .tab-bar a[data-active="true"] {
-  color: var(--accent-bright);
+  color: var(--accent);
+}
+
+/* The raised centre Add action. */
+.tab-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+  transition: transform var(--motion);
+}
+
+.tab-bar a:active .tab-add {
+  transform: scale(0.92);
 }
 
 .keypad-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 64px;
+  min-height: 58px;
   border-radius: var(--radius-control);
-  background: var(--surface-2);
+  background: var(--surface);
   border: 1px solid var(--border);
-  font-size: 24px;
-  font-weight: 400;
+  font-size: 22px;
+  font-weight: 500;
   color: var(--text);
   transition: background-color var(--motion), transform var(--motion);
 }
 
 .keypad-btn:active {
   transform: scale(0.95);
-  background: var(--surface-raised);
+  background: var(--surface-2);
 }
 
-/* Per-account visual identity -- a small rotating set of accent finishes
-   so the Balances list reads as considered, not a plain table. Purely
-   decorative (assigned by position, not stored), so it costs nothing to
-   add/remove an account. */
+/* Category identity chip — a tinted square holding the emoji. Tint
+   rather than a solid fill, so the same token works on both themes
+   without a second value per category. */
+.cat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  line-height: 1;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--cat-color, var(--cat-slate)) 15%, transparent);
+}
+
+.cat-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: var(--cat-color, var(--cat-slate));
+}
+
 .account-swatch {
   width: 34px;
   height: 34px;
@@ -488,32 +625,62 @@ button:focus-visible,
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+  font-weight: 700;
   flex-shrink: 0;
+  background: color-mix(in srgb, var(--cat-color, var(--cat-slate)) 15%, transparent);
+  color: var(--cat-color, var(--cat-slate));
 }
 
-.account-swatch[data-tone="emerald"] {
-  background: linear-gradient(150deg, #1f9d70, #0d5c3f);
-}
-.account-swatch[data-tone="indigo"] {
-  background: linear-gradient(150deg, #6366f1, #3730a3);
-}
-.account-swatch[data-tone="amber"] {
-  background: linear-gradient(150deg, #f2b043, #b5730f);
-}
-.account-swatch[data-tone="rose"] {
-  background: linear-gradient(150deg, #ef6a95, #a13457);
-}
-.account-swatch[data-tone="slate"] {
-  background: linear-gradient(150deg, #64748b, #334155);
+/* --- Charts ---------------------------------------------------
+   Hand-rolled SVG/flex charts, no charting dependency. Bars are
+   thin, ends are rounded, and every bar is directly labelled so
+   identity never rests on colour alone. */
+
+.bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-inset);
+  overflow: hidden;
 }
 
-/* Toast (undo notices etc). */
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cat-color, var(--accent));
+  min-width: 3px;
+}
+
+/* Vertical column chart for month-over-month trend. One series, so
+   no legend is needed — the title names it. */
+.col-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+}
+
+.col-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 6px;
+}
+
+.col-bar {
+  border-radius: 4px 4px 2px 2px;
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  min-height: 3px;
+  transition: background-color var(--motion);
+}
+
+.col-item[data-current="true"] .col-bar {
+  background: var(--accent);
+}
+
 .toast {
   position: fixed;
   left: 16px;
@@ -526,11 +693,9 @@ button:focus-visible,
   gap: 12px;
   padding: 12px 14px;
   border-radius: var(--radius-control);
-  background: rgba(19, 21, 25, 0.92);
-  backdrop-filter: blur(var(--blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(150%);
+  background: var(--surface-raised);
   border: 1px solid var(--border-strong);
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--shadow-lifted);
   max-width: 480px;
   margin: 0 auto;
   animation: toast-in var(--motion);

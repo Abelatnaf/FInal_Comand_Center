@@ -28,7 +28,7 @@ export function CsvExportButton({ rows }: { rows: TransactionRowData[] }) {
           fromMinor(BigInt(t.amount_minor)),
           t.currency as Currency,
           fromMinor(BigInt(t.amount_usd_minor)),
-          t.category ?? "",
+          t.category_name ?? "",
           t.payer_label,
           t.account_name,
           t.note ?? "",

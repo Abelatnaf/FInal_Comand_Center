@@ -6,7 +6,7 @@ import { ReceiptLink } from "@/components/money/ReceiptLink";
 import { Amount } from "@/components/money/Amount";
 import { CurrencyToggle } from "@/components/money/CurrencyToggle";
 import { formatRelativeDay } from "@/lib/date";
-import { categoriesFor, type Direction } from "@/lib/categories";
+import { kindForDirection, colorVar, type Category, type Direction } from "@/lib/categories";
 import type { Currency } from "@/lib/money";
 import { useUndo } from "@/components/ui/UndoToastProvider";
 
@@ -17,7 +17,10 @@ export type TransactionRowData = {
   amount_minor: number;
   currency: Currency;
   amount_usd_minor: number;
-  category: string | null;
+  category_id: string | null;
+  category_name: string | null;
+  category_icon: string | null;
+  category_color: string | null;
   note: string | null;
   account_id: string;
   account_name: string;
@@ -35,6 +38,7 @@ export function TransactionRow({
   transaction,
   payers,
   accounts,
+  categories,
   selectionMode = false,
   selected = false,
   onToggleSelect,
@@ -42,6 +46,7 @@ export function TransactionRow({
   transaction: TransactionRowData;
   payers: Payer[];
   accounts: Account[];
+  categories: Category[];
   selectionMode?: boolean;
   selected?: boolean;
   onToggleSelect?: (id: string) => void;
@@ -91,11 +96,22 @@ export function TransactionRow({
             aria-label="Select entry"
           />
         )}
+        <div
+          className="cat-icon"
+          style={{ ["--cat-color" as string]: colorVar(transaction.category_color) }}
+          aria-hidden
+        >
+          {transaction.category_icon ?? "•"}
+        </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[15px] text-text truncate">{transaction.category ?? "Uncategorized"}</p>
-          <p className="text-[13px] text-muted">
-            {formatRelativeDay(transaction.occurred_on)} · {transaction.account_name} · {transaction.payer_label}
-            {transaction.week_number != null && ` · Week ${transaction.week_number}`}
+          {/* The note is what identifies a purchase ("Shell", "weekly shop");
+              the category is how it's grouped. Lead with whichever is there. */}
+          <p className="text-[15px] font-medium truncate">
+            {transaction.note?.trim() || transaction.category_name || "Uncategorized"}
+          </p>
+          <p className="text-[13px] text-muted truncate">
+            {transaction.note?.trim() && transaction.category_name ? `${transaction.category_name} · ` : ""}
+            {formatRelativeDay(transaction.occurred_on)} · {transaction.account_name}
           </p>
         </div>
         <Amount
@@ -138,12 +154,21 @@ export function TransactionRow({
       />
 
       <div className="flex flex-wrap gap-2">
-        {categoriesFor(direction).map((c) => (
-          <label key={c} className="chip" data-active={c === transaction.category}>
-            <input type="radio" name="category" value={c} defaultChecked={c === transaction.category} className="sr-only" />
-            {c}
-          </label>
-        ))}
+        {categories
+          .filter((c) => c.kind === kindForDirection(direction) && !c.is_archived)
+          .map((c) => (
+            <label key={c.id} className="chip" data-active={c.id === transaction.category_id}>
+              <input
+                type="radio"
+                name="category_id"
+                value={c.id}
+                defaultChecked={c.id === transaction.category_id}
+                className="sr-only"
+              />
+              <span aria-hidden>{c.icon}</span>
+              {c.name}
+            </label>
+          ))}
       </div>
 
       <input name="occurred_on" type="date" defaultValue={transaction.occurred_on} className="input" />

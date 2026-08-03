@@ -6,7 +6,7 @@ export type QueuedTransaction = {
   amount_minor: string;
   currency: string;
   direction: string;
-  category: string;
+  category_id: string;
   occurred_on: string;
   account_id: string;
   payer_id: string;

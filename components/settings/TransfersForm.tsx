@@ -65,7 +65,7 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
           </p>
         </div>
         {!adding && (
-          <button type="button" className="text-silver text-[13px] shrink-0" onClick={() => setAdding(true)}>
+          <button type="button" className="text-accent text-[13px] shrink-0" onClick={() => setAdding(true)}>
             Add
           </button>
         )}
@@ -187,7 +187,7 @@ export function TransfersForm({ accounts, transfers }: { accounts: Account[]; tr
                   />
                 )}
               </div>
-              <button type="button" className="text-silver text-[13px]" onClick={() => setEditingId(t.id)}>
+              <button type="button" className="text-accent text-[13px]" onClick={() => setEditingId(t.id)}>
                 Edit
               </button>
               <button type="button" className="text-alarm text-[13px]" onClick={() => handleDelete(t.id)}>

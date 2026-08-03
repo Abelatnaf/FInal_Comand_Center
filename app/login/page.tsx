@@ -6,7 +6,7 @@ export default function LoginPage() {
       <div className="card w-full max-w-sm p-7">
         <div className="mb-6">
           <h1 className="text-[22px] font-semibold text-text">Command Deck</h1>
-          <p className="text-[15px] text-muted mt-0.5">What&rsquo;s due, and what covers it.</p>
+          <p className="text-[15px] text-muted mt-0.5">Every expense, in one place.</p>
         </div>
         <LoginForm />
       </div>

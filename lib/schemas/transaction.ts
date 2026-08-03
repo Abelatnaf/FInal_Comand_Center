@@ -6,7 +6,7 @@ export const transactionSchema = z.object({
   amount_minor: z.coerce.bigint().positive({ message: "Enter an amount." }),
   currency: z.enum(["ETB", "USD"]),
   direction: z.enum(["in", "out"]),
-  category: z.string().max(60).optional(),
+  category_id: z.string().uuid().optional(),
   occurred_on: z.string().min(1, "Pick a date."),
   account_id: z.string().uuid("Pick an account."),
   payer_id: z.string().uuid("Pick who this is for."),

@@ -69,7 +69,7 @@ export function InstallmentPlan({
       <div className="card">
         <div className="row flex items-center justify-between gap-3">
           <p className="section-label">Payment plan</p>
-          <button type="button" className="text-silver text-[13px]" onClick={() => setEditing(true)}>
+          <button type="button" className="text-accent text-[13px]" onClick={() => setEditing(true)}>
             {installments.length > 0 ? "Edit" : "Add a plan"}
           </button>
         </div>
@@ -154,7 +154,7 @@ export function InstallmentPlan({
       <div className="row flex items-center justify-between">
         <button
           type="button"
-          className="text-silver text-[14px]"
+          className="text-accent text-[14px]"
           onClick={() => setDrafts((prev) => [...prev, { due_on: "", amount: "" }])}
         >
           + Add a part

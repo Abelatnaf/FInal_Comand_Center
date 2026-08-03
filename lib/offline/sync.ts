@@ -6,7 +6,7 @@ function toFormData(entry: QueuedTransaction): FormData {
   fd.set("amount_minor", entry.amount_minor);
   fd.set("currency", entry.currency);
   fd.set("direction", entry.direction);
-  fd.set("category", entry.category);
+  fd.set("category_id", entry.category_id);
   fd.set("occurred_on", entry.occurred_on);
   fd.set("account_id", entry.account_id);
   fd.set("payer_id", entry.payer_id);

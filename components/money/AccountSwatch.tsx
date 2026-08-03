@@ -14,7 +14,11 @@ function initials(name: string): string {
 export function AccountSwatch({ name, index }: { name: string; index: number }) {
   const tone = TONES[index % TONES.length];
   return (
-    <span className="account-swatch" data-tone={tone} aria-hidden="true">
+    <span
+      className="account-swatch"
+      style={{ ["--cat-color" as string]: `var(--cat-${tone})` }}
+      aria-hidden="true"
+    >
       {initials(name)}
     </span>
   );

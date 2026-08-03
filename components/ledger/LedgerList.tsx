@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { TransactionRow, type TransactionRowData } from "@/components/ledger/TransactionRow";
 import { TransferRow, type TransferRowData } from "@/components/ledger/TransferRow";
 import { bulkDeleteTransactions, bulkRecategorizeTransactions } from "@/app/(app)/ledger/actions";
-import { categoriesFor } from "@/lib/categories";
+import { kindForDirection, type Category } from "@/lib/categories";
 import { useUndo } from "@/components/ui/UndoToastProvider";
 import type { Currency } from "@/lib/money";
 
@@ -17,11 +17,13 @@ export function LedgerList({
   transfers,
   payers,
   accounts,
+  categories,
 }: {
   rows: TransactionRowData[];
   transfers: TransferRowData[];
   payers: Payer[];
   accounts: Account[];
+  categories: Category[];
 }) {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -71,9 +73,9 @@ export function LedgerList({
     exitSelection();
   }
 
-  async function handleRecategorize(category: string) {
+  async function handleRecategorize(categoryId: string) {
     setBusy(true);
-    const res = await bulkRecategorizeTransactions([...selected], category);
+    const res = await bulkRecategorizeTransactions([...selected], categoryId);
     setBusy(false);
     if (res.error) {
       setError(res.error);
@@ -98,11 +100,20 @@ export function LedgerList({
           <p className="text-[13px] text-muted">{selected.size} selected</p>
           {commonDirection ? (
             <div className="flex flex-wrap gap-2">
-              {categoriesFor(commonDirection).map((c) => (
-                <button key={c} type="button" disabled={busy} className="chip" onClick={() => handleRecategorize(c)}>
-                  {c}
-                </button>
-              ))}
+              {categories
+                .filter((c) => c.kind === kindForDirection(commonDirection) && !c.is_archived)
+                .map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    disabled={busy}
+                    className="chip"
+                    onClick={() => handleRecategorize(c.id)}
+                  >
+                    <span aria-hidden>{c.icon}</span>
+                    {c.name}
+                  </button>
+                ))}
             </div>
           ) : (
             <p className="text-[12px] text-faint">Mixed in/out selected — pick entries of one direction to bulk recategorize.</p>
@@ -123,6 +134,7 @@ export function LedgerList({
               transaction={item.row}
               payers={payers}
               accounts={accounts}
+              categories={categories}
               selectionMode={selectionMode}
               selected={selected.has(item.row.id)}
               onToggleSelect={toggle}

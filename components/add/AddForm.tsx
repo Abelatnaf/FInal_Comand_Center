@@ -6,7 +6,7 @@ import { createTransaction } from "@/app/(app)/add/actions";
 import { Keypad } from "@/components/money/Keypad";
 import { CurrencyToggle } from "@/components/money/CurrencyToggle";
 import { toMinor, fromMinor, convertToUsdMinor, formatMoney, type Currency } from "@/lib/money";
-import { sortByUsage, type Direction } from "@/lib/categories";
+import { sortByUsage, kindForDirection, type Category, type Direction } from "@/lib/categories";
 import { todayIso } from "@/lib/date";
 import { enqueueTransaction } from "@/lib/offline/queue";
 import { useOnlineStatus } from "@/lib/offline/useOnlineStatus";
@@ -19,7 +19,7 @@ type LastEntry = {
   amount_minor: number;
   currency: string;
   direction: string;
-  category: string | null;
+  category_id: string | null;
   account_id: string;
   payer_id: string;
   note: string | null;
@@ -28,6 +28,7 @@ type LastEntry = {
 export function AddForm({
   payers,
   accounts,
+  categories,
   fxRate,
   obligations,
   lastAccountByCurrency,
@@ -40,10 +41,12 @@ export function AddForm({
 }: {
   payers: Payer[];
   accounts: Account[];
+  categories: Category[];
   fxRate: { etb_per_usd: number; effective_on: string } | null;
   obligations: Obligation[];
   lastAccountByCurrency: Record<Currency, string | null>;
-  categoryUsage: { in: Record<string, number>; out: Record<string, number> };
+  /** Keyed by category id, counted over the last 90 days. */
+  categoryUsage: Record<string, number>;
   defaultCurrency: Currency;
   lastEntry: LastEntry | null;
   initialObligationId?: string;
@@ -59,7 +62,15 @@ export function AddForm({
   const [amountRaw, setAmountRaw] = useState(initialAmount ?? "");
   const [currency, setCurrency] = useState<Currency>(defaultCurrency);
   const [direction, setDirection] = useState<Direction>("out");
-  const [category, setCategory] = useState<string>(sortByUsage("out", categoryUsage.out)[0]);
+
+  // Most-used first, so the likely pick is already in reach without scrolling.
+  const categoriesFor = (d: Direction) =>
+    sortByUsage(
+      categories.filter((c) => c.kind === kindForDirection(d) && !c.is_archived),
+      categoryUsage
+    );
+
+  const [categoryId, setCategoryId] = useState<string>(categoriesFor("out")[0]?.id ?? "");
   const [showMore, setShowMore] = useState(isRecordingPayment);
   const [occurredOn, setOccurredOn] = useState(todayIso());
   const [note, setNote] = useState("");
@@ -86,7 +97,7 @@ export function AddForm({
 
   function handleDirection(next: Direction) {
     setDirection(next);
-    setCategory(sortByUsage(next, categoryUsage[next])[0]);
+    setCategoryId(categoriesFor(next)[0]?.id ?? "");
   }
 
   // Reuses the last entry's shape, not its date -- "repeat" means logging the
@@ -100,7 +111,10 @@ export function AddForm({
 
     setCurrency(repeatCurrency);
     setDirection(repeatDirection);
-    setCategory(lastEntry.category ?? sortByUsage(repeatDirection, categoryUsage[repeatDirection])[0]);
+    // Only reuse the category if it still exists and matches the direction --
+    // it may since have been deleted or archived.
+    const repeatCategory = categoriesFor(repeatDirection).find((c) => c.id === lastEntry.category_id);
+    setCategoryId(repeatCategory?.id ?? categoriesFor(repeatDirection)[0]?.id ?? "");
     setNote(lastEntry.note ?? "");
     setPayerId(lastEntry.payer_id);
     setOccurredOn(todayIso());
@@ -172,7 +186,7 @@ export function AddForm({
   }
 
   const relevantObligations = obligations.filter((o) => o.payer_id === payerId);
-  const categories = sortByUsage(direction, categoryUsage[direction]);
+  const visibleCategories = categoriesFor(direction);
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -208,11 +222,23 @@ export function AddForm({
           likely pick within reach without scrolling. */}
       <HScroll className="-mx-4 px-4">
         <div className="flex gap-2 w-max">
-          {categories.map((c) => (
-            <button key={c} type="button" className="chip" data-active={category === c} onClick={() => setCategory(c)}>
-              {c}
+          {visibleCategories.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className="chip"
+              data-active={categoryId === c.id}
+              onClick={() => setCategoryId(c.id)}
+            >
+              <span aria-hidden>{c.icon}</span>
+              {c.name}
             </button>
           ))}
+          {visibleCategories.length === 0 && (
+            <span className="text-muted text-[14px] py-2">
+              No {direction === "out" ? "spending" : "income"} categories yet — add one in Settings.
+            </span>
+          )}
         </div>
       </HScroll>
 
@@ -225,7 +251,7 @@ export function AddForm({
           {showMore ? "Less ⌃" : "More ⌄"}
         </button>
         {lastEntry && !isRecordingPayment && (
-          <button type="button" className="text-silver text-[14px]" onClick={handleRepeatLast}>
+          <button type="button" className="text-accent text-[14px] font-semibold" onClick={handleRepeatLast}>
             ↻ Repeat last
           </button>
         )}
@@ -320,7 +346,7 @@ export function AddForm({
       <input type="hidden" name="amount_minor" value={minor?.toString() ?? ""} />
       <input type="hidden" name="currency" value={currency} />
       <input type="hidden" name="direction" value={direction} />
-      <input type="hidden" name="category" value={category ?? ""} />
+      <input type="hidden" name="category_id" value={categoryId} />
       <input type="hidden" name="occurred_on" value={occurredOn} />
       <input type="hidden" name="account_id" value={accountId} />
       <input type="hidden" name="payer_id" value={payerId} />
@@ -357,7 +383,7 @@ function queueFieldsFrom(formData: FormData) {
     amount_minor: get("amount_minor"),
     currency: get("currency"),
     direction: get("direction"),
-    category: get("category"),
+    category_id: get("category_id"),
     occurred_on: get("occurred_on"),
     account_id: get("account_id"),
     payer_id: get("payer_id"),
