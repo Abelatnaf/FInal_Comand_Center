@@ -11,7 +11,7 @@ export type Category = {
   kind: CategoryKind;
   color: string;
   icon: string;
-  monthly_budget_usd_minor: number | null;
+  budget_usd_minor: number | null;
   sort_order: number;
   is_archived: boolean;
 };

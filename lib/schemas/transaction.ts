@@ -11,7 +11,6 @@ export const transactionSchema = z.object({
   note: z.string().max(500).optional(),
   obligation_id: z.string().uuid().optional(),
   tags: z.array(z.string().min(1).max(40)).max(10).optional(),
-  is_tax_deductible: z.boolean().optional(),
 });
 
 export type TransactionInput = z.infer<typeof transactionSchema>;

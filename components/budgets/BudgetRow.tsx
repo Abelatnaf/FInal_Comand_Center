@@ -12,21 +12,21 @@ export type BudgetRowData = {
   name: string;
   icon: string | null;
   color: string | null;
-  monthly_budget_usd_minor: number | null;
+  budget_usd_minor: number | null;
   spent_usd_minor: number;
 };
 
 export function BudgetRow({ row }: { row: BudgetRowData }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(
-    row.monthly_budget_usd_minor != null ? fromMinor(BigInt(row.monthly_budget_usd_minor)) : ""
+    row.budget_usd_minor != null ? fromMinor(BigInt(row.budget_usd_minor)) : ""
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const spent = BigInt(row.spent_usd_minor);
-  const budget = row.monthly_budget_usd_minor != null ? BigInt(row.monthly_budget_usd_minor) : null;
+  const budget = row.budget_usd_minor != null ? BigInt(row.budget_usd_minor) : null;
   const percent = budget && budget > 0n ? Number((spent * 100n) / budget) : null;
   const remaining = budget != null ? budget - spent : null;
 

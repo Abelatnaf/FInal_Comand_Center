@@ -13,7 +13,7 @@ export default async function WelcomePage() {
     supabase.from("accounts").select("id, name, kind, opening_balance_minor").order("kind").order("name"),
     supabase
       .from("categories")
-      .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
+      .select("id, name, kind, color, icon, budget_usd_minor, sort_order, is_archived")
       .eq("kind", "expense")
       .eq("is_archived", false)
       .order("sort_order"),

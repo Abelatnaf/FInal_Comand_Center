@@ -290,6 +290,28 @@ Abel asked to "add as many features as we can and make it only used for US and t
 
 **Standing limitation, unchanged**: outbound HTTPS to the Supabase host is blocked from this sandbox, so the authenticated screens against real data still can't be click-tested here. Correctness was verified at the database layer with the rollback tests above and by code review; the money helpers and the CSV parser are covered by real unit tests.
 
+## 19. Post-launch: "v6" — reoriented for college students
+
+Abel asked to make it "more for college students." That is a change of question, not a reskin: student money arrives as a lump (aid refund, summer earnings, money from home) and has to last **until a date**, so "what did I spend this month" is the wrong frame. Confirmed three things via one `AskUserQuestion` round before building, since two were destructive: **semester-first as the core model**, **all four student features**, and **drop net worth, credit-card utilisation and the tax-deductible flag**.
+
+**Terms are the spine.** A `terms` table (name, start, end) plus `term_progress`, which computes days elapsed/remaining, received and spent in the window, safe-to-spend per day, actual burn per day, and a projected run-out date. Home now leads with **money left + days to go + safe vs actual per day**, and says outright when the money runs out before the term does, which is the one sentence the whole screen exists to produce. Budgets follow the term when one is running and **fall back to the calendar month when none is**, so the screen still works over the summer; `categories.monthly_budget_usd_minor` was renamed `budget_usd_minor` because a month-specific name would be a lie half the time.
+
+**No separate pot for aid refunds, on purpose.** The obvious design is a `term_funds` table you declare a refund into. But if the refund is both a declared pot *and* logged as income, every figure double-counts, and there is no way to reconcile the two without asking the user to remember which they did. "Money left" is instead the real spendable balance, which is honest by construction and still produces the runway line. A refund is just an income entry — the framing does the work, not a table.
+
+**Four features:**
+- **Splitting with roommates.** A share is an **IOU, not a reduction of the expense**: you paid the full amount and it really left your account, so shaving the transaction down would put balances and category totals out of step with reality. Settling up writes a real income entry, because that is what happens when they pay you. Adding a share is refused if the shares would exceed the expense itself.
+- **Meal plan.** Dining dollars are just an account of kind `meal_plan`, so the ledger, balances and category reporting handle them for free; only **swipes** need their own table, because a swipe is a different unit and can't share a dollar balance. Crucially `liquid_position` **excludes meal-plan accounts from spendable cash** — you can't pay rent with dining dollars, and folding them in would overstate the runway. They get their own line and their own per-week figure.
+- **Student loans.** A record of what's borrowed and what it will cost, not a payment tracker — nothing is being repaid yet. Rates in **basis points** so no float touches one. Subsidised loans are counted at face value because they don't accrue while enrolled; counting interest on them would overstate the debt. Estimated payment is a standard 10-year amortisation at the weighted-average rate.
+- **Term-aware week numbers.** `transactions_with_week` now derives "week of term" from the term containing the entry, rather than weeks since an arbitrary tracking start date.
+
+**Removed**: `/net-worth` and `net_worth_by_month`, `accounts.credit_limit_minor` and the utilisation UI, `transactions.is_tax_deductible` and the tax section of `/reports`. Credit-card *accounts* stay — a first card is a real student concern — only the utilisation feature went. The share link was rewritten to answer "am I ok for the term" instead of reporting net worth.
+
+**New ownership triggers were written `SECURITY DEFINER` from the start**, applying the lesson from the bug immediately before this section rather than repeating it.
+
+**A route collision worth recording**: the new terms page at `/terms` collided with the existing legal Terms of Service page, which Next surfaces as a parallel-routes build error. Moved to `/semesters` rather than relocating the legal page, since the legal URL is linked from auth pages and emails.
+
+**Verified**: `tsc --noEmit`/`npm run lint`/`npm run build` clean (**34 routes**); `npm test` 24/24. A 14-check rollback-only test **run as `authenticated`, not `postgres`** — the methodology fix from the previous section — covering provisioning (25 student categories), term day/burn arithmetic (61 elapsed / 60 left, $3,000 in, $1,000 spent, $200 left, $33.33 safe vs $16.39 actual, run-out 122 days out), the budget window following the term, a split IOU appearing and clearing on settle, meal-plan swipes and dining dollars, **dining dollars correctly excluded from spendable cash**, loan interest/average-rate/payment math, and cross-tenant refusals on the two new tables. One inline "want" annotation was wrong again — I forgot the $60 pizza and $20 repayment when hand-computing the expected cash figure; 196000 was correct, the annotation wasn't. Third time this project has recorded that exact mistake.
+
 ---
 
 # Everything below this line describes Command Deck v2 (superseded)

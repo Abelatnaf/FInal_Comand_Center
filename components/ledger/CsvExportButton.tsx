@@ -19,7 +19,6 @@ export function CsvExportButton({ rows }: { rows: TransactionRowData[] }) {
           "Account",
           "Description",
           "Tags",
-          "Tax deductible",
         ];
         const body = rows.map((t) => [
           t.occurred_on,
@@ -29,7 +28,6 @@ export function CsvExportButton({ rows }: { rows: TransactionRowData[] }) {
           t.account_name,
           t.note ?? "",
           (t.tags ?? []).join(" "),
-          t.is_tax_deductible ? "Yes" : "",
         ]);
         downloadCsv([header, ...body], `ledger-${todayIso()}.csv`);
       }}

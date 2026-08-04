@@ -10,7 +10,6 @@ export type QueuedTransaction = {
   account_id: string;
   note: string;
   tags: string;
-  is_tax_deductible: string;
   obligation_id: string;
 };
 

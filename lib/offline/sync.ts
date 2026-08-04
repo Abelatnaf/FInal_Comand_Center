@@ -10,7 +10,6 @@ function toFormData(entry: QueuedTransaction): FormData {
   fd.set("account_id", entry.account_id);
   fd.set("note", entry.note);
   fd.set("tags", entry.tags ?? "");
-  fd.set("is_tax_deductible", entry.is_tax_deductible ?? "false");
   fd.set("obligation_id", entry.obligation_id);
   // A replay is never the user tapping Save twice, so the duplicate guard
   // would only ever produce a false positive here and silently drop the entry.

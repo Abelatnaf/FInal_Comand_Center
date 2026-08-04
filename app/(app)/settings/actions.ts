@@ -64,7 +64,6 @@ export async function updateAccountBalance(_prevState: ActionState, formData: Fo
   const name = String(formData.get("name") ?? "").trim();
   const kind = String(formData.get("kind") ?? "");
   const institution = String(formData.get("institution") ?? "").trim() || null;
-  const creditLimit = String(formData.get("credit_limit") ?? "").trim();
   if (!id) return { error: "Missing account." };
   if (!name) return { error: "An account needs a name." };
   if (kind && !ACCOUNT_KINDS.includes(kind)) return { error: "Pick an account type." };
@@ -78,14 +77,6 @@ export async function updateAccountBalance(_prevState: ActionState, formData: Fo
   }
   if (negative) openingMinor = -openingMinor;
 
-  let creditLimitMinor: number | null = null;
-  if (creditLimit) {
-    try {
-      creditLimitMinor = Number(toMinor(creditLimit));
-    } catch {
-      return { error: "Enter a valid credit limit." };
-    }
-  }
 
   const { error } = await supabase
     .from("accounts")
@@ -93,7 +84,6 @@ export async function updateAccountBalance(_prevState: ActionState, formData: Fo
       opening_balance_minor: Number(openingMinor),
       name,
       institution,
-      credit_limit_minor: creditLimitMinor,
       ...(kind ? { kind } : {}),
     })
     .eq("id", id);

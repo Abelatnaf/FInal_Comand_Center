@@ -25,7 +25,7 @@ export default async function RecurringPage() {
     supabase.from("accounts").select("id, name").eq("is_archived", false).order("name"),
     supabase
       .from("categories")
-      .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
+      .select("id, name, kind, color, icon, budget_usd_minor, sort_order, is_archived")
       .order("sort_order"),
   ]);
 

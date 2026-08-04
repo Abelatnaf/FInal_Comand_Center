@@ -21,12 +21,12 @@ export default async function SettingsPage() {
     await Promise.all([
       supabase
         .from("accounts")
-        .select("id, name, kind, institution, credit_limit_minor, opening_balance_minor, is_archived")
+        .select("id, name, kind, institution, opening_balance_minor, is_archived")
         .order("kind")
         .order("name"),
       supabase
         .from("categories")
-        .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
+        .select("id, name, kind, color, icon, budget_usd_minor, sort_order, is_archived")
         .order("sort_order"),
       supabase.from("category_rules").select("id, match_text, category_id").order("priority"),
       supabase.from("settings").select("tracking_start_date").maybeSingle(),

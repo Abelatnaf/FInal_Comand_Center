@@ -14,22 +14,22 @@ export default async function BudgetsPage() {
     name: b.name ?? "—",
     icon: b.icon,
     color: b.color,
-    monthly_budget_usd_minor: b.monthly_budget_usd_minor,
+    budget_usd_minor: b.budget_usd_minor,
     spent_usd_minor: b.spent_usd_minor ?? 0,
   }));
 
   // Budgeted categories lead; unbudgeted ones follow, sorted by what they
   // actually cost this month — the most useful order for deciding what to
   // budget next.
-  const budgeted = rows.filter((r) => r.monthly_budget_usd_minor != null);
+  const budgeted = rows.filter((r) => r.budget_usd_minor != null);
   const unbudgeted = rows
-    .filter((r) => r.monthly_budget_usd_minor == null)
+    .filter((r) => r.budget_usd_minor == null)
     .sort((a, b) => b.spent_usd_minor - a.spent_usd_minor);
 
-  const total = budgeted.reduce((s, r) => s + BigInt(r.monthly_budget_usd_minor ?? 0), 0n);
+  const total = budgeted.reduce((s, r) => s + BigInt(r.budget_usd_minor ?? 0), 0n);
   const spent = budgeted.reduce((s, r) => s + BigInt(r.spent_usd_minor), 0n);
   const percent = total > 0n ? Number((spent * 100n) / total) : 0;
-  const overCount = budgeted.filter((r) => BigInt(r.spent_usd_minor) > BigInt(r.monthly_budget_usd_minor ?? 0)).length;
+  const overCount = budgeted.filter((r) => BigInt(r.spent_usd_minor) > BigInt(r.budget_usd_minor ?? 0)).length;
 
   return (
     <div className="flex flex-col gap-5">

@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Amount } from "@/components/money/Amount";
 import { CategoryBars } from "@/components/charts/CategoryBars";
 import { formatMoney, formatMoneyShort } from "@/lib/money";
-import { formatShortDate } from "@/lib/date";
 
 export const metadata = { title: "Year in review" };
 
@@ -16,15 +14,9 @@ export default async function ReportsPage({
 }) {
   const supabase = await createClient();
 
-  const [monthsRes, categoryRes, deductibleRes] = await Promise.all([
+  const [monthsRes, categoryRes] = await Promise.all([
     supabase.from("monthly_summary").select("*").order("month"),
     supabase.from("category_spend_by_month").select("*"),
-    supabase
-      .from("transactions_with_week")
-      .select("id, occurred_on, amount_minor, note, category_name")
-      .eq("is_tax_deductible", true)
-      .eq("direction", "out")
-      .order("occurred_on", { ascending: false }),
   ]);
 
   const months = monthsRes.data ?? [];
@@ -70,8 +62,6 @@ export default async function ReportsPage({
     null
   );
 
-  const deductible = (deductibleRes.data ?? []).filter((t) => (t.occurred_on ?? "").startsWith(year));
-  const deductibleTotal = deductible.reduce((s, t) => s + BigInt(t.amount_minor ?? 0), 0n);
 
   return (
     <div className="flex flex-col gap-5">
@@ -183,40 +173,6 @@ export default async function ReportsPage({
             })}
           </div>
 
-          <div className="card">
-            <div className="row">
-              <p className="section-label mb-1">Possibly tax deductible</p>
-              <p className="text-[13px] text-muted">
-                Everything you flagged in {year}. This is a record of what you marked, not tax advice —
-                what actually qualifies is a question for a tax professional.
-              </p>
-            </div>
-            <div className="row flex items-center justify-between">
-              <p className="text-[15px] text-muted">
-                {deductible.length} {deductible.length === 1 ? "entry" : "entries"}
-              </p>
-              <Amount minor={deductibleTotal} className="text-[17px] font-semibold" />
-            </div>
-            {deductible.slice(0, 12).map((t) => (
-              <div key={t.id} className="row flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[15px] truncate">{t.note?.trim() || t.category_name || "—"}</p>
-                  <p className="text-[13px] text-muted">{formatShortDate(t.occurred_on ?? "")}</p>
-                </div>
-                <Amount minor={BigInt(t.amount_minor ?? 0)} className="shrink-0" />
-              </div>
-            ))}
-            {deductible.length === 0 && (
-              <p className="row text-[14px] text-muted">
-                Nothing flagged. Tick &ldquo;possibly tax deductible&rdquo; on an entry to collect it here.
-              </p>
-            )}
-            {deductible.length > 12 && (
-              <Link href={`/ledger?tax=1&from=${year}-01-01&to=${year}-12-31`} className="row row-link block">
-                <span className="text-[14px] text-accent font-semibold">See all in the Ledger →</span>
-              </Link>
-            )}
-          </div>
         </>
       )}
     </div>

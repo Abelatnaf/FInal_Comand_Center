@@ -37,7 +37,6 @@ export async function createTransaction(
     note: orUndefined(formData.get("note")),
     obligation_id: orUndefined(formData.get("obligation_id")),
     tags: parseTags(orUndefined(formData.get("tags"))),
-    is_tax_deductible: String(formData.get("is_tax_deductible") ?? "") === "true",
   });
 
   if (!parsed.success) {
@@ -81,7 +80,6 @@ export async function createTransaction(
       note: input.note ?? null,
       obligation_id: input.obligation_id ?? null,
       tags: input.tags ?? [],
-      is_tax_deductible: input.is_tax_deductible ?? false,
     })
     .select("id")
     .single();
