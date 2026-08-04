@@ -4,6 +4,7 @@ import { SettingsIcon } from "@/components/nav/icons";
 import { Amount } from "@/components/money/Amount";
 import { TransactionRow, type TransactionRowData } from "@/components/ledger/TransactionRow";
 import { CategoryBars } from "@/components/charts/CategoryBars";
+import { TermBurndown, type BurndownPoint } from "@/components/charts/TermBurndown";
 import { formatMoney } from "@/lib/money";
 import type { Category } from "@/lib/categories";
 import { formatShortDate, monthStartIso, formatMonthLong, todayIso, daysAheadIso } from "@/lib/date";
@@ -50,9 +51,10 @@ export default async function HomePage() {
       .in("status", ["open", "partial"])
       .order("due_on", { ascending: true, nullsFirst: false }),
     supabase
-      .from("recurring_expenses")
+      .from("recurring_entries")
       .select("id, name, amount_minor, next_due_on")
       .eq("is_active", true)
+      .eq("direction", "out")
       .order("next_due_on"),
     supabase
       .from("transactions_with_week")
@@ -68,6 +70,21 @@ export default async function HomePage() {
   const categories = (categoriesRes.data ?? []) as Category[];
   const term = termRes.data;
   const liquid = BigInt(positionRes.data?.total_liquid_usd_minor ?? 0);
+
+  // Depends on which term you're in, so it can't join the batch above.
+  const burndown: BurndownPoint[] = term?.term_id
+    ? (
+        await supabase
+          .from("term_burndown")
+          .select("day, actual_minor, ideal_minor")
+          .eq("term_id", term.term_id)
+          .order("day")
+      ).data?.map((r) => ({
+        day: r.day ?? "",
+        actual: r.actual_minor == null ? null : BigInt(r.actual_minor),
+        ideal: BigInt(r.ideal_minor ?? 0),
+      })) ?? []
+    : [];
 
   const owed = owedRes.data ?? [];
   const owedTotal = owed.reduce((s, o) => s + BigInt(o.owed_minor ?? 0), 0n);
@@ -133,6 +150,14 @@ export default async function HomePage() {
 
   const safeDaily = term?.safe_daily_minor != null ? BigInt(term.safe_daily_minor) : null;
   const actualDaily = term?.actual_daily_minor != null ? BigInt(term.actual_daily_minor) : null;
+  // Positive only when the target is already out of reach. Rendering a negative
+  // dollars-per-day would be a nonsense figure, so the copy changes instead.
+  const shortfall = term?.shortfall_minor != null ? BigInt(term.shortfall_minor) : null;
+  const targetEnd = BigInt(term?.target_end_balance_minor ?? 0);
+  const expectedIncome = BigInt(term?.expected_income_minor ?? 0);
+  const spentToday = BigInt(term?.spent_today_minor ?? 0);
+  const todayPercent =
+    safeDaily !== null && safeDaily > 0n ? Number((spentToday * 100n) / safeDaily) : null;
   const runsOutEarly =
     term?.projected_zero_on != null && term.ends_on != null && term.projected_zero_on < term.ends_on;
   const daysEarly = runsOutEarly
@@ -163,12 +188,21 @@ export default async function HomePage() {
               {term.ends_on && ` · ${formatShortDate(term.ends_on)}`}
             </p>
 
+            {expectedIncome > 0n && (
+              <p className="text-[13px] text-muted mt-1">
+                Plus <Amount minor={expectedIncome} className="text-positive" /> still due in before it
+                ends.
+              </p>
+            )}
+
             {safeDaily !== null && (
               <div className="flex gap-6 mt-4 pt-4 border-t">
                 <div>
                   <p className="section-label">Safe to spend</p>
                   <Amount minor={safeDaily} className="text-[17px] font-semibold" />
-                  <p className="text-[12px] text-faint">a day</p>
+                  <p className="text-[12px] text-faint">
+                    a day{targetEnd > 0n && `, keeping ${formatMoney(targetEnd)}`}
+                  </p>
                 </div>
                 {actualDaily !== null && (
                   <div>
@@ -184,7 +218,59 @@ export default async function HomePage() {
                 )}
               </div>
             )}
+
+            {/* A target you can no longer reach is a real state, and it is not
+                the same as "spend nothing" -- say the gap outright. */}
+            {shortfall !== null && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-[15px] text-alarm font-medium">
+                  You&rsquo;re {formatMoney(shortfall)} short of the {formatMoney(targetEnd)} you wanted
+                  left over.
+                </p>
+                <p className="text-[13px] text-muted mt-1">
+                  There&rsquo;s no daily figure that gets you there from here — either lower the target on{" "}
+                  {term.name}, or find another {formatMoney(shortfall)} before it ends.
+                </p>
+              </div>
+            )}
           </div>
+
+          {/* The decision-shaped version of the same number: not "what's my
+              term average", but "can I spend $20 right now". A single ratio
+              against a limit is a meter, not a chart. */}
+          {safeDaily !== null && todayPercent !== null && (
+            <div className="card row">
+              <div className="flex items-baseline justify-between mb-2">
+                <p className="section-label">Today</p>
+                <p className="text-[13px] text-muted num">
+                  {formatMoney(spentToday)} of {formatMoney(safeDaily)}
+                </p>
+              </div>
+              <div className="progress-track">
+                <div
+                  className="progress-fill"
+                  data-tone={todayPercent > 100 ? "alarm" : todayPercent > 85 ? "urgent" : undefined}
+                  style={{ width: `${Math.min(todayPercent, 100)}%` }}
+                />
+              </div>
+              <p
+                className={`text-[13px] mt-2 ${
+                  spentToday > safeDaily ? "text-alarm" : "text-muted"
+                }`}
+              >
+                {spentToday > safeDaily
+                  ? `${formatMoney(spentToday - safeDaily)} over today's pace.`
+                  : `${formatMoney(safeDaily - spentToday)} left today.`}
+              </p>
+            </div>
+          )}
+
+          {burndown.length > 1 && (
+            <div className="card row">
+              <p className="section-label mb-3">Money left, day by day</p>
+              <TermBurndown points={burndown} />
+            </div>
+          )}
 
           {/* The single most useful thing this screen can say. Stated outright
               rather than left for the user to work out from two rates. */}

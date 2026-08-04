@@ -7,7 +7,7 @@ export default async function TermsPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("terms")
-    .select("id, name, starts_on, ends_on, is_archived")
+    .select("id, name, starts_on, ends_on, is_archived, target_end_balance_minor")
     .order("starts_on", { ascending: false });
 
   return (

@@ -22,12 +22,12 @@ function suggestTerm() {
   const year = now.getFullYear();
   const month = now.getMonth();
   if (month >= 7 && month <= 11) {
-    return { name: `Fall ${year}`, startsOn: `${year}-08-25`, endsOn: `${year}-12-15` };
+    return { name: `Fall ${year}`, startsOn: `${year}-08-25`, endsOn: `${year}-12-15`, target: "" };
   }
   if (month <= 4) {
-    return { name: `Spring ${year}`, startsOn: `${year}-01-15`, endsOn: `${year}-05-10` };
+    return { name: `Spring ${year}`, startsOn: `${year}-01-15`, endsOn: `${year}-05-10`, target: "" };
   }
-  return { name: `Summer ${year}`, startsOn: `${year}-06-01`, endsOn: `${year}-08-15` };
+  return { name: `Summer ${year}`, startsOn: `${year}-06-01`, endsOn: `${year}-08-15`, target: "" };
 }
 
 export function OnboardingWizard({
@@ -156,6 +156,21 @@ export function OnboardingWizard({
             <p className="text-[12px] text-faint">
               Pre-filled with a typical semester — change them to match your school.
             </p>
+            <label>
+              <span className="section-label block mb-1">Leave yourself, by the end</span>
+              <input
+                className="input num"
+                inputMode="decimal"
+                value={term.target}
+                onChange={(e) => setTerm({ ...term, target: e.target.value })}
+                placeholder="Optional"
+                disabled={skipTerm}
+              />
+              <span className="text-[12px] text-faint block mt-1">
+                Money you want left when the term ends — for winter break, say. Without it the app paces
+                you to exactly $0 on the last day.
+              </span>
+            </label>
             <label className="flex items-center gap-2.5 text-[15px] text-text">
               <input type="checkbox" checked={skipTerm} onChange={(e) => setSkipTerm(e.target.checked)} />
               I&rsquo;m not in a term right now
