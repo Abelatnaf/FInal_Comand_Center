@@ -6,7 +6,7 @@ import { toMinor } from "@/lib/money";
 
 export type OnboardingInput = {
   displayName: string;
-  term: { name: string; startsOn: string; endsOn: string } | null;
+  term: { name: string; startsOn: string; endsOn: string; target: string } | null;
   accounts: { id: string; name: string; balance: string }[];
   budgets: { id: string; amount: string }[];
 };
@@ -26,14 +26,28 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
   // The term is what turns the home screen into "X left, Y days to go", so it
   // is set up first -- everything else reads better once it exists.
   if (input.term) {
-    const { name, startsOn, endsOn } = input.term;
+    const { name, startsOn, endsOn, target } = input.term;
     if (!name.trim()) return { error: "Give the term a name." };
     if (!startsOn || !endsOn) return { error: "Pick when the term starts and ends." };
     if (endsOn <= startsOn) return { error: "The end date has to come after the start date." };
 
-    const { error } = await supabase
-      .from("terms")
-      .insert({ user_id: user.id, name: name.trim(), starts_on: startsOn, ends_on: endsOn });
+    let targetMinor = 0n;
+    if (target.trim()) {
+      try {
+        targetMinor = toMinor(target.trim());
+      } catch {
+        return { error: `“${target.trim()}” isn't an amount I can read.` };
+      }
+      if (targetMinor < 0n) return { error: "A leftover target can't be negative." };
+    }
+
+    const { error } = await supabase.from("terms").insert({
+      user_id: user.id,
+      name: name.trim(),
+      starts_on: startsOn,
+      ends_on: endsOn,
+      target_end_balance_minor: Number(targetMinor),
+    });
     if (error) return { error: error.message };
   }
 

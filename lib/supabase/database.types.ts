@@ -222,7 +222,7 @@ export type Database = {
         }
         Relationships: []
       }
-      recurring_expenses: {
+      recurring_entries: {
         Row: {
           account_id: string
           amount_minor: number
@@ -230,6 +230,7 @@ export type Database = {
           cadence: string
           category_id: string | null
           created_at: string
+          direction: string
           id: string
           is_active: boolean
           last_posted_on: string | null
@@ -245,6 +246,7 @@ export type Database = {
           cadence: string
           category_id?: string | null
           created_at?: string
+          direction?: string
           id?: string
           is_active?: boolean
           last_posted_on?: string | null
@@ -260,6 +262,7 @@ export type Database = {
           cadence?: string
           category_id?: string | null
           created_at?: string
+          direction?: string
           id?: string
           is_active?: boolean
           last_posted_on?: string | null
@@ -511,6 +514,7 @@ export type Database = {
           is_archived: boolean
           name: string
           starts_on: string
+          target_end_balance_minor: number
           user_id: string
         }
         Insert: {
@@ -520,6 +524,7 @@ export type Database = {
           is_archived?: boolean
           name: string
           starts_on: string
+          target_end_balance_minor?: number
           user_id: string
         }
         Update: {
@@ -529,6 +534,7 @@ export type Database = {
           is_archived?: boolean
           name?: string
           starts_on?: string
+          target_end_balance_minor?: number
           user_id?: string
         }
         Relationships: []
@@ -759,12 +765,25 @@ export type Database = {
         }
         Relationships: []
       }
+      term_burndown: {
+        Row: {
+          actual_minor: number | null
+          day: string | null
+          ends_on: string | null
+          ideal_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       term_progress: {
         Row: {
           actual_daily_minor: number | null
           days_elapsed: number | null
           days_remaining: number | null
           ends_on: string | null
+          expected_income_minor: number | null
           liquid_minor: number | null
           meal_plan_minor: number | null
           name: string | null
@@ -772,8 +791,12 @@ export type Database = {
           received_minor: number | null
           safe_daily_meal_minor: number | null
           safe_daily_minor: number | null
+          shortfall_minor: number | null
+          spendable_minor: number | null
           spent_minor: number | null
+          spent_today_minor: number | null
           starts_on: string | null
+          target_end_balance_minor: number | null
           term_id: string | null
           total_days: number | null
           user_id: string | null
@@ -1087,7 +1110,7 @@ export type Database = {
           term_name: string
         }[]
       }
-      post_due_recurring_expenses: { Args: never; Returns: number }
+      post_due_recurring_entries: { Args: never; Returns: number }
       restore_from_backup: { Args: { p_backup: Json }; Returns: Json }
       spawn_due_recurring_obligations: { Args: never; Returns: number }
     }

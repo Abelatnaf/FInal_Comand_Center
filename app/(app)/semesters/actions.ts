@@ -2,8 +2,26 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { toMinor } from "@/lib/money";
 
 export type TermState = { error?: string; success?: boolean } | undefined;
+
+/**
+ * What you want left over when the term ends. Blank means zero -- the app then
+ * paces you to exactly $0 on the last day, which is the old behaviour and a
+ * legitimate choice, just not a good default to assume silently.
+ */
+function readTarget(formData: FormData): bigint | { error: string } {
+  const raw = String(formData.get("target_end_balance") ?? "").trim();
+  if (!raw) return 0n;
+  try {
+    const minor = toMinor(raw);
+    if (minor < 0n) return { error: "A leftover target can't be negative." };
+    return minor;
+  } catch {
+    return { error: "Enter a leftover target like 400 or 400.00." };
+  }
+}
 
 function revalidateAll() {
   revalidatePath("/");
@@ -42,9 +60,16 @@ export async function createTerm(_prev: TermState, formData: FormData): Promise<
     return { error: `Those dates overlap “${clash[0].name}”. Adjust them or archive that term first.` };
   }
 
-  const { error } = await supabase
-    .from("terms")
-    .insert({ user_id: user.id, name, starts_on: startsOn, ends_on: endsOn });
+  const target = readTarget(formData);
+  if (typeof target === "object") return target;
+
+  const { error } = await supabase.from("terms").insert({
+    user_id: user.id,
+    name,
+    starts_on: startsOn,
+    ends_on: endsOn,
+    target_end_balance_minor: Number(target),
+  });
 
   if (error) return { error: error.message };
   revalidateAll();
@@ -62,9 +87,17 @@ export async function updateTerm(_prev: TermState, formData: FormData): Promise<
   if (!name) return { error: "Give the term a name." };
   if (endsOn <= startsOn) return { error: "The end date has to come after the start date." };
 
+  const target = readTarget(formData);
+  if (typeof target === "object") return target;
+
   const { error } = await supabase
     .from("terms")
-    .update({ name, starts_on: startsOn, ends_on: endsOn })
+    .update({
+      name,
+      starts_on: startsOn,
+      ends_on: endsOn,
+      target_end_balance_minor: Number(target),
+    })
     .eq("id", id);
 
   if (error) return { error: error.message };

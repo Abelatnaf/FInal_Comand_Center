@@ -196,6 +196,7 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
   if (!user) return {};
 
   const [
+    terms,
     categories,
     categoryRules,
     accounts,
@@ -203,10 +204,15 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
     installments,
     transfers,
     transactions,
+    splitShares,
+    mealPlans,
+    mealSwipeUses,
+    studentLoans,
     recurring,
     goals,
     settings,
   ] = await Promise.all([
+    supabase.from("terms").select("*"),
     supabase.from("categories").select("*"),
     supabase.from("category_rules").select("*"),
     supabase.from("accounts").select("*"),
@@ -214,7 +220,11 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
     supabase.from("obligation_installments").select("*"),
     supabase.from("transfers").select("*"),
     supabase.from("transactions").select("*"),
-    supabase.from("recurring_expenses").select("*"),
+    supabase.from("split_shares").select("*"),
+    supabase.from("meal_plans").select("*"),
+    supabase.from("meal_swipe_uses").select("*"),
+    supabase.from("student_loans").select("*"),
+    supabase.from("recurring_entries").select("*"),
     supabase.from("savings_goals").select("*"),
     supabase.from("settings").select("*"),
   ]);
@@ -223,6 +233,7 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
   // round-trip -- an export that silently omits a table is a broken backup.
   return {
     exported_at: new Date().toISOString(),
+    terms: terms.data,
     categories: categories.data,
     category_rules: categoryRules.data,
     accounts: accounts.data,
@@ -230,7 +241,11 @@ export async function exportAllData(): Promise<Record<string, unknown>> {
     obligation_installments: installments.data,
     transfers: transfers.data,
     transactions: transactions.data,
-    recurring_expenses: recurring.data,
+    split_shares: splitShares.data,
+    meal_plans: mealPlans.data,
+    meal_swipe_uses: mealSwipeUses.data,
+    student_loans: studentLoans.data,
+    recurring_entries: recurring.data,
     savings_goals: goals.data,
     settings: settings.data,
   };

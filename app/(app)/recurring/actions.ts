@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { toMinor } from "@/lib/money";
 
 const CADENCES = ["weekly", "monthly", "quarterly", "yearly"] as const;
+const DIRECTIONS = ["in", "out"] as const;
 
 function revalidateAffected() {
   revalidatePath("/");
@@ -13,7 +14,7 @@ function revalidateAffected() {
   revalidatePath("/budgets");
 }
 
-export async function createRecurringExpense(formData: FormData): Promise<{ error?: string }> {
+export async function createRecurringEntry(formData: FormData): Promise<{ error?: string }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,6 +24,7 @@ export async function createRecurringExpense(formData: FormData): Promise<{ erro
   const name = String(formData.get("name") ?? "").trim();
   const amount = String(formData.get("amount") ?? "").trim();
   const cadence = String(formData.get("cadence") ?? "monthly");
+  const direction = String(formData.get("direction") ?? "out");
   const nextDueOn = String(formData.get("next_due_on") ?? "").trim();
   const accountId = String(formData.get("account_id") ?? "");
   const categoryId = String(formData.get("category_id") ?? "");
@@ -30,6 +32,7 @@ export async function createRecurringExpense(formData: FormData): Promise<{ erro
 
   if (!name) return { error: "Give it a name." };
   if (!(CADENCES as readonly string[]).includes(cadence)) return { error: "Pick how often it repeats." };
+  if (!(DIRECTIONS as readonly string[]).includes(direction)) return { error: "Pick money in or money out." };
   if (!nextDueOn) return { error: "Pick the next date it's due." };
   if (!accountId) return { error: "Pick an account." };
 
@@ -41,11 +44,12 @@ export async function createRecurringExpense(formData: FormData): Promise<{ erro
   }
   if (minor <= 0n) return { error: "Enter an amount greater than zero." };
 
-  const { error } = await supabase.from("recurring_expenses").insert({
+  const { error } = await supabase.from("recurring_entries").insert({
     user_id: user.id,
     name,
     amount_minor: Number(minor),
     cadence,
+    direction,
     next_due_on: nextDueOn,
     account_id: accountId,
     category_id: categoryId || null,
@@ -59,7 +63,7 @@ export async function createRecurringExpense(formData: FormData): Promise<{ erro
 
 export async function setRecurringActive(id: string, active: boolean): Promise<{ error?: string }> {
   const supabase = await createClient();
-  const { error } = await supabase.from("recurring_expenses").update({ is_active: active }).eq("id", id);
+  const { error } = await supabase.from("recurring_entries").update({ is_active: active }).eq("id", id);
   if (error) return { error: error.message };
   revalidateAffected();
   return {};
@@ -67,15 +71,15 @@ export async function setRecurringActive(id: string, active: boolean): Promise<{
 
 export async function setRecurringAutoPost(id: string, autoPost: boolean): Promise<{ error?: string }> {
   const supabase = await createClient();
-  const { error } = await supabase.from("recurring_expenses").update({ auto_post: autoPost }).eq("id", id);
+  const { error } = await supabase.from("recurring_entries").update({ auto_post: autoPost }).eq("id", id);
   if (error) return { error: error.message };
   revalidateAffected();
   return {};
 }
 
-export async function deleteRecurringExpense(id: string): Promise<{ error?: string }> {
+export async function deleteRecurringEntry(id: string): Promise<{ error?: string }> {
   const supabase = await createClient();
-  const { error } = await supabase.from("recurring_expenses").delete().eq("id", id);
+  const { error } = await supabase.from("recurring_entries").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidateAffected();
   return {};
@@ -95,7 +99,7 @@ export async function postRecurringNow(id: string): Promise<{ error?: string }> 
   if (!user) return { error: "Not signed in." };
 
   const { data: rec, error: readError } = await supabase
-    .from("recurring_expenses")
+    .from("recurring_entries")
     .select("*")
     .eq("id", id)
     .single();
@@ -106,7 +110,7 @@ export async function postRecurringNow(id: string): Promise<{ error?: string }> 
     user_id: user.id,
     account_id: rec.account_id,
     occurred_on: rec.next_due_on,
-    direction: "out",
+    direction: rec.direction,
     amount_minor: rec.amount_minor,
     category_id: rec.category_id,
     note: rec.note?.trim() || rec.name,
@@ -121,7 +125,7 @@ export async function postRecurringNow(id: string): Promise<{ error?: string }> 
   else next.setFullYear(next.getFullYear() + 1);
 
   const { error: updateError } = await supabase
-    .from("recurring_expenses")
+    .from("recurring_entries")
     .update({
       last_posted_on: rec.next_due_on,
       next_due_on: next.toISOString().slice(0, 10),

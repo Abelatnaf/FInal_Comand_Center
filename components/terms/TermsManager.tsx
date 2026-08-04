@@ -10,6 +10,7 @@ import {
   type TermState,
 } from "@/app/(app)/semesters/actions";
 import { formatShortDate, todayIso } from "@/lib/date";
+import { formatMoney, fromMinor } from "@/lib/money";
 
 export type TermRow = {
   id: string;
@@ -17,6 +18,7 @@ export type TermRow = {
   starts_on: string;
   ends_on: string;
   is_archived: boolean;
+  target_end_balance_minor: number;
 };
 
 /** Rough US academic calendar, so the common case is two taps not eight. */
@@ -87,6 +89,8 @@ export function TermsManager({ terms }: { terms: TermRow[] }) {
                 </p>
                 <p className="text-[13px] text-muted">
                   {formatShortDate(t.starts_on)} – {formatShortDate(t.ends_on)}
+                  {t.target_end_balance_minor > 0 &&
+                    ` · keep ${formatMoney(BigInt(t.target_end_balance_minor))}`}
                 </p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
@@ -161,6 +165,19 @@ export function TermsManager({ terms }: { terms: TermRow[] }) {
               Dates are pre-filled with a typical semester — change them to match your school&rsquo;s
               calendar.
             </p>
+            <label>
+              <span className="section-label block mb-1">Leave yourself, by the end</span>
+              <input
+                name="target_end_balance"
+                inputMode="decimal"
+                placeholder="0"
+                className="input num"
+              />
+              <span className="text-[12px] text-faint block mt-1">
+                Optional. Set this and the daily safe-to-spend figure stops pacing you to exactly $0 on
+                the last day.
+              </span>
+            </label>
             {state?.error && <p className="text-alarm text-[13px]">{state.error}</p>}
             <div className="flex gap-2">
               {terms.length > 0 && (
@@ -196,6 +213,20 @@ function TermEditRow({ term, onDone }: { term: TermRow; onDone: () => void }) {
         <input name="starts_on" type="date" defaultValue={term.starts_on} className="input" aria-label="Starts" />
         <input name="ends_on" type="date" defaultValue={term.ends_on} className="input" aria-label="Ends" />
       </div>
+      <label>
+        <span className="section-label block mb-1">Leave yourself, by the end</span>
+        <input
+          name="target_end_balance"
+          inputMode="decimal"
+          defaultValue={
+            term.target_end_balance_minor
+              ? fromMinor(BigInt(term.target_end_balance_minor))
+              : ""
+          }
+          placeholder="0"
+          className="input num"
+        />
+      </label>
       {state?.error && <p className="text-alarm text-[13px]">{state.error}</p>}
       <div className="flex gap-2">
         <button type="button" className="btn flex-1" onClick={onDone}>

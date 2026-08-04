@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  createRecurringExpense,
-  deleteRecurringExpense,
+  createRecurringEntry,
+  deleteRecurringEntry,
   postRecurringNow,
   setRecurringActive,
   setRecurringAutoPost,
@@ -18,6 +18,7 @@ export type RecurringItem = {
   name: string;
   amount_minor: number;
   cadence: string;
+  direction: string;
   next_due_on: string;
   auto_post: boolean;
   is_active: boolean;
@@ -49,11 +50,16 @@ export function RecurringManager({
   categories: Category[];
 }) {
   const [adding, setAdding] = useState(false);
+  const [direction, setDirection] = useState<"out" | "in">("out");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const expenseCategories = categories.filter((c) => c.kind === "expense" && !c.is_archived);
+  // The category list has to follow the direction, or an income entry could be
+  // filed under Groceries.
+  const pickableCategories = categories.filter(
+    (c) => c.kind === (direction === "in" ? "income" : "expense") && !c.is_archived
+  );
 
   async function run(fn: () => Promise<{ error?: string }>) {
     setBusy(true);
@@ -73,7 +79,7 @@ export function RecurringManager({
     const formData = new FormData(form);
     setBusy(true);
     setError(null);
-    const res = await createRecurringExpense(formData);
+    const res = await createRecurringEntry(formData);
     setBusy(false);
     if (res.error) {
       setError(res.error);
@@ -93,15 +99,47 @@ export function RecurringManager({
 
       {!adding ? (
         <button type="button" className="btn btn-primary" onClick={() => setAdding(true)}>
-          Add a recurring expense
+          Add something recurring
         </button>
       ) : (
         <form onSubmit={handleCreate} className="card">
           <div className="row">
+            <p className="section-label mb-1.5">Money</p>
+            <div className="segmented" role="group" aria-label="Direction">
+              <button
+                type="button"
+                data-active={direction === "out"}
+                onClick={() => setDirection("out")}
+              >
+                Going out
+              </button>
+              <button
+                type="button"
+                data-active={direction === "in"}
+                onClick={() => setDirection("in")}
+              >
+                Coming in
+              </button>
+            </div>
+            <input type="hidden" name="direction" value={direction} />
+            {direction === "in" && (
+              <p className="text-[12px] text-faint mt-1.5">
+                A paycheck or allowance that lands on a schedule. Money still to arrive before the term
+                ends counts towards what you can safely spend per day.
+              </p>
+            )}
+          </div>
+          <div className="row">
             <label className="section-label block mb-1.5" htmlFor="r-name">
               Name
             </label>
-            <input id="r-name" name="name" className="input" placeholder="Netflix" required />
+            <input
+              id="r-name"
+              name="name"
+              className="input"
+              placeholder={direction === "in" ? "Work study" : "Netflix"}
+              required
+            />
           </div>
           <div className="row">
             <label className="section-label block mb-1.5" htmlFor="r-amount">
@@ -147,7 +185,7 @@ export function RecurringManager({
             </label>
             <select id="r-category" name="category_id" className="input">
               <option value="">None</option>
-              {expenseCategories.map((c) => (
+              {pickableCategories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.icon} {c.name}
                 </option>
@@ -179,7 +217,7 @@ export function RecurringManager({
         <div className="card row">
           <p className="text-[14px] text-muted">
             Nothing recurring yet. Add your subscriptions and standing bills to see what they cost you every
-            month.
+            month — and add a paycheck so the app stops assuming no more money is coming in.
           </p>
         </div>
       )}
@@ -216,12 +254,13 @@ function Item({
 }) {
   const [open, setOpen] = useState(false);
   const overdue = item.is_active && item.next_due_on <= todayIso();
+  const incoming = item.direction === "in";
 
   return (
     <div className="row">
       <button type="button" className="w-full text-left flex items-center gap-3" onClick={() => setOpen((v) => !v)}>
         <div className="cat-icon" style={{ ["--cat-color" as string]: colorVar(item.category_color) }} aria-hidden>
-          {item.category_icon ?? "🔁"}
+          {item.category_icon ?? (incoming ? "💵" : "🔁")}
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[15px] font-medium truncate">{item.name}</p>
@@ -230,7 +269,10 @@ function Item({
             {!item.auto_post && " · manual"}
           </p>
         </div>
-        <Amount minor={BigInt(item.amount_minor)} className="shrink-0 font-semibold" />
+        <span className={`shrink-0 font-semibold ${incoming ? "text-positive" : ""}`}>
+          {incoming && "+"}
+          <Amount minor={BigInt(item.amount_minor)} />
+        </span>
       </button>
 
       {open && (
@@ -269,7 +311,7 @@ function Item({
               type="button"
               className="btn btn-destructive text-[14px]"
               disabled={busy}
-              onClick={() => run(() => deleteRecurringExpense(item.id))}
+              onClick={() => run(() => deleteRecurringEntry(item.id))}
             >
               Delete
             </button>
