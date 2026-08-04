@@ -30,6 +30,11 @@ export function NetWorthTrend({ points }: { points: NetWorthPoint[] }) {
   const hasNegative = points.some((p) => p.minor < 0n);
   const lastIndex = points.length - 1;
 
+  // Prior months are dimmed so the current one reads as current, but not below
+  // 3:1 against the card surface -- the bars are the data, not decoration.
+  // Measured: 0.55 came out at 2.8:1 in both themes; 0.7 clears with margin.
+  const PAST_OPACITY = 0.7;
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-stretch gap-1.5 h-[120px]">
@@ -51,7 +56,7 @@ export function NetWorthTrend({ points }: { points: NetWorthPoint[] }) {
                 {!negative && (
                   <div
                     className="rounded-t-[3px] bg-[var(--accent)]"
-                    style={{ height: `${Math.max(pct, 2)}%`, opacity: i === lastIndex ? 1 : 0.55 }}
+                    style={{ height: `${Math.max(pct, 2)}%`, opacity: i === lastIndex ? 1 : PAST_OPACITY }}
                   />
                 )}
               </div>
@@ -60,7 +65,7 @@ export function NetWorthTrend({ points }: { points: NetWorthPoint[] }) {
                   {negative && (
                     <div
                       className="rounded-b-[3px] bg-[var(--alarm)]"
-                      style={{ height: `${Math.max(pct, 2)}%`, opacity: i === lastIndex ? 1 : 0.55 }}
+                      style={{ height: `${Math.max(pct, 2)}%`, opacity: i === lastIndex ? 1 : PAST_OPACITY }}
                     />
                   )}
                 </div>
