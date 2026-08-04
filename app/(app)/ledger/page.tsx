@@ -15,7 +15,6 @@ type Filters = {
   from?: string;
   to?: string;
   direction?: string;
-  tax?: string;
 };
 
 export default async function LedgerPage({ searchParams }: { searchParams: Promise<Filters> }) {
@@ -26,7 +25,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
     supabase.from("accounts").select("id, name").order("name"),
     supabase
       .from("categories")
-      .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
+      .select("id, name, kind, color, icon, budget_usd_minor, sort_order, is_archived")
       .order("sort_order"),
     supabase
       .from("transfers")
@@ -42,7 +41,7 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
   let query = supabase
     .from("transactions_with_week")
     .select(
-      "id, occurred_on, direction, amount_minor, category_id, category_name, category_icon, category_color, note, tags, is_tax_deductible, account_id, obligation_id, receipt_path, week_number, accounts(name)"
+      "id, occurred_on, direction, amount_minor, category_id, category_name, category_icon, category_color, note, tags, account_id, obligation_id, receipt_path, week_number, accounts(name)"
     )
     .order("occurred_on", { ascending: false })
     .order("created_at", { ascending: false });
@@ -97,21 +96,19 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
       receipt_path: t.receipt_path,
       week_number: t.week_number,
       tags: t.tags ?? [],
-      is_tax_deductible: t.is_tax_deductible ?? false,
     }));
 
-  // Tag membership and the tax flag filter in memory rather than in the query:
-  // an array-contains filter would need its own operator, and the result set
-  // for one person's ledger is small enough that it isn't worth it.
+  // Tag membership filters in memory rather than in the query: an
+  // array-contains filter would need its own operator, and the result set for
+  // one person's ledger is small enough that it isn't worth it.
   if (filters.tag) rows = rows.filter((r) => (r.tags ?? []).includes(filters.tag!));
-  if (filters.tax === "1") rows = rows.filter((r) => r.is_tax_deductible);
 
   // Transfers only make sense against the date/account filters -- they have no
   // category, tag or direction, so those filters exclude them entirely rather
   // than pretending to match.
   const accountById = new Map(accounts.map((a) => [a.id, a]));
   const showTransfers =
-    !filters.category_id && !filters.q && !filters.tag && !filters.direction && filters.tax !== "1";
+    !filters.category_id && !filters.q && !filters.tag && !filters.direction;
   const transfers: TransferRowData[] = !showTransfers
     ? []
     : (transfersRes.data ?? [])
@@ -197,10 +194,6 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
             <input name="from" type="date" defaultValue={filters.from ?? ""} className="input" aria-label="From" />
             <input name="to" type="date" defaultValue={filters.to ?? ""} className="input" aria-label="To" />
           </div>
-          <label className="flex items-center gap-2.5 text-[15px] text-text">
-            <input type="checkbox" name="tax" value="1" defaultChecked={filters.tax === "1"} />
-            Only possibly tax-deductible
-          </label>
           <div className="flex gap-2">
             <button type="submit" className="btn btn-primary flex-1">
               Apply

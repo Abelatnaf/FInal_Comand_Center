@@ -38,7 +38,7 @@ export async function setCategoryBudget(
 
   const { error } = await supabase
     .from("categories")
-    .update({ monthly_budget_usd_minor: minor })
+    .update({ budget_usd_minor: minor })
     .eq("id", categoryId);
 
   if (error) return { error: error.message };

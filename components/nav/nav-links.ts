@@ -10,22 +10,40 @@ export const TAB_LINKS = [
 /** Everything that doesn't earn a tab, grouped on /more. */
 export const MORE_LINKS = [
   {
+    href: "/semesters",
+    label: "Terms",
+    icon: "upcoming" as const,
+    blurb: "Semester dates your money stretches across",
+  },
+  {
+    href: "/split",
+    label: "Split",
+    icon: "accounts" as const,
+    blurb: "What roommates and friends owe you",
+  },
+  {
+    href: "/meal-plan",
+    label: "Meal plan",
+    icon: "recurring" as const,
+    blurb: "Swipes and dining dollars against the term",
+  },
+  {
+    href: "/loans",
+    label: "Student loans",
+    icon: "bills" as const,
+    blurb: "What you've borrowed and what it'll cost",
+  },
+  {
     href: "/insights",
     label: "Insights",
     icon: "insights" as const,
     blurb: "Trends, category breakdowns, month by month",
   },
   {
-    href: "/net-worth",
-    label: "Net worth",
-    icon: "accounts" as const,
-    blurb: "What you own, what you owe, over time",
-  },
-  {
     href: "/reports",
     label: "Year in review",
     icon: "insights" as const,
-    blurb: "Your whole year, plus a tax-deductible summary",
+    blurb: "Your whole year on one page",
   },
   {
     href: "/import",
@@ -33,7 +51,7 @@ export const MORE_LINKS = [
     icon: "ledger" as const,
     blurb: "Bring in a CSV instead of typing it",
   },
-  { href: "/bills", label: "Bills", icon: "bills" as const, blurb: "What you owe and when it's due" },
+  { href: "/bills", label: "Bills", icon: "bills" as const, blurb: "Tuition, rent and anything else due" },
   {
     href: "/recurring",
     label: "Recurring",

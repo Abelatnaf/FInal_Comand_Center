@@ -14,7 +14,21 @@ const KIND_HINT: Record<string, string> = {
   cash: "Wallet, envelope, under the mattress",
 };
 
-const STEPS = ["You", "Accounts", "Budgets"] as const;
+const STEPS = ["You", "Term", "Accounts", "Budgets"] as const;
+
+/** Rough US academic calendar, so the common case is confirm-and-continue. */
+function suggestTerm() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  if (month >= 7 && month <= 11) {
+    return { name: `Fall ${year}`, startsOn: `${year}-08-25`, endsOn: `${year}-12-15` };
+  }
+  if (month <= 4) {
+    return { name: `Spring ${year}`, startsOn: `${year}-01-15`, endsOn: `${year}-05-10` };
+  }
+  return { name: `Summer ${year}`, startsOn: `${year}-06-01`, endsOn: `${year}-08-15` };
+}
 
 export function OnboardingWizard({
   accounts,
@@ -36,6 +50,8 @@ export function OnboardingWizard({
     }))
   );
   const [budgetState, setBudgetState] = useState<Record<string, string>>({});
+  const [term, setTerm] = useState(suggestTerm());
+  const [skipTerm, setSkipTerm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, startTransition] = useTransition();
   const router = useRouter();
@@ -44,6 +60,7 @@ export function OnboardingWizard({
     startTransition(async () => {
       const res = await completeOnboarding({
         displayName: name,
+        term: skipTerm ? null : term,
         accounts: accountState.map((a) => ({ id: a.id, name: a.name, balance: a.balance })),
         budgets: Object.entries(budgetState).map(([id, amount]) => ({ id, amount })),
       });
@@ -70,8 +87,9 @@ export function OnboardingWizard({
         </p>
         <h1 className="page-title">
           {step === 0 && "Welcome"}
-          {step === 1 && "Your accounts"}
-          {step === 2 && "Set a budget or two"}
+          {step === 1 && "When's your term?"}
+          {step === 2 && "Your accounts"}
+          {step === 3 && "Set a budget or two"}
         </h1>
       </div>
 
@@ -82,8 +100,8 @@ export function OnboardingWizard({
       {step === 0 && (
         <div className="card row flex flex-col gap-3">
           <p className="text-[15px] text-text">
-            This tracks where your money goes — what you spend, what comes in, and what&rsquo;s left. It
-            takes about a minute to set up, and you can change any of it later.
+            This works out whether your money lasts to the end of the semester — not just what you spent
+            this month. Takes about a minute to set up, and you can change any of it later.
           </p>
           <label className="section-label" htmlFor="display_name">
             What should we call you?
@@ -99,6 +117,54 @@ export function OnboardingWizard({
       )}
 
       {step === 1 && (
+        <div className="card">
+          <div className="row flex flex-col gap-3">
+            <p className="text-[14px] text-muted">
+              Your money has to last until the term ends. Give it those dates and the home screen becomes
+              &ldquo;you have $X and Y days to go&rdquo;.
+            </p>
+            <input
+              className="input"
+              value={term.name}
+              onChange={(e) => setTerm({ ...term, name: e.target.value })}
+              placeholder="Fall 2026"
+              aria-label="Term name"
+              disabled={skipTerm}
+            />
+            <div className="flex gap-2">
+              <label className="flex-1">
+                <span className="section-label block mb-1">Starts</span>
+                <input
+                  type="date"
+                  className="input"
+                  value={term.startsOn}
+                  onChange={(e) => setTerm({ ...term, startsOn: e.target.value })}
+                  disabled={skipTerm}
+                />
+              </label>
+              <label className="flex-1">
+                <span className="section-label block mb-1">Ends</span>
+                <input
+                  type="date"
+                  className="input"
+                  value={term.endsOn}
+                  onChange={(e) => setTerm({ ...term, endsOn: e.target.value })}
+                  disabled={skipTerm}
+                />
+              </label>
+            </div>
+            <p className="text-[12px] text-faint">
+              Pre-filled with a typical semester — change them to match your school.
+            </p>
+            <label className="flex items-center gap-2.5 text-[15px] text-text">
+              <input type="checkbox" checked={skipTerm} onChange={(e) => setSkipTerm(e.target.checked)} />
+              I&rsquo;m not in a term right now
+            </label>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
         <div className="card">
           <div className="row">
             <p className="text-[14px] text-muted">
@@ -137,11 +203,11 @@ export function OnboardingWizard({
         </div>
       )}
 
-      {step === 2 && (
+      {step === 3 && (
         <div className="card">
           <div className="row">
             <p className="text-[14px] text-muted">
-              A budget is just a monthly ceiling you want to notice crossing. Fill in the ones you care
+              A budget is a ceiling for the whole term you want to notice crossing. Fill in the ones you care
               about and leave the rest blank — most people start with two or three.
             </p>
           </div>

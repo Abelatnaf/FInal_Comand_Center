@@ -16,7 +16,7 @@ export default async function AddPage({
       supabase.from("accounts").select("id, name, kind").eq("is_archived", false).order("name"),
       supabase
         .from("categories")
-        .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
+        .select("id, name, kind, color, icon, budget_usd_minor, sort_order, is_archived")
         .eq("is_archived", false)
         .order("sort_order"),
       supabase

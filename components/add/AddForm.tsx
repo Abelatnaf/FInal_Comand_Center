@@ -393,7 +393,6 @@ function queueFieldsFrom(formData: FormData) {
     account_id: get("account_id"),
     note: get("note"),
     tags: get("tags"),
-    is_tax_deductible: get("is_tax_deductible"),
     obligation_id: get("obligation_id"),
   };
 }

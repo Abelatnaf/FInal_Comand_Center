@@ -17,7 +17,6 @@ export type Database = {
       accounts: {
         Row: {
           created_at: string
-          credit_limit_minor: number | null
           id: string
           institution: string | null
           is_archived: boolean
@@ -28,7 +27,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          credit_limit_minor?: number | null
           id?: string
           institution?: string | null
           is_archived?: boolean
@@ -39,7 +37,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          credit_limit_minor?: number | null
           id?: string
           institution?: string | null
           is_archived?: boolean
@@ -58,7 +55,7 @@ export type Database = {
           id: string
           is_archived: boolean
           kind: string
-          monthly_budget_usd_minor: number | null
+          budget_usd_minor: number | null
           name: string
           sort_order: number
           user_id: string
@@ -70,7 +67,7 @@ export type Database = {
           id?: string
           is_archived?: boolean
           kind: string
-          monthly_budget_usd_minor?: number | null
+          budget_usd_minor?: number | null
           name: string
           sort_order?: number
           user_id: string
@@ -82,7 +79,7 @@ export type Database = {
           id?: string
           is_archived?: boolean
           kind?: string
-          monthly_budget_usd_minor?: number | null
+          budget_usd_minor?: number | null
           name?: string
           sort_order?: number
           user_id?: string
@@ -419,7 +416,6 @@ export type Database = {
           created_at: string
           direction: string
           id: string
-          is_tax_deductible: boolean
           note: string | null
           obligation_id: string | null
           occurred_on: string
@@ -434,7 +430,6 @@ export type Database = {
           created_at?: string
           direction: string
           id?: string
-          is_tax_deductible?: boolean
           note?: string | null
           obligation_id?: string | null
           occurred_on?: string
@@ -449,7 +444,6 @@ export type Database = {
           created_at?: string
           direction?: string
           id?: string
-          is_tax_deductible?: boolean
           note?: string | null
           obligation_id?: string | null
           occurred_on?: string
@@ -505,6 +499,188 @@ export type Database = {
             columns: ["obligation_id"]
             isOneToOne: false
             referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      terms: {
+        Row: {
+          created_at: string
+          ends_on: string
+          id: string
+          is_archived: boolean
+          name: string
+          starts_on: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on: string
+          id?: string
+          is_archived?: boolean
+          name: string
+          starts_on: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string
+          id?: string
+          is_archived?: boolean
+          name?: string
+          starts_on?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      split_shares: {
+        Row: {
+          amount_minor: number
+          created_at: string
+          id: string
+          person: string
+          settled_at: string | null
+          settled_transaction_id: string | null
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_minor: number
+          created_at?: string
+          id?: string
+          person: string
+          settled_at?: string | null
+          settled_transaction_id?: string | null
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          amount_minor?: number
+          created_at?: string
+          id?: string
+          person?: string
+          settled_at?: string | null
+          settled_transaction_id?: string | null
+          transaction_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_shares_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "split_shares_settled_transaction_id_fkey"
+            columns: ["settled_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meal_plans: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          id: string
+          name: string
+          swipes_total: number | null
+          term_id: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          swipes_total?: number | null
+          term_id: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          swipes_total?: number | null
+          term_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meal_swipe_uses: {
+        Row: {
+          created_at: string
+          id: string
+          meal_plan_id: string
+          swipes: number
+          used_on: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_plan_id: string
+          swipes?: number
+          used_on?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_plan_id?: string
+          swipes?: number
+          used_on?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_loans: {
+        Row: {
+          created_at: string
+          disbursed_on: string
+          id: string
+          interest_rate_bp: number
+          is_subsidized: boolean
+          name: string
+          principal_minor: number
+          servicer: string | null
+          term_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          disbursed_on?: string
+          id?: string
+          interest_rate_bp?: number
+          is_subsidized?: boolean
+          name: string
+          principal_minor: number
+          servicer?: string | null
+          term_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          disbursed_on?: string
+          id?: string
+          interest_rate_bp?: number
+          is_subsidized?: boolean
+          name?: string
+          principal_minor?: number
+          servicer?: string | null
+          term_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_loans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "terms"
             referencedColumns: ["id"]
           },
         ]
@@ -573,14 +749,85 @@ export type Database = {
       }
     }
     Views: {
+      current_term: {
+        Row: {
+          ends_on: string | null
+          name: string | null
+          starts_on: string | null
+          term_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      term_progress: {
+        Row: {
+          actual_daily_minor: number | null
+          days_elapsed: number | null
+          days_remaining: number | null
+          ends_on: string | null
+          liquid_minor: number | null
+          meal_plan_minor: number | null
+          name: string | null
+          projected_zero_on: string | null
+          received_minor: number | null
+          safe_daily_meal_minor: number | null
+          safe_daily_minor: number | null
+          spent_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          total_days: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      owed_to_me: {
+        Row: {
+          oldest_on: string | null
+          owed_minor: number | null
+          person: string | null
+          share_count: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      meal_plan_progress: {
+        Row: {
+          account_id: string | null
+          days_remaining: number | null
+          dining_minor: number | null
+          ends_on: string | null
+          meal_plan_id: string | null
+          name: string | null
+          starts_on: string | null
+          swipes_remaining: number | null
+          swipes_total: number | null
+          swipes_used: number | null
+          term_id: string | null
+          user_id: string | null
+          weeks_remaining: number | null
+        }
+        Relationships: []
+      }
+      student_loan_summary: {
+        Row: {
+          accrued_interest_minor: number | null
+          avg_rate_percent: number | null
+          balance_minor: number | null
+          est_monthly_payment_minor: number | null
+          loan_count: number | null
+          principal_minor: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       balance_by_account: {
         Row: {
           account_id: string | null
           balance_minor: number | null
-          credit_limit_minor: number | null
           institution: string | null
           is_archived: boolean | null
           is_liability: boolean | null
+          is_meal_plan: boolean | null
           kind: string | null
           name: string | null
           user_id: string | null
@@ -588,10 +835,10 @@ export type Database = {
         Insert: {
           account_id?: string | null
           balance_minor?: never
-          credit_limit_minor?: number | null
           institution?: string | null
           is_archived?: boolean | null
           is_liability?: never
+          is_meal_plan?: never
           kind?: string | null
           name?: string | null
           user_id?: string | null
@@ -599,10 +846,10 @@ export type Database = {
         Update: {
           account_id?: string | null
           balance_minor?: never
-          credit_limit_minor?: number | null
           institution?: string | null
           is_archived?: boolean | null
           is_liability?: never
+          is_meal_plan?: never
           kind?: string | null
           name?: string | null
           user_id?: string | null
@@ -614,9 +861,13 @@ export type Database = {
           category_id: string | null
           color: string | null
           icon: string | null
-          monthly_budget_usd_minor: number | null
+          budget_usd_minor: number | null
+          is_term: boolean | null
           name: string | null
           percent_used: number | null
+          win_end: string | null
+          win_start: string | null
+          window_name: string | null
           remaining_usd_minor: number | null
           sort_order: number | null
           spent_usd_minor: number | null
@@ -669,8 +920,8 @@ export type Database = {
       }
       liquid_position: {
         Row: {
-          net_worth_usd_minor: number | null
-          total_debt_usd_minor: number | null
+          card_balance_minor: number | null
+          meal_plan_minor: number | null
           total_liquid_usd_minor: number | null
           user_id: string | null
         }
@@ -683,14 +934,6 @@ export type Database = {
           month: string | null
           net_usd_minor: number | null
           spent_usd_minor: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      net_worth_by_month: {
-        Row: {
-          month: string | null
-          net_worth_usd_minor: number | null
           user_id: string | null
         }
         Relationships: []
@@ -755,12 +998,13 @@ export type Database = {
           created_at: string | null
           direction: string | null
           id: string | null
-          is_tax_deductible: boolean | null
           note: string | null
-          tags: string[] | null
           obligation_id: string | null
           occurred_on: string | null
           receipt_path: string | null
+          tags: string[] | null
+          term_id: string | null
+          term_name: string | null
           user_id: string | null
           week_number: number | null
         }
@@ -831,14 +1075,16 @@ export type Database = {
       get_shared_snapshot: {
         Args: { p_token: string }
         Returns: {
-          balances: Json
+          actual_daily_minor: number
+          days_remaining: number
           found: boolean
-          net_worth_usd_minor: number
+          money_left_minor: number
           next_due_days_until_due: number
           next_due_is_past_due: boolean
           next_due_remaining_usd_minor: number
           next_due_title: string
-          total_liquid_usd_minor: number
+          safe_daily_minor: number
+          term_name: string
         }[]
       }
       post_due_recurring_expenses: { Args: never; Returns: number }

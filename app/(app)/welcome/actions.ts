@@ -6,6 +6,7 @@ import { toMinor } from "@/lib/money";
 
 export type OnboardingInput = {
   displayName: string;
+  term: { name: string; startsOn: string; endsOn: string } | null;
   accounts: { id: string; name: string; balance: string }[];
   budgets: { id: string; amount: string }[];
 };
@@ -21,6 +22,20 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not signed in." };
+
+  // The term is what turns the home screen into "X left, Y days to go", so it
+  // is set up first -- everything else reads better once it exists.
+  if (input.term) {
+    const { name, startsOn, endsOn } = input.term;
+    if (!name.trim()) return { error: "Give the term a name." };
+    if (!startsOn || !endsOn) return { error: "Pick when the term starts and ends." };
+    if (endsOn <= startsOn) return { error: "The end date has to come after the start date." };
+
+    const { error } = await supabase
+      .from("terms")
+      .insert({ user_id: user.id, name: name.trim(), starts_on: startsOn, ends_on: endsOn });
+    if (error) return { error: error.message };
+  }
 
   for (const account of input.accounts) {
     const name = account.name.trim();
@@ -57,7 +72,7 @@ export async function completeOnboarding(input: OnboardingInput): Promise<{ erro
     }
     const { error } = await supabase
       .from("categories")
-      .update({ monthly_budget_usd_minor: value })
+      .update({ budget_usd_minor: value })
       .eq("id", budget.id);
     if (error) return { error: error.message };
   }

@@ -16,6 +16,7 @@ export const ACCOUNT_KINDS = [
   ["savings", "Savings"],
   ["cash", "Cash"],
   ["credit", "Credit card"],
+  ["meal_plan", "Meal plan"],
   ["investment", "Investment"],
   ["other", "Other"],
 ] as const;
@@ -27,7 +28,6 @@ type Account = {
   name: string;
   kind: string;
   institution: string | null;
-  credit_limit_minor: number | null;
   opening_balance_minor: number;
   is_archived: boolean;
 };
@@ -88,20 +88,9 @@ function AccountRow({ account, index }: { account: Account; index: number }) {
               </option>
             ))}
           </select>
-          {account.kind === "credit" && (
-            <input
-              name="credit_limit"
-              defaultValue={
-                account.credit_limit_minor === null ? "" : fromMinor(BigInt(account.credit_limit_minor))
-              }
-              className="input num"
-              aria-label="Credit limit"
-              placeholder="Credit limit (optional)"
-            />
-          )}
           <p className="text-[12px] text-faint">
-            A credit card&rsquo;s balance goes negative as you spend on it, and counts against net worth
-            rather than toward it.
+            A credit card&rsquo;s balance goes negative as you spend on it. Dining dollars use the
+            &ldquo;Meal plan&rdquo; type and are kept out of your spendable-cash figure.
           </p>
           <div className="flex gap-2">
             <button type="submit" disabled={pending} className="btn btn-primary flex-1">

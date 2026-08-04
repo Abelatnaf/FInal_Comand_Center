@@ -22,7 +22,6 @@ export type TransactionRowData = {
   account_name: string;
   obligation_id: string | null;
   tags?: string[] | null;
-  is_tax_deductible?: boolean | null;
   week_number?: number | null;
   receipt_path?: string | null;
 };
@@ -174,15 +173,6 @@ export function TransactionRow({
         placeholder="Tags, comma separated"
         className="input"
       />
-      <label className="flex items-center gap-2.5 text-[15px] text-text">
-        <input
-          type="checkbox"
-          name="is_tax_deductible"
-          value="true"
-          defaultChecked={Boolean(transaction.is_tax_deductible)}
-        />
-        Possibly tax deductible
-      </label>
       <input type="hidden" name="obligation_id" value={transaction.obligation_id ?? ""} />
 
       {/* Receipt upload is its own action, not part of this form's submit --
