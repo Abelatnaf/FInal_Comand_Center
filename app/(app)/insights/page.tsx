@@ -115,17 +115,16 @@ export default async function InsightsPage({
 
       <div className="card card-hero row">
         <p className="section-label mb-2">Spent in {formatMonthLong(month)}</p>
-        <Amount minor={spent} currency="USD" className="hero-figure block" />
+        <Amount minor={spent} className="hero-figure block" />
         <div className="flex gap-6 mt-4 pt-4 border-t">
           <div>
             <p className="section-label">Income</p>
-            <Amount minor={income} currency="USD" className="text-[17px] font-semibold text-positive" />
+            <Amount minor={income} className="text-[17px] font-semibold text-positive" />
           </div>
           <div>
             <p className="section-label">Net</p>
             <Amount
               minor={net}
-              currency="USD"
               className={`text-[17px] font-semibold ${net < 0n ? "text-alarm" : ""}`}
             />
           </div>
@@ -140,7 +139,7 @@ export default async function InsightsPage({
         <div className="flex items-baseline justify-between mb-3">
           <p className="section-label">Spending, last {TREND_MONTHS} months</p>
           {averageSpend > 0n && (
-            <p className="text-[12px] text-faint num">avg {formatMoney(averageSpend, "USD")}/mo</p>
+            <p className="text-[12px] text-faint num">avg {formatMoney(averageSpend)}/mo</p>
           )}
         </div>
         <SpendTrend points={trend} />
@@ -159,7 +158,7 @@ export default async function InsightsPage({
               <span className="cat-dot" style={{ ["--cat-color" as string]: colorVar(c.meta?.color) }} aria-hidden />
               <span className="text-[14px] flex-1 truncate">{c.meta?.name ?? "Uncategorized"}</span>
               <span className={`num text-[14px] ${c.delta > 0n ? "text-alarm" : "text-positive"}`}>
-                {c.delta > 0n ? "↑" : "↓"} {formatMoney(c.delta < 0n ? -c.delta : c.delta, "USD")}
+                {c.delta > 0n ? "↑" : "↓"} {formatMoney(c.delta < 0n ? -c.delta : c.delta)}
               </span>
             </div>
           ))}
@@ -172,10 +171,10 @@ export default async function InsightsPage({
           <div key={m.month} className="row flex items-center gap-3">
             <span className="text-[14px] flex-1">{formatMonthLong(m.month as string)}</span>
             <span className="num text-[13px] text-positive w-[84px] text-right">
-              {formatMoney(BigInt(m.income_usd_minor ?? 0), "USD")}
+              {formatMoney(BigInt(m.income_usd_minor ?? 0))}
             </span>
             <span className="num text-[13px] w-[84px] text-right">
-              {formatMoney(BigInt(m.spent_usd_minor ?? 0), "USD")}
+              {formatMoney(BigInt(m.spent_usd_minor ?? 0))}
             </span>
           </div>
         ))}

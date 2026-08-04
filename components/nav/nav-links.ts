@@ -15,6 +15,24 @@ export const MORE_LINKS = [
     icon: "insights" as const,
     blurb: "Trends, category breakdowns, month by month",
   },
+  {
+    href: "/net-worth",
+    label: "Net worth",
+    icon: "accounts" as const,
+    blurb: "What you own, what you owe, over time",
+  },
+  {
+    href: "/reports",
+    label: "Year in review",
+    icon: "insights" as const,
+    blurb: "Your whole year, plus a tax-deductible summary",
+  },
+  {
+    href: "/import",
+    label: "Import from your bank",
+    icon: "ledger" as const,
+    blurb: "Bring in a CSV instead of typing it",
+  },
   { href: "/bills", label: "Bills", icon: "bills" as const, blurb: "What you owe and when it's due" },
   {
     href: "/recurring",
@@ -28,6 +46,6 @@ export const MORE_LINKS = [
     href: "/settings",
     label: "Settings",
     icon: "settings" as const,
-    blurb: "Categories, accounts, exchange rate, backup",
+    blurb: "Accounts, categories, auto-categorize rules, backup",
   },
 ] as const;

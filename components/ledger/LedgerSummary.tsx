@@ -25,7 +25,7 @@ export function LedgerSummary({ rows }: { rows: TransactionRowData[] }) {
     const category = r.category_name ?? "Uncategorized";
     if (!byMonth.has(month)) byMonth.set(month, new Map());
     const cats = byMonth.get(month)!;
-    cats.set(category, (cats.get(category) ?? 0n) + BigInt(r.amount_usd_minor));
+    cats.set(category, (cats.get(category) ?? 0n) + BigInt(r.amount_minor));
   }
 
   if (byMonth.size === 0) return null;
@@ -51,12 +51,12 @@ export function LedgerSummary({ rows }: { rows: TransactionRowData[] }) {
             <div key={month} className="row flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <p className="text-[14px] text-text font-medium">{formatMonth(month)}</p>
-                <Amount minor={total} currency="USD" className="text-text text-[14px]" />
+                <Amount minor={total} className="text-text text-[14px]" />
               </div>
               {ranked.map(([category, minor]) => (
                 <div key={category} className="flex items-center justify-between text-[13px]">
                   <span className="text-muted truncate">{category}</span>
-                  <Amount minor={minor} currency="USD" className="text-muted shrink-0" />
+                  <Amount minor={minor} className="text-muted shrink-0" />
                 </div>
               ))}
             </div>

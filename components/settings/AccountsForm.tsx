@@ -8,14 +8,26 @@ import {
   deleteAccount,
   type ActionState,
 } from "@/app/(app)/settings/actions";
-import { fromMinor, type Currency } from "@/lib/money";
+import { fromMinor } from "@/lib/money";
 import { AccountSwatch } from "@/components/money/AccountSwatch";
+
+export const ACCOUNT_KINDS = [
+  ["checking", "Checking"],
+  ["savings", "Savings"],
+  ["cash", "Cash"],
+  ["credit", "Credit card"],
+  ["investment", "Investment"],
+  ["other", "Other"],
+] as const;
+
+const ACCOUNT_KIND_LABEL: Record<string, string> = Object.fromEntries(ACCOUNT_KINDS);
 
 type Account = {
   id: string;
   name: string;
-  currency: Currency;
-  kind: "bank" | "cash" | "processor";
+  kind: string;
+  institution: string | null;
+  credit_limit_minor: number | null;
   opening_balance_minor: number;
   is_archived: boolean;
 };
@@ -36,7 +48,8 @@ function AccountRow({ account, index }: { account: Account; index: number }) {
               {account.name} {account.is_archived && <span className="text-faint">(archived)</span>}
             </p>
             <p className="text-[13px] text-muted">
-              {account.currency} · {account.kind}
+              {ACCOUNT_KIND_LABEL[account.kind] ?? account.kind}
+              {account.institution ? ` · ${account.institution}` : ""}
             </p>
           </div>
         </div>
@@ -61,11 +74,34 @@ function AccountRow({ account, index }: { account: Account; index: number }) {
             className="input num"
             aria-label="Starting balance"
           />
-          {/* Currency isn't editable: this account's transactions are stored in
-              it and the database enforces the match, so changing it would
-              either fail or misrepresent history. */}
+          <input
+            name="institution"
+            defaultValue={account.institution ?? ""}
+            className="input"
+            aria-label="Bank or institution"
+            placeholder="Bank or institution (optional)"
+          />
+          <select name="kind" defaultValue={account.kind} className="input" aria-label="Account type">
+            {ACCOUNT_KINDS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          {account.kind === "credit" && (
+            <input
+              name="credit_limit"
+              defaultValue={
+                account.credit_limit_minor === null ? "" : fromMinor(BigInt(account.credit_limit_minor))
+              }
+              className="input num"
+              aria-label="Credit limit"
+              placeholder="Credit limit (optional)"
+            />
+          )}
           <p className="text-[12px] text-faint">
-            {account.currency} · to change currency, make a new account.
+            A credit card&rsquo;s balance goes negative as you spend on it, and counts against net worth
+            rather than toward it.
           </p>
           <div className="flex gap-2">
             <button type="submit" disabled={pending} className="btn btn-primary flex-1">
@@ -119,17 +155,16 @@ export function AccountsForm({ accounts }: { accounts: Account[] }) {
       <form action={addFormAction} className="row flex flex-col gap-2">
         <input name="name" placeholder="Name" required className="input" />
         <div className="flex gap-2">
-          <select name="currency" className="input" defaultValue="ETB">
-            <option value="ETB">ETB</option>
-            <option value="USD">USD</option>
+          <select name="kind" className="input" defaultValue="checking">
+            {ACCOUNT_KINDS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
           </select>
-          <select name="kind" className="input" defaultValue="bank">
-            <option value="bank">Bank</option>
-            <option value="cash">Cash</option>
-            <option value="processor">Processor</option>
-          </select>
+          <input name="institution" placeholder="Bank (optional)" className="input" />
         </div>
-        <input name="opening_balance" defaultValue="0" placeholder="Opening balance" className="input num" />
+        <input name="opening_balance" defaultValue="0" placeholder="Current balance" className="input num" />
         {addState?.error && <p className="text-alarm text-[13px]">{addState.error}</p>}
         <button type="submit" disabled={addPending} className="btn">
           {addPending ? "Adding…" : "Add account"}

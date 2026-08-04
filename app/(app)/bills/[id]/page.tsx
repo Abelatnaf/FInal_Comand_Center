@@ -13,12 +13,11 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const supabase = await createClient();
 
-  const [obligationRes, payersRes, paymentsRes, installmentsRes, recurRes] = await Promise.all([
+  const [obligationRes, paymentsRes, installmentsRes, recurRes] = await Promise.all([
     supabase.from("obligation_progress").select("*").eq("obligation_id", id).maybeSingle(),
-    supabase.from("payers").select("id, label"),
     supabase
       .from("transactions")
-      .select("id, occurred_on, amount_minor, currency, amount_usd_minor, note, account_id, receipt_path, accounts(name)")
+      .select("id, occurred_on, amount_minor, note, account_id, receipt_path, accounts(name)")
       .eq("obligation_id", id)
       .order("occurred_on", { ascending: false }),
     supabase
@@ -30,13 +29,12 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
   ]);
 
   const row = obligationRes.data;
-  if (!row || row.obligation_id === null || row.title === null || row.payer_id === null || row.amount_usd_minor === null) {
+  if (!row || row.obligation_id === null || row.title === null || row.amount_usd_minor === null) {
     notFound();
   }
 
   const obligation = {
     obligation_id: row.obligation_id,
-    payer_id: row.payer_id,
     title: row.title,
     due_on: row.due_on,
     amount_usd_minor: row.amount_usd_minor,
@@ -49,8 +47,6 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
     waived_at: row.waived_at,
   };
 
-  const payers = payersRes.data ?? [];
-  const payerLabel = payers.find((p) => p.id === obligation.payer_id)?.label ?? "—";
   const payments = paymentsRes.data ?? [];
 
   // The view's columns are all nullable in the generated types (it's a view),
@@ -73,7 +69,7 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
         ← Bills
       </Link>
 
-      <ObligationDetail obligation={obligation} payers={payers} payerLabel={payerLabel} />
+      <ObligationDetail obligation={obligation} />
 
       <InstallmentPlan
         obligationId={obligation.obligation_id}
@@ -102,7 +98,7 @@ export default async function BillDetailPage({ params }: { params: Promise<{ id:
               </p>
               {p.receipt_path && <ReceiptLink path={p.receipt_path} />}
             </div>
-            <Amount minor={BigInt(p.amount_usd_minor)} currency="USD" className="text-text" />
+            <Amount minor={BigInt(p.amount_minor)} className="text-text" />
           </div>
         ))}
       </div>

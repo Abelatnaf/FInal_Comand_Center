@@ -4,55 +4,54 @@ import { LedgerList } from "@/components/ledger/LedgerList";
 import type { TransferRowData } from "@/components/ledger/TransferRow";
 import { LedgerSummary } from "@/components/ledger/LedgerSummary";
 import { CsvExportButton } from "@/components/ledger/CsvExportButton";
-import { formatMoney, type Currency } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import type { Category } from "@/lib/categories";
 
 type Filters = {
-  payer_id?: string;
   account_id?: string;
-  currency?: string;
   category_id?: string;
+  tag?: string;
   q?: string;
   from?: string;
   to?: string;
-  week?: string;
+  direction?: string;
+  tax?: string;
 };
 
 export default async function LedgerPage({ searchParams }: { searchParams: Promise<Filters> }) {
   const filters = await searchParams;
   const supabase = await createClient();
 
-  const [payersRes, accountsRes, categoriesRes, transfersRes] = await Promise.all([
-    supabase.from("payers").select("id, label"),
-    supabase.from("accounts").select("id, name, currency"),
+  const [accountsRes, categoriesRes, transfersRes, tagRowsRes] = await Promise.all([
+    supabase.from("accounts").select("id, name").order("name"),
     supabase
       .from("categories")
       .select("id, name, kind, color, icon, monthly_budget_usd_minor, sort_order, is_archived")
       .order("sort_order"),
     supabase
       .from("transfers")
-      .select("id, occurred_on, from_amount_minor, to_amount_minor, note, from_account_id, to_account_id")
+      .select("id, occurred_on, amount_minor, note, from_account_id, to_account_id")
       .order("occurred_on", { ascending: false }),
+    supabase.from("transactions").select("tags"),
   ]);
-  const payers = payersRes.data ?? [];
-  const accounts = (accountsRes.data ?? []) as { id: string; name: string; currency: Currency }[];
+  const accounts = accountsRes.data ?? [];
   const categories = (categoriesRes.data ?? []) as Category[];
+
+  const allTags = [...new Set((tagRowsRes.data ?? []).flatMap((r) => r.tags ?? []))].sort();
 
   let query = supabase
     .from("transactions_with_week")
     .select(
-      "id, occurred_on, direction, amount_minor, currency, amount_usd_minor, category_id, category_name, category_icon, category_color, note, account_id, payer_id, obligation_id, receipt_path, week_number, accounts(name), payers(label)"
+      "id, occurred_on, direction, amount_minor, category_id, category_name, category_icon, category_color, note, tags, is_tax_deductible, account_id, obligation_id, receipt_path, week_number, accounts(name)"
     )
     .order("occurred_on", { ascending: false })
     .order("created_at", { ascending: false });
 
-  if (filters.payer_id) query = query.eq("payer_id", filters.payer_id);
   if (filters.account_id) query = query.eq("account_id", filters.account_id);
-  if (filters.currency) query = query.eq("currency", filters.currency);
   if (filters.category_id) query = query.eq("category_id", filters.category_id);
+  if (filters.direction) query = query.eq("direction", filters.direction);
   if (filters.from) query = query.gte("occurred_on", filters.from);
   if (filters.to) query = query.lte("occurred_on", filters.to);
-  if (filters.week) query = query.eq("week_number", Number(filters.week));
 
   // Free-text search spans note and category name. `or()` takes a raw filter
   // string, so commas and parens in the term would otherwise be read as filter
@@ -65,24 +64,28 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
 
   const { data } = await query;
 
-  const rows: TransactionRowData[] = (data ?? [])
-    .filter((t): t is typeof t & { id: string; occurred_on: string; direction: string; amount_minor: number; currency: string; amount_usd_minor: number; account_id: string; payer_id: string } =>
-      t.id !== null &&
-      t.occurred_on !== null &&
-      t.direction !== null &&
-      t.amount_minor !== null &&
-      t.currency !== null &&
-      t.amount_usd_minor !== null &&
-      t.account_id !== null &&
-      t.payer_id !== null
+  let rows: TransactionRowData[] = (data ?? [])
+    .filter(
+      (
+        t
+      ): t is typeof t & {
+        id: string;
+        occurred_on: string;
+        direction: string;
+        amount_minor: number;
+        account_id: string;
+      } =>
+        t.id !== null &&
+        t.occurred_on !== null &&
+        t.direction !== null &&
+        t.amount_minor !== null &&
+        t.account_id !== null
     )
     .map((t) => ({
       id: t.id,
       occurred_on: t.occurred_on,
       direction: t.direction as "in" | "out",
       amount_minor: t.amount_minor,
-      currency: t.currency as Currency,
-      amount_usd_minor: t.amount_usd_minor,
       category_id: t.category_id,
       category_name: t.category_name,
       category_icon: t.category_icon,
@@ -90,49 +93,51 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
       note: t.note,
       account_id: t.account_id,
       account_name: (t.accounts as { name: string } | null)?.name ?? "—",
-      payer_id: t.payer_id,
-      payer_label: (t.payers as { label: string } | null)?.label ?? "—",
       obligation_id: t.obligation_id,
       receipt_path: t.receipt_path,
       week_number: t.week_number,
+      tags: t.tags ?? [],
+      is_tax_deductible: t.is_tax_deductible ?? false,
     }));
 
+  // Tag membership and the tax flag filter in memory rather than in the query:
+  // an array-contains filter would need its own operator, and the result set
+  // for one person's ledger is small enough that it isn't worth it.
+  if (filters.tag) rows = rows.filter((r) => (r.tags ?? []).includes(filters.tag!));
+  if (filters.tax === "1") rows = rows.filter((r) => r.is_tax_deductible);
+
   // Transfers only make sense against the date/account filters -- they have no
-  // payer, category or direction, so those filters exclude them entirely
-  // rather than pretending to match. A currency filter matches either side.
+  // category, tag or direction, so those filters exclude them entirely rather
+  // than pretending to match.
   const accountById = new Map(accounts.map((a) => [a.id, a]));
-  const showTransfers = !filters.payer_id && !filters.category_id && !filters.q && !filters.week;
+  const showTransfers =
+    !filters.category_id && !filters.q && !filters.tag && !filters.direction && filters.tax !== "1";
   const transfers: TransferRowData[] = !showTransfers
     ? []
     : (transfersRes.data ?? [])
         .filter((t) => {
           if (filters.from && t.occurred_on < filters.from) return false;
           if (filters.to && t.occurred_on > filters.to) return false;
-          if (filters.account_id && t.from_account_id !== filters.account_id && t.to_account_id !== filters.account_id)
+          if (
+            filters.account_id &&
+            t.from_account_id !== filters.account_id &&
+            t.to_account_id !== filters.account_id
+          )
             return false;
-          if (filters.currency) {
-            const from = accountById.get(t.from_account_id);
-            const to = accountById.get(t.to_account_id);
-            if (from?.currency !== filters.currency && to?.currency !== filters.currency) return false;
-          }
           return true;
         })
         .map((t) => ({
           id: t.id,
           occurred_on: t.occurred_on,
-          from_amount_minor: t.from_amount_minor,
-          to_amount_minor: t.to_amount_minor,
+          amount_minor: t.amount_minor,
           from_name: accountById.get(t.from_account_id)?.name ?? "—",
           to_name: accountById.get(t.to_account_id)?.name ?? "—",
-          from_currency: accountById.get(t.from_account_id)?.currency ?? "USD",
-          to_currency: accountById.get(t.to_account_id)?.currency ?? "USD",
           note: t.note,
         }));
 
-  const totals = { ETB: 0n, USD: 0n };
+  let net = 0n;
   for (const r of rows) {
-    const signed = BigInt(r.amount_minor) * (r.direction === "in" ? 1n : -1n);
-    totals[r.currency] += signed;
+    net += BigInt(r.amount_minor) * (r.direction === "in" ? 1n : -1n);
   }
 
   return (
@@ -151,33 +156,25 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
           <input
             name="q"
             defaultValue={filters.q ?? ""}
-            placeholder="Search notes and categories…"
+            placeholder="Search descriptions and categories…"
             className="input"
             aria-label="Search"
           />
           <div className="flex gap-2">
-            <select name="payer_id" defaultValue={filters.payer_id ?? ""} className="input">
-              <option value="">All payers</option>
-              {payers.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
+            <select name="direction" defaultValue={filters.direction ?? ""} className="input" aria-label="Direction">
+              <option value="">In and out</option>
+              <option value="out">Spent only</option>
+              <option value="in">Received only</option>
+            </select>
+            <select name="account_id" defaultValue={filters.account_id ?? ""} className="input" aria-label="Account">
+              <option value="">All accounts</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
                 </option>
               ))}
             </select>
-            <select name="currency" defaultValue={filters.currency ?? ""} className="input">
-              <option value="">Both currencies</option>
-              <option value="ETB">ETB</option>
-              <option value="USD">USD</option>
-            </select>
           </div>
-          <select name="account_id" defaultValue={filters.account_id ?? ""} className="input" aria-label="Account">
-            <option value="">All accounts</option>
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name} ({a.currency})
-              </option>
-            ))}
-          </select>
           <select name="category_id" defaultValue={filters.category_id ?? ""} className="input" aria-label="Category">
             <option value="">All categories</option>
             {categories.map((c) => (
@@ -186,11 +183,24 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
               </option>
             ))}
           </select>
-          <input name="week" type="number" defaultValue={filters.week ?? ""} placeholder="Week #" className="input" aria-label="Week number" />
+          {allTags.length > 0 && (
+            <select name="tag" defaultValue={filters.tag ?? ""} className="input" aria-label="Tag">
+              <option value="">All tags</option>
+              {allTags.map((t) => (
+                <option key={t} value={t}>
+                  #{t}
+                </option>
+              ))}
+            </select>
+          )}
           <div className="flex gap-2">
             <input name="from" type="date" defaultValue={filters.from ?? ""} className="input" aria-label="From" />
             <input name="to" type="date" defaultValue={filters.to ?? ""} className="input" aria-label="To" />
           </div>
+          <label className="flex items-center gap-2.5 text-[15px] text-text">
+            <input type="checkbox" name="tax" value="1" defaultChecked={filters.tax === "1"} />
+            Only possibly tax-deductible
+          </label>
           <div className="flex gap-2">
             <button type="submit" className="btn btn-primary flex-1">
               Apply
@@ -204,21 +214,12 @@ export default async function LedgerPage({ searchParams }: { searchParams: Promi
 
       <div className="card row flex items-center justify-between">
         <p className="section-label">Net, filtered</p>
-        <div className="text-right num text-[15px]">
-          <p className={totals.ETB >= 0n ? "text-positive" : ""}>{formatMoney(totals.ETB, "ETB")}</p>
-          <p className={totals.USD >= 0n ? "text-positive" : ""}>{formatMoney(totals.USD, "USD")}</p>
-        </div>
+        <p className={`num text-[15px] ${net >= 0n ? "text-positive" : ""}`}>{formatMoney(net)}</p>
       </div>
 
       <LedgerSummary rows={rows} />
 
-      <LedgerList
-        rows={rows}
-        transfers={transfers}
-        payers={payers}
-        accounts={accounts}
-        categories={categories}
-      />
+      <LedgerList rows={rows} transfers={transfers} accounts={accounts} categories={categories} />
     </div>
   );
 }

@@ -17,8 +17,9 @@ export type Database = {
       accounts: {
         Row: {
           created_at: string
-          currency: string
+          credit_limit_minor: number | null
           id: string
+          institution: string | null
           is_archived: boolean
           kind: string
           name: string
@@ -27,8 +28,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          currency: string
+          credit_limit_minor?: number | null
           id?: string
+          institution?: string | null
           is_archived?: boolean
           kind: string
           name: string
@@ -37,8 +39,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          currency?: string
+          credit_limit_minor?: number | null
           id?: string
+          institution?: string | null
           is_archived?: boolean
           kind?: string
           name?: string
@@ -86,32 +89,54 @@ export type Database = {
         }
         Relationships: []
       }
-      fx_rates: {
+      category_rules: {
         Row: {
+          category_id: string
           created_at: string
-          effective_on: string
-          etb_per_usd: number
           id: string
-          source: string
+          match_text: string
+          priority: number
           user_id: string
         }
         Insert: {
+          category_id: string
           created_at?: string
-          effective_on: string
-          etb_per_usd: number
           id?: string
-          source: string
+          match_text: string
+          priority?: number
           user_id: string
         }
         Update: {
+          category_id?: string
           created_at?: string
-          effective_on?: string
-          etb_per_usd?: number
           id?: string
-          source?: string
+          match_text?: string
+          priority?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "category_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_status"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "category_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_month"
+            referencedColumns: ["category_id"]
+          },
+        ]
       }
       obligation_installments: {
         Row: {
@@ -164,7 +189,6 @@ export type Database = {
           created_at: string
           due_on: string | null
           id: string
-          payer_id: string
           recur_interval_months: number | null
           recur_spawned_at: string | null
           source_note: string | null
@@ -178,7 +202,6 @@ export type Database = {
           created_at?: string
           due_on?: string | null
           id?: string
-          payer_id: string
           recur_interval_months?: number | null
           recur_spawned_at?: string | null
           source_note?: string | null
@@ -192,7 +215,6 @@ export type Database = {
           created_at?: string
           due_on?: string | null
           id?: string
-          payer_id?: string
           recur_interval_months?: number | null
           recur_spawned_at?: string | null
           source_note?: string | null
@@ -200,44 +222,6 @@ export type Database = {
           title?: string
           user_id?: string
           waived_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "obligations_payer_id_fkey"
-            columns: ["payer_id"]
-            isOneToOne: false
-            referencedRelation: "payers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payers: {
-        Row: {
-          class_year: number | null
-          created_at: string
-          id: string
-          is_default: boolean
-          key: string
-          label: string
-          user_id: string
-        }
-        Insert: {
-          class_year?: number | null
-          created_at?: string
-          id?: string
-          is_default?: boolean
-          key: string
-          label: string
-          user_id: string
-        }
-        Update: {
-          class_year?: number | null
-          created_at?: string
-          id?: string
-          is_default?: boolean
-          key?: string
-          label?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -255,7 +239,6 @@ export type Database = {
           name: string
           next_due_on: string
           note: string | null
-          payer_id: string
           user_id: string
         }
         Insert: {
@@ -271,7 +254,6 @@ export type Database = {
           name: string
           next_due_on: string
           note?: string | null
-          payer_id: string
           user_id: string
         }
         Update: {
@@ -287,7 +269,6 @@ export type Database = {
           name?: string
           next_due_on?: string
           note?: string | null
-          payer_id?: string
           user_id?: string
         }
         Relationships: [
@@ -326,20 +307,12 @@ export type Database = {
             referencedRelation: "category_spend_by_month"
             referencedColumns: ["category_id"]
           },
-          {
-            foreignKeyName: "recurring_expenses_payer_id_fkey"
-            columns: ["payer_id"]
-            isOneToOne: false
-            referencedRelation: "payers"
-            referencedColumns: ["id"]
-          },
         ]
       }
       savings_goals: {
         Row: {
           account_id: string | null
           created_at: string
-          currency: string
           id: string
           name: string
           note: string | null
@@ -351,7 +324,6 @@ export type Database = {
         Insert: {
           account_id?: string | null
           created_at?: string
-          currency: string
           id?: string
           name: string
           note?: string | null
@@ -363,7 +335,6 @@ export type Database = {
         Update: {
           account_id?: string | null
           created_at?: string
-          currency?: string
           id?: string
           name?: string
           note?: string | null
@@ -392,19 +363,25 @@ export type Database = {
       settings: {
         Row: {
           created_at: string
+          display_name: string | null
           id: number
+          onboarding_completed: boolean
           tracking_start_date: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
           id?: never
+          onboarding_completed?: boolean
           tracking_start_date: string
           user_id: string
         }
         Update: {
           created_at?: string
+          display_name?: string | null
           id?: never
+          onboarding_completed?: boolean
           tracking_start_date?: string
           user_id?: string
         }
@@ -438,52 +415,46 @@ export type Database = {
         Row: {
           account_id: string
           amount_minor: number
-          amount_usd_minor: number
           category_id: string | null
           created_at: string
-          currency: string
           direction: string
-          fx_rate_etb_per_usd: number
           id: string
+          is_tax_deductible: boolean
           note: string | null
           obligation_id: string | null
           occurred_on: string
-          payer_id: string
           receipt_path: string | null
+          tags: string[]
           user_id: string
         }
         Insert: {
           account_id: string
           amount_minor: number
-          amount_usd_minor: number
           category_id?: string | null
           created_at?: string
-          currency: string
           direction: string
-          fx_rate_etb_per_usd: number
           id?: string
+          is_tax_deductible?: boolean
           note?: string | null
           obligation_id?: string | null
           occurred_on?: string
-          payer_id: string
           receipt_path?: string | null
+          tags?: string[]
           user_id: string
         }
         Update: {
           account_id?: string
           amount_minor?: number
-          amount_usd_minor?: number
           category_id?: string | null
           created_at?: string
-          currency?: string
           direction?: string
-          fx_rate_etb_per_usd?: number
           id?: string
+          is_tax_deductible?: boolean
           note?: string | null
           obligation_id?: string | null
           occurred_on?: string
-          payer_id?: string
           receipt_path?: string | null
+          tags?: string[]
           user_id?: string
         }
         Relationships: [
@@ -536,47 +507,37 @@ export type Database = {
             referencedRelation: "obligations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "transactions_payer_id_fkey"
-            columns: ["payer_id"]
-            isOneToOne: false
-            referencedRelation: "payers"
-            referencedColumns: ["id"]
-          },
         ]
       }
       transfers: {
         Row: {
+          amount_minor: number
           created_at: string
           from_account_id: string
-          from_amount_minor: number
           id: string
           note: string | null
           occurred_on: string
           to_account_id: string
-          to_amount_minor: number
           user_id: string
         }
         Insert: {
+          amount_minor: number
           created_at?: string
           from_account_id: string
-          from_amount_minor: number
           id?: string
           note?: string | null
           occurred_on?: string
           to_account_id: string
-          to_amount_minor: number
           user_id: string
         }
         Update: {
+          amount_minor?: number
           created_at?: string
           from_account_id?: string
-          from_amount_minor?: number
           id?: string
           note?: string | null
           occurred_on?: string
           to_account_id?: string
-          to_amount_minor?: number
           user_id?: string
         }
         Relationships: [
@@ -616,8 +577,10 @@ export type Database = {
         Row: {
           account_id: string | null
           balance_minor: number | null
-          currency: string | null
+          credit_limit_minor: number | null
+          institution: string | null
           is_archived: boolean | null
+          is_liability: boolean | null
           kind: string | null
           name: string | null
           user_id: string | null
@@ -625,8 +588,10 @@ export type Database = {
         Insert: {
           account_id?: string | null
           balance_minor?: never
-          currency?: string | null
+          credit_limit_minor?: number | null
+          institution?: string | null
           is_archived?: boolean | null
+          is_liability?: never
           kind?: string | null
           name?: string | null
           user_id?: string | null
@@ -634,8 +599,10 @@ export type Database = {
         Update: {
           account_id?: string | null
           balance_minor?: never
-          currency?: string | null
+          credit_limit_minor?: number | null
+          institution?: string | null
           is_archived?: boolean | null
+          is_liability?: never
           kind?: string | null
           name?: string | null
           user_id?: string | null
@@ -702,8 +669,8 @@ export type Database = {
       }
       liquid_position: {
         Row: {
-          fx_rate_effective_on: string | null
-          fx_rate_used: number | null
+          net_worth_usd_minor: number | null
+          total_debt_usd_minor: number | null
           total_liquid_usd_minor: number | null
           user_id: string | null
         }
@@ -720,6 +687,14 @@ export type Database = {
         }
         Relationships: []
       }
+      net_worth_by_month: {
+        Row: {
+          month: string | null
+          net_worth_usd_minor: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       obligation_progress: {
         Row: {
           amount_paid_usd_minor: number | null
@@ -729,29 +704,19 @@ export type Database = {
           due_on: string | null
           is_past_due: boolean | null
           obligation_id: string | null
-          payer_id: string | null
           source_note: string | null
           status: string | null
           title: string | null
           user_id: string | null
           waived_at: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "obligations_payer_id_fkey"
-            columns: ["payer_id"]
-            isOneToOne: false
-            referencedRelation: "payers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       savings_goal_progress: {
         Row: {
           account_id: string | null
           account_name: string | null
           created_at: string | null
-          currency: string | null
           days_until_target: number | null
           id: string | null
           name: string | null
@@ -783,20 +748,18 @@ export type Database = {
         Row: {
           account_id: string | null
           amount_minor: number | null
-          amount_usd_minor: number | null
           category_color: string | null
           category_icon: string | null
           category_id: string | null
           category_name: string | null
           created_at: string | null
-          currency: string | null
           direction: string | null
-          fx_rate_etb_per_usd: number | null
           id: string | null
+          is_tax_deductible: boolean | null
           note: string | null
+          tags: string[] | null
           obligation_id: string | null
           occurred_on: string | null
-          payer_id: string | null
           receipt_path: string | null
           user_id: string | null
           week_number: number | null
@@ -851,26 +814,28 @@ export type Database = {
             referencedRelation: "obligations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "transactions_payer_id_fkey"
-            columns: ["payer_id"]
-            isOneToOne: false
-            referencedRelation: "payers"
-            referencedColumns: ["id"]
-          },
         ]
       }
     }
     Functions: {
+      assert_owned: {
+        Args: {
+          p_id: string
+          p_label: string
+          p_table: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      delete_own_account: { Args: never; Returns: undefined }
       get_shared_snapshot: {
         Args: { p_token: string }
         Returns: {
           balances: Json
           found: boolean
-          fx_rate_effective_on: string
+          net_worth_usd_minor: number
           next_due_days_until_due: number
           next_due_is_past_due: boolean
-          next_due_payer_label: string
           next_due_remaining_usd_minor: number
           next_due_title: string
           total_liquid_usd_minor: number

@@ -59,7 +59,7 @@ export function CategoryBars({
                 </span>
                 {s.name}
               </span>
-              <span className="num text-muted shrink-0">{formatMoney(s.minor, "USD")}</span>
+              <span className="num text-muted shrink-0">{formatMoney(s.minor)}</span>
             </div>
             <div className="bar-track">
               <div

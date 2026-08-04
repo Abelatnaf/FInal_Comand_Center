@@ -4,19 +4,14 @@ import { useActionState } from "react";
 import { createObligation, updateObligation, type ActionState } from "@/app/(app)/bills/actions";
 import { fromMinor } from "@/lib/money";
 
-type Payer = { id: string; label: string };
-
 export function ObligationForm({
-  payers,
   mode,
   initial,
 }: {
-  payers: Payer[];
   mode: "new" | "edit";
   initial?: {
     id: string;
     title: string;
-    payer_id: string;
     due_on: string | null;
     amount_usd_minor: number;
     source_note: string | null;
@@ -37,21 +32,9 @@ export function ObligationForm({
           name="title"
           required
           defaultValue={initial?.title}
-          placeholder="Fall 2026 tuition"
+          placeholder="Car insurance renewal"
           className="input"
         />
-      </div>
-      <div>
-        <label className="section-label block mb-1.5" htmlFor="payer_id">
-          Who owes this
-        </label>
-        <select id="payer_id" name="payer_id" defaultValue={initial?.payer_id ?? payers[0]?.id} className="input">
-          {payers.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.label}
-            </option>
-          ))}
-        </select>
       </div>
       <div>
         <label className="section-label block mb-1.5" htmlFor="due_on">

@@ -12,7 +12,6 @@ import {
 import { Amount } from "@/components/money/Amount";
 import { colorVar, type Category } from "@/lib/categories";
 import { formatShortDate, todayIso } from "@/lib/date";
-import type { Currency } from "@/lib/money";
 
 export type RecurringItem = {
   id: string;
@@ -25,15 +24,13 @@ export type RecurringItem = {
   last_posted_on: string | null;
   account_id: string;
   account_name: string;
-  currency: Currency;
   category_id: string | null;
   category_name: string | null;
   category_icon: string | null;
   category_color: string | null;
 };
 
-type Account = { id: string; name: string; currency: Currency };
-type Payer = { id: string; label: string; is_default: boolean };
+type Account = { id: string; name: string };
 
 const CADENCE_LABEL: Record<string, string> = {
   weekly: "Weekly",
@@ -45,12 +42,10 @@ const CADENCE_LABEL: Record<string, string> = {
 export function RecurringManager({
   items,
   accounts,
-  payers,
   categories,
 }: {
   items: RecurringItem[];
   accounts: Account[];
-  payers: Payer[];
   categories: Category[];
 }) {
   const [adding, setAdding] = useState(false);
@@ -141,7 +136,7 @@ export function RecurringManager({
             <select id="r-account" name="account_id" className="input" required>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.name} ({a.currency})
+                  {a.name}
                 </option>
               ))}
             </select>
@@ -155,24 +150,6 @@ export function RecurringManager({
               {expenseCategories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.icon} {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="row">
-            <label className="section-label block mb-1.5" htmlFor="r-payer">
-              Who&rsquo;s this for
-            </label>
-            <select
-              id="r-payer"
-              name="payer_id"
-              className="input"
-              defaultValue={payers.find((p) => p.is_default)?.id ?? payers[0]?.id}
-              required
-            >
-              {payers.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
                 </option>
               ))}
             </select>
@@ -253,7 +230,7 @@ function Item({
             {!item.auto_post && " · manual"}
           </p>
         </div>
-        <Amount minor={BigInt(item.amount_minor)} currency={item.currency} className="shrink-0 font-semibold" />
+        <Amount minor={BigInt(item.amount_minor)} className="shrink-0 font-semibold" />
       </button>
 
       {open && (

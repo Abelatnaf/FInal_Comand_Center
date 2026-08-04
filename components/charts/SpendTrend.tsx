@@ -35,13 +35,13 @@ export function SpendTrend({ points }: { points: TrendPoint[] }) {
             <div key={p.month} className="col-item" data-current={i === lastIndex}>
               {i === peakIndex && (
                 <span className="num text-[10px] text-muted text-center leading-none">
-                  {formatMoney(p.minor, "USD")}
+                  {formatMoney(p.minor)}
                 </span>
               )}
               <div
                 className="col-bar"
                 style={{ height: `${Math.max(pct, 2)}%` }}
-                title={`${label}: ${formatMoney(p.minor, "USD")}`}
+                title={`${label}: ${formatMoney(p.minor)}`}
               />
             </div>
           );

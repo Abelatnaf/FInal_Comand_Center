@@ -26,18 +26,15 @@ function monthLabel(iso: string): string {
 export default async function UpcomingPage() {
   const supabase = await createClient();
 
-  const [obligationsRes, installmentsRes, payersRes, liquidRes] = await Promise.all([
+  const [obligationsRes, installmentsRes, liquidRes] = await Promise.all([
     supabase.from("obligation_progress").select("*").in("status", ["open", "partial"]),
     supabase
       .from("installment_progress")
       .select("installment_id, obligation_id, seq, due_on, amount_usd_minor, amount_covered_minor, is_past_due")
       .eq("is_settled", false),
-    supabase.from("payers").select("id, label"),
     supabase.from("liquid_position").select("*").maybeSingle(),
   ]);
 
-  const payers = payersRes.data ?? [];
-  const payerLabel = (id: string | null) => payers.find((p) => p.id === id)?.label ?? "—";
   const obligations = obligationsRes.data ?? [];
 
   // A bill with a payment plan is represented by its unsettled parts, not by
@@ -55,7 +52,7 @@ export default async function UpcomingPage() {
       key: `o-${o.obligation_id}`,
       obligationId: o.obligation_id,
       title: o.title ?? "Untitled",
-      subtitle: payerLabel(o.payer_id),
+      subtitle: o.source_note ?? "",
       dueOn: o.due_on,
       amountMinor: BigInt(o.amount_remaining_usd_minor ?? 0),
       isPastDue: o.is_past_due ?? false,
@@ -70,7 +67,7 @@ export default async function UpcomingPage() {
       key: `i-${i.installment_id}`,
       obligationId: i.obligation_id,
       title: parent.title ?? "Untitled",
-      subtitle: `Part ${i.seq} · ${payerLabel(parent.payer_id)}`,
+      subtitle: `Part ${i.seq}`,
       dueOn: i.due_on,
       amountMinor: BigInt(i.amount_usd_minor ?? 0) - BigInt(i.amount_covered_minor ?? 0),
       isPastDue: i.is_past_due ?? false,
@@ -119,7 +116,7 @@ export default async function UpcomingPage() {
                 </p>
               )}
             </div>
-            <Amount minor={total} currency="USD" className="text-[19px] text-text" />
+            <Amount minor={total} className="text-[19px] text-text" />
           </div>
 
           {months.map((month) => (
@@ -140,7 +137,6 @@ export default async function UpcomingPage() {
                     <div className="text-right shrink-0">
                       <Amount
                         minor={e.amountMinor}
-                        currency="USD"
                         className={e.isPastDue ? "text-alarm block" : "text-text block"}
                       />
                       <p className={`text-[12px] ${e.isPastDue ? "text-alarm" : "text-faint"}`}>

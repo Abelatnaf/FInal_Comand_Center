@@ -6,7 +6,6 @@ import { formatShortDate } from "@/lib/date";
 
 type Filters = {
   q?: string;
-  payer_id?: string;
   status?: string;
   sort?: string;
 };
@@ -15,20 +14,13 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
   const filters = await searchParams;
   const supabase = await createClient();
 
-  const [obligationsRes, payersRes] = await Promise.all([
-    supabase.from("obligation_progress").select("*"),
-    supabase.from("payers").select("id, label"),
-  ]);
-
-  const payers = payersRes.data ?? [];
-  const payerLabel = (id: string | null) => payers.find((p) => p.id === id)?.label ?? "—";
+  const { data: obligationsData } = await supabase.from("obligation_progress").select("*");
 
   // Filtering happens here rather than in the query because obligation_progress
   // derives status/is_past_due at read time -- they aren't columns the database
   // can filter on directly, and the set is small enough that it doesn't matter.
   const term = filters.q?.trim().toLowerCase();
-  let obligations = (obligationsRes.data ?? []).filter((o) => {
-    if (filters.payer_id && o.payer_id !== filters.payer_id) return false;
+  let obligations = (obligationsData ?? []).filter((o) => {
     if (filters.status) {
       if (filters.status === "past_due") {
         if (!o.is_past_due) return false;
@@ -72,7 +64,6 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
 
   const exportRows: BillExportRow[] = obligations.map((o) => ({
     title: o.title ?? "",
-    payer_label: payerLabel(o.payer_id),
     status: o.is_past_due ? "past due" : (o.status ?? "open"),
     due_on: o.due_on,
     amount_usd_minor: o.amount_usd_minor ?? 0,
@@ -80,8 +71,8 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
     amount_remaining_usd_minor: o.amount_remaining_usd_minor ?? 0,
   }));
 
-  const hasAny = (obligationsRes.data ?? []).length > 0;
-  const isFiltered = Boolean(filters.q || filters.payer_id || filters.status);
+  const hasAny = (obligationsData ?? []).length > 0;
+  const isFiltered = Boolean(filters.q || filters.status);
 
   return (
     <div className="flex flex-col gap-6">
@@ -113,14 +104,6 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
               aria-label="Search bills"
             />
             <div className="flex gap-2">
-              <select name="payer_id" defaultValue={filters.payer_id ?? ""} className="input" aria-label="Payer">
-                <option value="">All payers</option>
-                {payers.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
               <select name="status" defaultValue={filters.status ?? ""} className="input" aria-label="Status">
                 <option value="">Any status</option>
                 <option value="unpaid">Still owed</option>
@@ -155,11 +138,11 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
               </div>
               {pastDueMinor > 0n && (
                 <p className="text-[13px] text-alarm">
-                  <Amount minor={pastDueMinor} currency="USD" className="text-alarm" /> past due
+                  <Amount minor={pastDueMinor} className="text-alarm" /> past due
                 </p>
               )}
             </div>
-            <Amount minor={owedMinor} currency="USD" className="text-[19px] text-text" />
+            <Amount minor={owedMinor} className="text-[19px] text-text" />
           </div>
 
           <div className="card">
@@ -176,8 +159,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                     <div className="min-w-0">
                       <p className="text-[16px] text-text truncate">{o.title}</p>
                       <p className="text-[13px] text-muted">
-                        {payerLabel(o.payer_id)}
-                        {o.due_on && ` · due ${formatShortDate(o.due_on)}`}
+                        {o.due_on ? `Due ${formatShortDate(o.due_on)}` : "No due date"}
                       </p>
                     </div>
                     <span className="status-pill shrink-0" data-status={o.is_past_due ? "past-due" : o.status ?? "open"}>
@@ -188,7 +170,7 @@ export default async function BillsPage({ searchParams }: { searchParams: Promis
                     <div className="progress-fill" data-alarm={o.is_past_due} style={{ width: `${Math.min(paidPct, 100)}%` }} />
                   </div>
                   <p className="text-[15px]">
-                    <Amount minor={remaining} currency="USD" className="text-text" />
+                    <Amount minor={remaining} className="text-text" />
                     <span className="text-[13px] text-muted"> remaining</span>
                   </p>
                 </Link>

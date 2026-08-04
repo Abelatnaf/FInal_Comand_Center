@@ -1,0 +1,190 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { completeOnboarding, skipOnboarding } from "@/app/(app)/welcome/actions";
+import { fromMinor } from "@/lib/money";
+import type { Category } from "@/lib/categories";
+
+type Account = { id: string; name: string; kind: string; opening_balance_minor: number };
+
+const KIND_HINT: Record<string, string> = {
+  checking: "Everyday spending account",
+  savings: "Where money sits",
+  cash: "Wallet, envelope, under the mattress",
+};
+
+const STEPS = ["You", "Accounts", "Budgets"] as const;
+
+export function OnboardingWizard({
+  accounts,
+  categories,
+  displayName,
+}: {
+  accounts: Account[];
+  categories: Category[];
+  displayName: string;
+}) {
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState(displayName);
+  const [accountState, setAccountState] = useState(() =>
+    accounts.map((a) => ({
+      id: a.id,
+      name: a.name,
+      kind: a.kind,
+      balance: a.opening_balance_minor ? fromMinor(BigInt(a.opening_balance_minor)) : "",
+    }))
+  );
+  const [budgetState, setBudgetState] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [busy, startTransition] = useTransition();
+  const router = useRouter();
+
+  function finish() {
+    startTransition(async () => {
+      const res = await completeOnboarding({
+        displayName: name,
+        accounts: accountState.map((a) => ({ id: a.id, name: a.name, balance: a.balance })),
+        budgets: Object.entries(budgetState).map(([id, amount]) => ({ id, amount })),
+      });
+      if (res.error) {
+        setError(res.error);
+        return;
+      }
+      router.push("/");
+    });
+  }
+
+  function skip() {
+    startTransition(async () => {
+      await skipOnboarding();
+      router.push("/");
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <p className="section-label mb-1">
+          Step {step + 1} of {STEPS.length}
+        </p>
+        <h1 className="page-title">
+          {step === 0 && "Welcome"}
+          {step === 1 && "Your accounts"}
+          {step === 2 && "Set a budget or two"}
+        </h1>
+      </div>
+
+      <div className="progress-track">
+        <div className="progress-fill" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+      </div>
+
+      {step === 0 && (
+        <div className="card row flex flex-col gap-3">
+          <p className="text-[15px] text-text">
+            This tracks where your money goes — what you spend, what comes in, and what&rsquo;s left. It
+            takes about a minute to set up, and you can change any of it later.
+          </p>
+          <label className="section-label" htmlFor="display_name">
+            What should we call you?
+          </label>
+          <input
+            id="display_name"
+            className="input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Optional"
+          />
+        </div>
+      )}
+
+      {step === 1 && (
+        <div className="card">
+          <div className="row">
+            <p className="text-[14px] text-muted">
+              We started you off with three. Rename them to match your real accounts and put in what&rsquo;s
+              in each one right now — that&rsquo;s what makes your balances correct. You can add credit
+              cards later in Settings.
+            </p>
+          </div>
+          {accountState.map((a, i) => (
+            <div key={a.id} className="row flex flex-col gap-2">
+              <input
+                className="input"
+                value={a.name}
+                onChange={(e) =>
+                  setAccountState((prev) =>
+                    prev.map((x, j) => (i === j ? { ...x, name: e.target.value } : x))
+                  )
+                }
+                aria-label="Account name"
+              />
+              <input
+                className="input num"
+                inputMode="decimal"
+                value={a.balance}
+                onChange={(e) =>
+                  setAccountState((prev) =>
+                    prev.map((x, j) => (i === j ? { ...x, balance: e.target.value } : x))
+                  )
+                }
+                placeholder="Current balance"
+                aria-label="Current balance"
+              />
+              <p className="text-[12px] text-faint">{KIND_HINT[a.kind] ?? ""}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="card">
+          <div className="row">
+            <p className="text-[14px] text-muted">
+              A budget is just a monthly ceiling you want to notice crossing. Fill in the ones you care
+              about and leave the rest blank — most people start with two or three.
+            </p>
+          </div>
+          {categories.slice(0, 8).map((c) => (
+            <div key={c.id} className="row flex items-center gap-3">
+              <span className="text-[15px] flex-1">
+                {c.icon} {c.name}
+              </span>
+              <input
+                className="input num w-[120px]"
+                inputMode="decimal"
+                value={budgetState[c.id] ?? ""}
+                onChange={(e) => setBudgetState((prev) => ({ ...prev, [c.id]: e.target.value }))}
+                placeholder="—"
+                aria-label={`Monthly budget for ${c.name}`}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {error && <p className="text-alarm text-[14px]">{error}</p>}
+
+      <div className="flex gap-2">
+        {step > 0 && (
+          <button type="button" className="btn flex-1" onClick={() => setStep((s) => s - 1)}>
+            Back
+          </button>
+        )}
+        {step < STEPS.length - 1 ? (
+          <button type="button" className="btn btn-primary flex-1" onClick={() => setStep((s) => s + 1)}>
+            Next
+          </button>
+        ) : (
+          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={finish}>
+            {busy ? "Saving…" : "Start tracking"}
+          </button>
+        )}
+      </div>
+
+      <button type="button" className="text-muted text-[14px]" disabled={busy} onClick={skip}>
+        Skip setup
+      </button>
+    </div>
+  );
+}

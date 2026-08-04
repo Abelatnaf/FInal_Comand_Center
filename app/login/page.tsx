@@ -1,15 +1,35 @@
+import Link from "next/link";
+import { AuthShell } from "@/components/auth/AuthShell";
 import { LoginForm } from "@/components/LoginForm";
 
-export default function LoginPage() {
+export const metadata = { title: "Sign in" };
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-5">
-      <div className="card w-full max-w-sm p-7">
-        <div className="mb-6">
-          <h1 className="text-[22px] font-semibold text-text">Command Deck</h1>
-          <p className="text-[15px] text-muted mt-0.5">Every expense, in one place.</p>
-        </div>
-        <LoginForm />
-      </div>
-    </div>
+    <AuthShell
+      title="Command Deck"
+      subtitle="Every expense, in one place."
+      footer={
+        <>
+          New here?{" "}
+          <Link href="/signup" className="text-accent font-medium">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      {error === "link_expired" && (
+        <p className="text-alarm text-[15px] mb-4">
+          That link has expired or was already used. Request a new one below.
+        </p>
+      )}
+      <LoginForm />
+    </AuthShell>
   );
 }

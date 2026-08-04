@@ -98,7 +98,6 @@ export function InstallmentPlan({
             </div>
             <Amount
               minor={BigInt(i.amount_usd_minor)}
-              currency="USD"
               className={i.is_settled ? "text-muted shrink-0" : "text-text shrink-0"}
             />
           </div>
@@ -163,7 +162,6 @@ export function InstallmentPlan({
           <p className="section-label">Planned</p>
           <Amount
             minor={plannedMinor}
-            currency="USD"
             className={plannedMinor === totalMinor ? "text-positive" : "text-text"}
           />
         </div>
@@ -171,7 +169,7 @@ export function InstallmentPlan({
 
       {plannedMinor !== totalMinor && (
         <p className="row text-[13px] text-muted">
-          The bill total is <Amount minor={totalMinor} currency="USD" className="text-text" />. A plan
+          The bill total is <Amount minor={totalMinor} className="text-text" />. A plan
           doesn&rsquo;t have to match it, but usually will.
         </p>
       )}

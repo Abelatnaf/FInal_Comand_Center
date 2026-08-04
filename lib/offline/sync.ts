@@ -4,14 +4,17 @@ import { listQueuedTransactions, removeQueuedTransaction, type QueuedTransaction
 function toFormData(entry: QueuedTransaction): FormData {
   const fd = new FormData();
   fd.set("amount_minor", entry.amount_minor);
-  fd.set("currency", entry.currency);
   fd.set("direction", entry.direction);
   fd.set("category_id", entry.category_id);
   fd.set("occurred_on", entry.occurred_on);
   fd.set("account_id", entry.account_id);
-  fd.set("payer_id", entry.payer_id);
   fd.set("note", entry.note);
+  fd.set("tags", entry.tags ?? "");
+  fd.set("is_tax_deductible", entry.is_tax_deductible ?? "false");
   fd.set("obligation_id", entry.obligation_id);
+  // A replay is never the user tapping Save twice, so the duplicate guard
+  // would only ever produce a false positive here and silently drop the entry.
+  fd.set("confirm_duplicate", "true");
   return fd;
 }
 

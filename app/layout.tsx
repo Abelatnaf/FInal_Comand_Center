@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono-accent" });
 
 export const metadata: Metadata = {
-  title: "Command Deck",
-  description: "What's due, what covers it, logged in three taps.",
+  title: { default: "Command Deck", template: "%s — Command Deck" },
+  description: "Track every expense in one place — budgets, bills and net worth.",
 };
 
 export const viewport: Viewport = {

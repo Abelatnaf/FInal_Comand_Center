@@ -54,10 +54,10 @@ export function BudgetRow({ row }: { row: BudgetRowData }) {
           <p className="text-[13px] text-muted num">
             {budget != null ? (
               <>
-                {formatMoney(spent, "USD")} of {formatMoney(budget, "USD")}
+                {formatMoney(spent)} of {formatMoney(budget)}
               </>
             ) : (
-              <>{formatMoney(spent, "USD")} spent · no budget</>
+              <>{formatMoney(spent)} spent · no budget</>
             )}
           </p>
         </div>
@@ -80,11 +80,11 @@ export function BudgetRow({ row }: { row: BudgetRowData }) {
           <p className="text-[13px]">
             {remaining != null && remaining >= 0n ? (
               <span className="text-muted">
-                <Amount minor={remaining} currency="USD" /> left
+                <Amount minor={remaining} /> left
               </span>
             ) : (
               <span className="text-alarm">
-                <Amount minor={remaining != null ? -remaining : 0n} currency="USD" /> over
+                <Amount minor={remaining != null ? -remaining : 0n} /> over
               </span>
             )}
           </p>

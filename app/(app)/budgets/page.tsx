@@ -48,8 +48,8 @@ export default async function BudgetsPage() {
       ) : (
         <div className="card card-hero row">
           <p className="section-label mb-2">Total budget</p>
-          <Amount minor={spent} currency="USD" className="hero-figure block" />
-          <p className="text-[14px] text-muted mt-1 num">of {formatMoney(total, "USD")} budgeted</p>
+          <Amount minor={spent} className="hero-figure block" />
+          <p className="text-[14px] text-muted mt-1 num">of {formatMoney(total)} budgeted</p>
           <div className="progress-track mt-3">
             <div
               className="progress-fill"
@@ -85,8 +85,8 @@ export default async function BudgetsPage() {
       </div>
 
       <p className="text-[13px] text-faint px-1">
-        Budgets are compared in USD, using each entry&rsquo;s own rate as it was recorded — so these figures
-        never move when today&rsquo;s exchange rate does.{" "}
+        A budget is a monthly ceiling, reset on the first of each month. Leave one blank to track a
+        category without capping it.{" "}
         <Link href="/settings" className="text-accent font-semibold">
           Manage categories
         </Link>
