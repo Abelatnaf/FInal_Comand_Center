@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { colorVar } from "@/lib/categories";
 import { formatMoney } from "@/lib/money";
 
@@ -50,8 +51,8 @@ export function CategoryBars({
     <div className="flex flex-col gap-3">
       {bars.map((s) => {
         const pct = Number((s.minor * 1000n) / max) / 10;
-        return (
-          <div key={s.id} className="flex flex-col gap-1.5">
+        const body = (
+          <>
             <div className="flex items-baseline justify-between gap-3 text-[14px]">
               <span className="truncate">
                 <span aria-hidden className="mr-1.5">
@@ -67,7 +68,19 @@ export function CategoryBars({
                 style={{ width: `${Math.max(pct, 1)}%`, ["--cat-color" as string]: colorVar(s.color) }}
               />
             </div>
+          </>
+        );
+
+        // The folded "N more" bar stands for several categories at once, so
+        // there is no single page for it to lead to.
+        return s.id === "__other" ? (
+          <div key={s.id} className="flex flex-col gap-1.5">
+            {body}
           </div>
+        ) : (
+          <Link key={s.id} href={`/categories/${s.id}`} className="flex flex-col gap-1.5">
+            {body}
+          </Link>
         );
       })}
     </div>

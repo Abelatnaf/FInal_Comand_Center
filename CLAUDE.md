@@ -341,6 +341,47 @@ Also dropped a "$3,000 scale" caption that read as jargon, replacing it with a s
 
 **Standing limitations, unchanged**: outbound HTTPS to the Supabase host is blocked from this sandbox, so the authenticated screens against real data still can't be click-tested — correctness lives in the database tests above plus code review, and visual work in the compiled-CSS harness. And **leaked-password protection is still off** in Supabase → Authentication → Policies; it's a dashboard toggle no migration can flip, and with open signup it remains the single most valuable remaining setting.
 
+## 21. Post-launch: "v8" — the "Private Office" redesign, a laptop layout, and four features
+
+Abel asked to plan more features and "make it look as best as it could be." Two `AskUserQuestion` rounds settled it: **a new design system from scratch** (over polish-only), **all four** offered features, wide-screen layout **in scope**, and — in his own words — a look that would "attract millionaires and billionaires… a very super premium feel."
+
+**One assumption, stated in the plan rather than assumed silently**: since v6 this is a college-student tool (semesters, meal swipes, roommate splits, student loans). "Attract millionaires" was read as *make it feel expensive*, not *change who it's for* — every student feature stays. Flagged so a different intent could correct it before building.
+
+### The design system
+
+This project had already tried premium twice — v1's **Neo-Luxury** made brass the dominant colour, v3 §11's **Dark Premium** leaned on emerald glassmorphism — and both aged into decorated. So v8 goes the other way: **premium by restraint**, referencing a private bank statement rather than a fintech app.
+
+- **Committed warm neutrals**, four surface steps per theme rather than three distant ones: light is warm paper (`#f4f1ec`), dark is warm obsidian (`#100e0b`). Depth comes from close neutral separation plus one soft tall shadow, not from stacked drop shadows.
+- **The accent is scarce, and that is the whole mechanism.** Bronze does exactly two jobs: the one hero figure per screen, and the active nav state. Even `.btn-primary` is ink rather than metal — spending the accent on every button is precisely what made the brass era read as plated.
+- **Semantics muted** (sage / oxblood / amber-clay). Loud green-red is the fastest way to look cheap, and every state here already ships with a word beside it.
+- **Newsreader** (serif, real lining figures) for the hero figure and page titles only; Inter keeps the UI; `tabular-nums` on column figures survives its eighth design system.
+- 8px radii, 220ms ease-out motion. Icons/manifest/`themeColor` retinted off the removed indigo.
+
+**Contrast was computed before a line of CSS was written**, not after — this repo has shipped that bug on four of seven previous redesigns. A Python script ran the real WCAG formula over every functional pairing in both themes, including the four self-referential status pills (text on a tint of its own colour, where brightening the text moves the background with it). It caught `--text-faint` at **4.51:1** on the light inset surface — passing, but with no margin for compositing — and it ships at 5.09:1. All 12 category colours clear 3:1 as bar fills.
+
+**Rendering it caught two bugs code review did not:**
+1. **The hero serif never applied.** `globals.css` declared `--font-display: var(--font-display), …` — a self-reference. CSS discards the cycle silently, so it fell back to Inter and looked merely "not very serif." The font now exposes `--font-newsreader` and the alias points at that.
+2. **The tab bar stayed visible at 1440px.** `.tab-bar` sets `display: flex` unlayered, and Tailwind v4 puts `lg:hidden` inside `@layer utilities` — per the cascade-layers spec unlayered rules beat every layered one regardless of specificity. **This is the same trap v1 hit with `.glass { overflow: hidden }`**, hit again from a different direction. Both halves of the breakpoint swap now live in the same unlayered rule, and the Tailwind classes were removed so there is one mechanism.
+
+Also recorded: running `npx prettier --write` on one file turned a ~40-line change into a 378-line diff, because this repo doesn't use prettier. Reverted and redone by hand.
+
+### The laptop layout
+
+The app had **no responsive layout at all** — one `md:hidden` in the entire codebase, every page wrapped in `max-w-lg`, so a laptop showed a 512px strip in a field of empty margin. Below 1024px nothing changed structurally (the tab bar is the shape the three-tap promise was designed around); from 1024px a sidebar takes over and Home splits into two columns **divided by decision type** — "what can I spend right now" left, "what's coming and where did it go" right. `Sidebar` reads from the same `nav-links` source the tab bar and `/more` use, so a new route can't leave two lists out of step.
+
+### The four features
+
+- **Category drill-down** (`/categories/[id]`) — categories appeared on rows, in the spending bars and in budgets and none of them went anywhere. No new tables. Months with no spending are *absent* from `category_spend_by_month` rather than zero, so the trend fills gaps explicitly — a hole would read as "no data" instead of "you spent nothing." Linked from the bars, budget rows, and the **expanded** transaction row: the collapsed row is a `<button>`, and a nested link there is invalid HTML.
+- **Term-over-term comparison** — new `category_spend_by_term` and `term_summary` views, keyed on the term because `category_spend_by_month` is month-keyed and a term spans a ragged set of months. **Everything is per-day**, which is the point rather than a detail: raw totals would report a 15-week semester as more expensive than a 12-week one at identical daily spending. A running term is compared on elapsed days only. Savings rate is null rather than zero when nothing came in.
+- **Recurring splits** — `split_templates` + `split_template_shares`, shares in basis points so they follow a bill that changes month to month. **The share creation lives in the database function that posts a recurring entry**, because `pg_cron` is what calls it — v5 learned this exact lesson with auto-categorisation rules. Writing it surfaced the same trap a second way: "Log now" posted from a server action, so the hand-posted copy of your rent would have had no IOUs while the cron-posted copy did. Rather than duplicate the logic, both paths now call the database and the share creation exists once in `apply_split_template()`.
+- **Push reminders, scaffolded honestly** — `push_subscriptions`, `push`/`notificationclick` handlers in the service worker (it had neither), a Settings card gated on real browser capability, and a Vercel Cron route. `due_reminders()` decides what counts as due on the same 14-day horizon Home uses, so the reminder and the screen can't disagree; it is service-role only. **Every row carries its own `user_id` and the route groups by it explicitly** — a view that leans on RLS to scope itself returns everyone's data through a service-role client, which is how v1's email digest once summed all users' balances into one number. It does not send until Abel sets VAPID keys, and says exactly which variable is missing rather than throwing. `proxy.ts`'s matcher now excludes `/api` — Vercel Cron sends no session, so every invocation would have redirected to `/login`, the same bug v1 shipped.
+
+**Backup coverage went in the same pass**, not a later one: this project has shipped a lossy backup three times (transfers in v5, student tables in v6, terms/splits in v7) by adding a table and not telling `restore_from_backup` about it. Both new split tables are cleared before the recurring entries they reference and restored after them.
+
+**Verified**: `tsc --noEmit`/`npm run lint`/`npm run build` clean (**35 routes**, up from 34 — `/categories/[id]` and `/api/cron/reminders`); `npm test` 24/24. Four rollback-only tests **run as `authenticated`**, zero residue confirmed each time — term arithmetic across two different-length terms (same dining total correctly reported as double the per-day rate), a category that fell to zero staying visible as a real drop, cron and manual posting computing an identical share, shares over 100% refused by the database, cross-tenant templates refused, a full export→wipe→restore round trip after which the restored template still produced correct IOUs, and the reminder window including past-due while excluding both a 90-day-out bill and all incoming money. The cron route's three auth outcomes were verified against a running server. `get_advisors` shows one new expected item (`post_recurring_entry_now`, the "Log now" RPC, which the test confirms refuses an id you don't own); `apply_split_template` and `due_reminders` are correctly **not** flagged, confirming their revokes held.
+
+**Standing limitations, unchanged**: outbound HTTPS to Supabase is blocked from this sandbox, so authenticated screens still can't be click-tested — correctness lives in the database tests plus code review, and visual work in a temporary dev route rendering the real components against the real compiled stylesheet (deleted afterwards). **Leaked-password protection is still off**; with open signup it remains the most valuable setting no migration can flip.
+
 ---
 
 # Everything below this line describes Command Deck v2 (superseded)

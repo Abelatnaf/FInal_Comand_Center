@@ -17,7 +17,7 @@ export function AuthShell({
       <div className="w-full max-w-sm">
         <div className="card p-7">
           <div className="mb-6">
-            <h1 className="text-[22px] font-semibold text-text">{title}</h1>
+            <h1 className="page-title">{title}</h1>
             <p className="text-[15px] text-muted mt-0.5">{subtitle}</p>
           </div>
           {children}

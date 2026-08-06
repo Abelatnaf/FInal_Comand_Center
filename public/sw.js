@@ -22,6 +22,56 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// A reminder that arrives when the app is closed. The payload is written by
+// the send route; the fallbacks exist because a push with no data at all is a
+// legal thing for a push service to deliver, and showing nothing would look
+// like a bug from the outside.
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = {};
+  }
+
+  const title = payload.title || "Command Deck";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: payload.body || "Something's due soon.",
+      icon: "/icons/192",
+      badge: "/icons/192",
+      // Same tag means a newer reminder replaces the older one rather than
+      // stacking three copies of "rent is due" in the tray.
+      tag: payload.tag || "due-soon",
+      data: { url: payload.url || "/" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = event.notification.data?.url || "/";
+
+  event.waitUntil(
+    (async () => {
+      const clientList = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true,
+      });
+      // Focus a tab that's already open rather than opening a fourth copy of
+      // the app.
+      for (const client of clientList) {
+        if (client.url.includes(target) && "focus" in client) return client.focus();
+      }
+      if (clientList.length > 0 && "focus" in clientList[0]) {
+        await clientList[0].focus();
+        return clientList[0].navigate(target);
+      }
+      return self.clients.openWindow(target);
+    })()
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;

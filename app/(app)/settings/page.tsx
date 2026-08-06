@@ -8,6 +8,7 @@ import { ExportButton } from "@/components/settings/ExportButton";
 import { RestoreForm } from "@/components/settings/RestoreForm";
 import { TrackingWeekForm } from "@/components/settings/TrackingWeekForm";
 import { ShareLinksForm } from "@/components/settings/ShareLinksForm";
+import { PushForm } from "@/components/settings/PushForm";
 import { AccountDangerZone } from "@/components/settings/AccountDangerZone";
 import type { Category } from "@/lib/categories";
 
@@ -59,6 +60,11 @@ export default async function SettingsPage() {
       <CategoryRulesForm rules={(rulesRes.data ?? []) as CategoryRule[]} categories={categories} />
 
       <TrackingWeekForm trackingStartDate={settingsRes.data?.tracking_start_date ?? null} />
+
+      {/* The public half of the VAPID pair is safe to ship to the browser --
+          it is what identifies the sender to the push service. The private
+          half never leaves the server. */}
+      <PushForm vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? null} />
 
       <ShareLinksForm links={shareLinksRes.data ?? []} />
 

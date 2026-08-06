@@ -180,6 +180,39 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       obligations: {
         Row: {
           amount_usd_minor: number
@@ -539,6 +572,70 @@ export type Database = {
         }
         Relationships: []
       }
+      split_templates: {
+        Row: {
+          created_at: string
+          id: string
+          recurring_entry_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recurring_entry_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recurring_entry_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_templates_recurring_entry_id_fkey"
+            columns: ["recurring_entry_id"]
+            isOneToOne: true
+            referencedRelation: "recurring_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      split_template_shares: {
+        Row: {
+          created_at: string
+          id: string
+          person: string
+          share_bp: number
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          person: string
+          share_bp: number
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          person?: string
+          share_bp?: number
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_template_shares_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "split_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       split_shares: {
         Row: {
           amount_minor: number
@@ -761,6 +858,40 @@ export type Database = {
           name: string | null
           starts_on: string | null
           term_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      category_spend_by_term: {
+        Row: {
+          category_color: string | null
+          category_icon: string | null
+          category_id: string | null
+          category_name: string | null
+          ends_on: string | null
+          entry_count: number | null
+          spent_usd_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          term_name: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      term_summary: {
+        Row: {
+          elapsed_days: number | null
+          ends_on: string | null
+          name: string | null
+          net_minor: number | null
+          received_minor: number | null
+          received_per_day_minor: number | null
+          savings_rate_percent: number | null
+          spent_minor: number | null
+          spent_per_day_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          total_days: number | null
           user_id: string | null
         }
         Relationships: []
@@ -1110,7 +1241,18 @@ export type Database = {
           term_name: string
         }[]
       }
+      due_reminders: {
+        Args: { p_days?: number }
+        Returns: {
+          amount_minor: number
+          due_on: string
+          kind: string
+          title: string
+          user_id: string
+        }[]
+      }
       post_due_recurring_entries: { Args: never; Returns: number }
+      post_recurring_entry_now: { Args: { p_id: string }; Returns: Json }
       restore_from_backup: { Args: { p_backup: Json }; Returns: Json }
       spawn_due_recurring_obligations: { Args: never; Returns: number }
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
+import Link from "next/link";
 import { updateTransaction, deleteTransaction, attachReceipt, type TransactionFormState } from "@/app/(app)/ledger/actions";
 import { ReceiptLink } from "@/components/money/ReceiptLink";
 import { Amount } from "@/components/money/Amount";
@@ -201,6 +202,17 @@ export function TransactionRow({
       {receiptError && <p className="text-alarm text-[13px]">{receiptError}</p>}
 
       {state?.error && <p className="text-alarm text-[14px]">{state.error}</p>}
+
+      {/* The collapsed row is a button, so a link into the category can't live
+          there without nesting interactive elements. It goes here instead. */}
+      {transaction.category_id && transaction.category_name && (
+        <Link
+          href={`/categories/${transaction.category_id}`}
+          className="text-[13px] text-accent font-semibold"
+        >
+          All {transaction.category_name} →
+        </Link>
+      )}
 
       <div className="flex gap-2">
         <button type="button" className="btn flex-1" onClick={() => setEditing(false)}>

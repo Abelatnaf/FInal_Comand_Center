@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { setCategoryBudget } from "@/app/(app)/categories/actions";
 import { Amount } from "@/components/money/Amount";
@@ -49,7 +50,7 @@ export function BudgetRow({ row }: { row: BudgetRowData }) {
         <div className="cat-icon" style={{ ["--cat-color" as string]: colorVar(row.color) }} aria-hidden>
           {row.icon ?? "•"}
         </div>
-        <div className="min-w-0 flex-1">
+        <Link href={`/categories/${row.category_id}`} className="min-w-0 flex-1">
           <p className="text-[15px] font-medium truncate">{row.name}</p>
           <p className="text-[13px] text-muted num">
             {budget != null ? (
@@ -60,7 +61,7 @@ export function BudgetRow({ row }: { row: BudgetRowData }) {
               <>{formatMoney(spent)} spent · no budget</>
             )}
           </p>
-        </div>
+        </Link>
         {!editing && (
           <button type="button" className="btn btn-ghost text-[13px]" onClick={() => setEditing(true)}>
             {budget != null ? "Edit" : "Set"}

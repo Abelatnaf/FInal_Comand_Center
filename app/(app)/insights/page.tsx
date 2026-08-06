@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { CategoryBars } from "@/components/charts/CategoryBars";
 import { SpendTrend } from "@/components/charts/SpendTrend";
+import {
+  TermComparison,
+  type TermSummaryRow,
+  type TermCategoryRow,
+} from "@/components/insights/TermComparison";
 import { Amount } from "@/components/money/Amount";
 import { colorVar } from "@/lib/categories";
 import { formatMoney } from "@/lib/money";
@@ -23,13 +28,58 @@ export default async function InsightsPage({
   const monthIndex = months.indexOf(month);
   const priorMonth = monthIndex > 0 ? months[monthIndex - 1] : null;
 
-  const [monthlyRes, spendRes] = await Promise.all([
+  const [monthlyRes, spendRes, termsRes] = await Promise.all([
     supabase.from("monthly_summary").select("*").gte("month", months[0]).order("month"),
     supabase
       .from("category_spend_by_month")
       .select("*")
       .in("month", priorMonth ? [month, priorMonth] : [month]),
+    // The two most recent terms that have actually started. A term with no
+    // elapsed days has nothing to compare, and comparing against it would
+    // divide by zero.
+    supabase
+      .from("term_summary")
+      .select("*")
+      .gt("elapsed_days", 0)
+      .order("starts_on", { ascending: false })
+      .limit(2),
   ]);
+
+  // Every column on a Postgres view types as nullable, so these are
+  // normalised rather than cast -- a null elapsed_days reaching the per-day
+  // division would throw at BigInt(), not merely render oddly.
+  const termRows: TermSummaryRow[] = (termsRes.data ?? []).map((r) => ({
+    term_id: r.term_id ?? "",
+    name: r.name ?? "",
+    starts_on: r.starts_on ?? "",
+    ends_on: r.ends_on ?? "",
+    total_days: r.total_days ?? 0,
+    elapsed_days: r.elapsed_days ?? 0,
+    spent_minor: r.spent_minor ?? 0,
+    received_minor: r.received_minor ?? 0,
+    spent_per_day_minor: r.spent_per_day_minor,
+    received_per_day_minor: r.received_per_day_minor,
+    savings_rate_percent: r.savings_rate_percent,
+  }));
+  const [currentTerm, previousTerm] = termRows;
+  const termCategories: TermCategoryRow[] =
+    currentTerm && previousTerm
+      ? (
+          (
+            await supabase
+              .from("category_spend_by_term")
+              .select("term_id, category_id, category_name, category_icon, category_color, spent_usd_minor")
+              .in("term_id", [currentTerm.term_id, previousTerm.term_id])
+          ).data ?? []
+        ).map((r) => ({
+          term_id: r.term_id ?? "",
+          category_id: r.category_id ?? "",
+          category_name: r.category_name ?? "Uncategorized",
+          category_icon: r.category_icon,
+          category_color: r.category_color,
+          spent_usd_minor: r.spent_usd_minor ?? 0,
+        }))
+      : [];
 
   const monthly = monthlyRes.data ?? [];
   const byMonth = new Map(monthly.map((m) => [m.month as string, m]));
@@ -112,6 +162,17 @@ export default async function InsightsPage({
           Go
         </button>
       </form>
+
+      {/* Sits above the month view on purpose: since v6 the term is the unit
+          this app thinks in, and a semester is the span a student actually
+          plans against. The month selector below is still the finer grain. */}
+      {currentTerm && previousTerm && (
+        <TermComparison
+          current={currentTerm}
+          previous={previousTerm}
+          categories={termCategories}
+        />
+      )}
 
       <div className="card card-hero row">
         <p className="section-label mb-2">Spent in {formatMonthLong(month)}</p>

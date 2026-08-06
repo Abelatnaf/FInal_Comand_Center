@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { RecurringManager, type RecurringItem } from "@/components/recurring/RecurringManager";
+import type { SplitTemplate } from "@/components/recurring/RecurringSplit";
 import { formatMoney } from "@/lib/money";
 import type { Category } from "@/lib/categories";
 
@@ -17,7 +18,7 @@ const PER_MONTH_X1000: Record<string, bigint> = {
 export default async function RecurringPage() {
   const supabase = await createClient();
 
-  const [itemsRes, accountsRes, categoriesRes] = await Promise.all([
+  const [itemsRes, accountsRes, categoriesRes, templatesRes] = await Promise.all([
     supabase
       .from("recurring_entries")
       .select("*, accounts(name), categories(name, icon, color)")
@@ -27,7 +28,20 @@ export default async function RecurringPage() {
       .from("categories")
       .select("id, name, kind, color, icon, budget_usd_minor, sort_order, is_archived")
       .order("sort_order"),
+    supabase
+      .from("split_templates")
+      .select("id, recurring_entry_id, split_template_shares(id, person, share_bp)"),
   ]);
+
+  // Keyed by the charge they belong to, so each row can render its own split
+  // without every row filtering the whole list.
+  const templates: Record<string, SplitTemplate> = {};
+  for (const t of templatesRes.data ?? []) {
+    templates[t.recurring_entry_id] = {
+      id: t.id,
+      shares: [...(t.split_template_shares ?? [])].sort((a, b) => b.share_bp - a.share_bp),
+    };
+  }
 
   const items: RecurringItem[] = (itemsRes.data ?? []).map((r) => {
     const account = r.accounts as { name: string } | null;
@@ -105,6 +119,7 @@ export default async function RecurringPage() {
         items={items}
         accounts={accountsRes.data ?? []}
         categories={(categoriesRes.data ?? []) as Category[]}
+        templates={templates}
       />
     </div>
   );
