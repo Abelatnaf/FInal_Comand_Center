@@ -10,6 +10,6 @@ export const config = {
     // Also excludes the PWA install surface (manifest, generated icons, the
     // no-op service worker) — browsers/OS fetch these unauthenticated, so
     // redirecting them to /login broke installability.
-    '/((?!_next/static|_next/image|favicon.ico|manifest\\.webmanifest|sw\\.js|icon$|apple-icon$|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api/|_next/static|_next/image|favicon.ico|manifest\\.webmanifest|sw\\.js|icon$|apple-icon$|icons/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

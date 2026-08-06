@@ -180,6 +180,39 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       obligations: {
         Row: {
           amount_usd_minor: number
@@ -1206,6 +1239,16 @@ export type Database = {
           next_due_title: string
           safe_daily_minor: number
           term_name: string
+        }[]
+      }
+      due_reminders: {
+        Args: { p_days?: number }
+        Returns: {
+          amount_minor: number
+          due_on: string
+          kind: string
+          title: string
+          user_id: string
         }[]
       }
       post_due_recurring_entries: { Args: never; Returns: number }
