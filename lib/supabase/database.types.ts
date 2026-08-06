@@ -539,6 +539,70 @@ export type Database = {
         }
         Relationships: []
       }
+      split_templates: {
+        Row: {
+          created_at: string
+          id: string
+          recurring_entry_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recurring_entry_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recurring_entry_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_templates_recurring_entry_id_fkey"
+            columns: ["recurring_entry_id"]
+            isOneToOne: true
+            referencedRelation: "recurring_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      split_template_shares: {
+        Row: {
+          created_at: string
+          id: string
+          person: string
+          share_bp: number
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          person: string
+          share_bp: number
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          person?: string
+          share_bp?: number
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_template_shares_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "split_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       split_shares: {
         Row: {
           amount_minor: number
@@ -1145,6 +1209,7 @@ export type Database = {
         }[]
       }
       post_due_recurring_entries: { Args: never; Returns: number }
+      post_recurring_entry_now: { Args: { p_id: string }; Returns: Json }
       restore_from_backup: { Args: { p_backup: Json }; Returns: Json }
       spawn_due_recurring_obligations: { Args: never; Returns: number }
     }

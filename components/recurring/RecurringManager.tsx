@@ -12,6 +12,7 @@ import {
 import { Amount } from "@/components/money/Amount";
 import { colorVar, type Category } from "@/lib/categories";
 import { formatShortDate, todayIso } from "@/lib/date";
+import { RecurringSplit, type SplitTemplate } from "./RecurringSplit";
 
 export type RecurringItem = {
   id: string;
@@ -44,10 +45,12 @@ export function RecurringManager({
   items,
   accounts,
   categories,
+  templates,
 }: {
   items: RecurringItem[];
   accounts: Account[];
   categories: Category[];
+  templates: Record<string, SplitTemplate>;
 }) {
   const [adding, setAdding] = useState(false);
   const [direction, setDirection] = useState<"out" | "in">("out");
@@ -226,7 +229,7 @@ export function RecurringManager({
         <div className="card">
           <p className="section-label row pb-0">Active</p>
           {active.map((item) => (
-            <Item key={item.id} item={item} busy={busy} run={run} />
+            <Item key={item.id} item={item} busy={busy} run={run} template={templates[item.id] ?? null} />
           ))}
         </div>
       )}
@@ -235,7 +238,7 @@ export function RecurringManager({
         <div className="card">
           <p className="section-label row pb-0">Paused</p>
           {paused.map((item) => (
-            <Item key={item.id} item={item} busy={busy} run={run} />
+            <Item key={item.id} item={item} busy={busy} run={run} template={templates[item.id] ?? null} />
           ))}
         </div>
       )}
@@ -247,10 +250,12 @@ function Item({
   item,
   busy,
   run,
+  template,
 }: {
   item: RecurringItem;
   busy: boolean;
   run: (fn: () => Promise<{ error?: string }>) => Promise<void>;
+  template: SplitTemplate | null;
 }) {
   const [open, setOpen] = useState(false);
   const overdue = item.is_active && item.next_due_on <= todayIso();
@@ -316,6 +321,16 @@ function Item({
               Delete
             </button>
           </div>
+
+          {/* Only an expense can be split -- an IOU against a paycheck isn't
+              a thing, which is the same rule the posting function enforces. */}
+          {!incoming && (
+            <RecurringSplit
+              entryId={item.id}
+              amountMinor={item.amount_minor}
+              template={template}
+            />
+          )}
         </div>
       )}
     </div>
