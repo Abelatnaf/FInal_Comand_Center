@@ -173,11 +173,18 @@ export default async function HomePage() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
         <h1 className="page-title">{term?.name ?? formatMonthLong(thisMonth)}</h1>
-        <Link href="/settings" aria-label="Settings" className="p-2 -m-2 text-muted">
+        {/* The sidebar carries Settings from 1024px up, so this would be a
+            second link to the same place. */}
+        <Link href="/settings" aria-label="Settings" className="p-2 -m-2 text-muted lg:hidden">
           <SettingsIcon className="w-6 h-6" />
         </Link>
       </div>
 
+      {/* One column on a phone, two from 1024px. The split is by decision
+          type rather than by size: the left column answers "what can I spend
+          right now", the right one "what's coming, and where did it go". */}
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:items-start">
+        <div className="flex flex-col gap-5">
       {term ? (
         <>
           <div className="card card-hero row">
@@ -265,13 +272,6 @@ export default async function HomePage() {
             </div>
           )}
 
-          {burndown.length > 1 && (
-            <div className="card row">
-              <p className="section-label mb-3">Money left, day by day</p>
-              <TermBurndown points={burndown} />
-            </div>
-          )}
-
           {/* The single most useful thing this screen can say. Stated outright
               rather than left for the user to work out from two rates. */}
           {runsOutEarly && (
@@ -286,20 +286,6 @@ export default async function HomePage() {
             </div>
           )}
 
-          {BigInt(term.received_minor ?? 0) > 0n && (
-            <div className="card row flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="section-label mb-0.5">This term so far</p>
-                <p className="text-[13px] text-muted">
-                  <Amount minor={BigInt(term.received_minor ?? 0)} className="text-positive" /> in ·{" "}
-                  <Amount minor={BigInt(term.spent_minor ?? 0)} /> out
-                </p>
-              </div>
-              <Link href="/reports" className="text-[13px] text-accent font-semibold shrink-0">
-                Details →
-              </Link>
-            </div>
-          )}
         </>
       ) : (
         <div className="card row flex flex-col gap-3">
@@ -355,6 +341,30 @@ export default async function HomePage() {
             <Amount minor={owedTotal} className="text-[17px] font-semibold text-positive shrink-0" />
           </div>
         </Link>
+      )}
+        </div>
+
+        <div className="flex flex-col gap-5">
+      {term && burndown.length > 1 && (
+        <div className="card row">
+          <p className="section-label mb-3">Money left, day by day</p>
+          <TermBurndown points={burndown} />
+        </div>
+      )}
+
+      {term && BigInt(term.received_minor ?? 0) > 0n && (
+        <div className="card row flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="section-label mb-0.5">This term so far</p>
+            <p className="text-[13px] text-muted">
+              <Amount minor={BigInt(term.received_minor ?? 0)} className="text-positive" /> in ·{" "}
+              <Amount minor={BigInt(term.spent_minor ?? 0)} /> out
+            </p>
+          </div>
+          <Link href="/reports" className="text-[13px] text-accent font-semibold shrink-0">
+            Details →
+          </Link>
+        </div>
       )}
 
       {dueSoon.length > 0 && (
@@ -438,6 +448,8 @@ export default async function HomePage() {
         {recent.map((t) => (
           <TransactionRow key={t.id} transaction={t} accounts={accounts} categories={categories} />
         ))}
+      </div>
+        </div>
       </div>
     </div>
   );

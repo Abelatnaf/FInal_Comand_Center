@@ -1,180 +1,211 @@
 @import "tailwindcss";
 
 /* ============================================================
-   Command Deck v4 — a general expense tracker.
+   "Private Office" — the v8 design system.
 
-   Light and dark, both selected rather than one flipped from the
-   other. The app is opened many times a day, often outdoors, so
-   daylight legibility is a first-class requirement — this is the
-   first design system in this project's history to treat light
-   mode as the default case rather than an afterthought.
+   The brief was premium. This project has tried premium twice
+   before and should not repeat either attempt: Neo-Luxury made
+   brass the dominant colour, and Dark Premium leaned on emerald
+   glassmorphism. Both aged into "decorated".
 
-   Indigo is the interactive accent. Income/expense carry real
-   semantic colour (emerald/rose) because in an expense tracker
-   direction is the primary thing you scan for; category colour is
-   identity only, and is always paired with a name or an icon so
-   nothing depends on hue alone.
+   So this is the opposite move — premium by restraint. The
+   reference is a private bank statement or the dial of a good
+   watch: committed warm neutrals, typographic authority, precise
+   material, and a metal used so sparingly it reads as an accent
+   rather than plating.
+
+   Three rules hold the whole thing up:
+
+   1. THE ACCENT IS SCARCE. Bronze does exactly two jobs — the one
+      hero figure per screen, and the active navigation state.
+      Everything else is neutral. That scarcity is the single
+      difference between this and v1's brass, which was on buttons,
+      borders, charts and progress bars at once.
+
+   2. SEMANTICS STAY MUTED. Sage, oxblood, amber-clay. Loud
+      green/red is the fastest way to make an interface look cheap,
+      and every state here already ships with a word beside it, so
+      colour is never the sole carrier.
+
+   3. DEPTH COMES FROM NEUTRAL SEPARATION, NOT SHADOW. Four close
+      surface steps per theme rather than three distant ones; one
+      soft, tall shadow that reads as paper lifted off a desk.
+
+   Every pairing below was computed with the real WCAG relative-
+   luminance formula in both themes before it was written, including
+   the status pills that put text on a tint of their own colour —
+   the trap this repo has hit twice. Tightest margin is
+   `text-faint` on the inset surface at 5.09:1 (light).
    ============================================================ */
 
 :root {
   color-scheme: light;
 
-  --bg: #f6f7f9;
-  --bg-subtle: #eef0f4;
-  --surface: #ffffff;
-  --surface-2: #f4f5f8;
-  --surface-raised: #ffffff;
-  --surface-inset: #eef0f4;
+  /* Warm paper, not white. This app gets opened outdoors constantly,
+     and a warm base is easier on the eye in daylight than pure #fff. */
+  --bg: #f4f1ec;
+  --bg-subtle: #e9e4db;
+  --surface: #fdfbf7;
+  --surface-2: #f6f2ec;
+  --surface-raised: #fdfbf7;
+  --surface-inset: #eae5dc;
 
-  --border: rgba(16, 24, 40, 0.09);
-  --border-strong: rgba(16, 24, 40, 0.18);
+  /* Hairlines, not borders. Warm-tinted so they sit in the system
+     rather than reading as grey lines laid on top of it. */
+  --border: rgba(38, 30, 22, 0.10);
+  --border-strong: rgba(38, 30, 22, 0.20);
 
-  --text: #0f1729;
-  --text-muted: #55617a;
-  /* Measured, not eyeballed: #6b7688 came in at 4.28:1 on the page and
-     4.03:1 on the inset surface — both under AA. This step clears 4.5:1
-     against all three light surfaces. */
-  --text-faint: #646e7e;
+  --text: #181512;
+  --text-muted: #5a5248;
+  /* Computed, not eyeballed: #6e665b measured 4.51:1 on the inset
+     surface — passing, but with no margin left for compositing.
+     This step clears 5.09:1 on the tightest of the three surfaces. */
+  --text-faint: #665e53;
 
-  --accent: #4f46e5;
-  --accent-bright: #4338ca;
-  --accent-soft: rgba(79, 70, 229, 0.1);
+  /* The one metal. Two jobs only: the hero figure, and active nav. */
+  --accent: #7d5f33;
+  --accent-bright: #63491f;
+  --accent-soft: rgba(125, 95, 51, 0.10);
   --accent-ink: #ffffff;
 
-  --positive: #047857;
-  --positive-soft: rgba(4, 120, 87, 0.12);
-  --alarm: #be123c;
-  --alarm-soft: rgba(190, 18, 60, 0.1);
-  --urgent: #b05109;
-  /* 8%, not 12%: the "partial" pill puts --urgent text on a tint of its
-     own colour, so a heavier mix darkens the background and drags the
-     pair back under AA (measured 4.41:1 at 12%, 4.67:1 here). */
-  --urgent-soft: rgba(176, 81, 9, 0.08);
+  --positive: #3f6b4a;
+  --positive-soft: rgba(63, 107, 74, 0.10);
+  --alarm: #8f2f2f;
+  --alarm-soft: rgba(143, 47, 47, 0.10);
+  --urgent: #8a5717;
+  --urgent-soft: rgba(138, 87, 23, 0.10);
 
-  /* Category identity. Always shown with a name or icon beside it —
-     never the sole carrier of meaning. */
-  --cat-emerald: #047857;
-  --cat-blue: #1d4ed8;
-  --cat-violet: #6d28d9;
-  --cat-amber: #b45309;
-  --cat-rose: #be123c;
-  --cat-cyan: #0e7490;
-  --cat-orange: #c2410c;
-  --cat-pink: #a21caf;
-  --cat-teal: #0f766e;
-  --cat-indigo: #4338ca;
-  --cat-lime: #4d7c0f;
-  --cat-slate: #475569;
+  /* Category identity, retuned to sit inside the warm neutral system
+     rather than fight it. Always paired with a name or an icon, and
+     every one clears 3:1 as a bar fill. */
+  --cat-emerald: #3f6b4a;
+  --cat-blue: #2d5578;
+  --cat-violet: #5f4a7a;
+  --cat-amber: #8a5717;
+  --cat-rose: #8f2f2f;
+  --cat-cyan: #2a6068;
+  --cat-orange: #93501f;
+  --cat-pink: #83386a;
+  --cat-teal: #356259;
+  --cat-indigo: #4a4f80;
+  --cat-lime: #566a2c;
+  --cat-slate: #5a5248;
 
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.07), 0 1px 2px rgba(16, 24, 40, 0.04);
-  --shadow-lifted: 0 10px 30px -10px rgba(16, 24, 40, 0.2);
+  --shadow-sm: 0 1px 2px rgba(38, 30, 22, 0.05);
+  --shadow-card: 0 1px 2px rgba(38, 30, 22, 0.04), 0 8px 24px -16px rgba(38, 30, 22, 0.16);
+  --shadow-lifted: 0 2px 4px rgba(38, 30, 22, 0.04), 0 20px 48px -24px rgba(38, 30, 22, 0.28);
 
-  --radius-card: 16px;
-  --radius-control: 10px;
-  --motion: 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Small radii. Pillowy corners read as consumer; this reads as
+     stationery. */
+  --radius-card: 8px;
+  --radius-control: 6px;
+  /* Slower than the old 160ms, and eased out rather than sprung.
+     Premium motion settles; it doesn't bounce. */
+  --motion: 220ms cubic-bezier(0.16, 1, 0.3, 1);
 
   --font-sans: var(--font-inter), -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: var(--font-mono-accent), ui-monospace, "SF Mono", monospace;
+  --font-display: var(--font-newsreader), Georgia, "Times New Roman", serif;
 }
 
 /* Dark is its own set of steps chosen for a dark surface, not an
-   inversion. Declared under both the OS media query and the explicit
-   data-theme stamp so a manual toggle wins in either direction. */
+   inversion. Warm obsidian rather than black — the same warmth that
+   makes the light theme paper rather than white. Declared under both
+   the OS media query and the explicit data-theme stamp so a manual
+   toggle wins in either direction. */
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
 
-    --bg: #0a0c11;
-    --bg-subtle: #0f1218;
-    --surface: #151922;
-    --surface-2: #1a1f2a;
-    --surface-raised: #1e2430;
-    --surface-inset: #11151c;
+    --bg: #100e0b;
+    --bg-subtle: #16130f;
+    --surface: #1a1713;
+    --surface-2: #211d18;
+    --surface-raised: #262019;
+    --surface-inset: #141210;
 
-    --border: rgba(255, 255, 255, 0.09);
-    --border-strong: rgba(255, 255, 255, 0.2);
+    --border: rgba(240, 228, 208, 0.10);
+    --border-strong: rgba(240, 228, 208, 0.20);
 
-    --text: #eef1f6;
-    --text-muted: #99a4b8;
-    --text-faint: #8590a3;
+    --text: #f2ece2;
+    --text-muted: #a79d8e;
+    --text-faint: #94897a;
 
-    --accent: #8b85f5;
-    --accent-bright: #a5a0f8;
-    --accent-soft: rgba(139, 133, 245, 0.16);
-    --accent-ink: #0b0a1f;
+    --accent: #cfae74;
+    --accent-bright: #e0c48f;
+    --accent-soft: rgba(207, 174, 116, 0.14);
+    --accent-ink: #171310;
 
-    --positive: #34d399;
-    --positive-soft: rgba(52, 211, 153, 0.14);
-    --alarm: #fb7185;
-    --alarm-soft: rgba(251, 113, 133, 0.14);
-    --urgent: #fbbf24;
-    --urgent-soft: rgba(251, 191, 36, 0.14);
+    --positive: #8ebd94;
+    --positive-soft: rgba(142, 189, 148, 0.12);
+    --alarm: #e3908a;
+    --alarm-soft: rgba(227, 144, 138, 0.12);
+    --urgent: #d5a75f;
+    --urgent-soft: rgba(213, 167, 95, 0.12);
 
-    --cat-emerald: #34d399;
-    --cat-blue: #60a5fa;
-    --cat-violet: #a78bfa;
-    --cat-amber: #fbbf24;
-    --cat-rose: #fb7185;
-    --cat-cyan: #22d3ee;
-    --cat-orange: #fb923c;
-    --cat-pink: #e879f9;
-    --cat-teal: #2dd4bf;
-    --cat-indigo: #818cf8;
-    --cat-lime: #a3e635;
-    --cat-slate: #94a3b8;
+    --cat-emerald: #8ebd94;
+    --cat-blue: #8fb4d6;
+    --cat-violet: #b6a2d1;
+    --cat-amber: #d5a75f;
+    --cat-rose: #e3908a;
+    --cat-cyan: #7fbcc4;
+    --cat-orange: #dfa070;
+    --cat-pink: #d99cc6;
+    --cat-teal: #84bfb2;
+    --cat-indigo: #a3a8dd;
+    --cat-lime: #b3c184;
+    --cat-slate: #a79d8e;
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
-    --shadow-lifted: 0 14px 36px -12px rgba(0, 0, 0, 0.7);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+    --shadow-lifted: 0 2px 4px rgba(0, 0, 0, 0.5), 0 24px 56px -28px rgba(0, 0, 0, 0.9);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0a0c11;
-  --bg-subtle: #0f1218;
-  --surface: #151922;
-  --surface-2: #1a1f2a;
-  --surface-raised: #1e2430;
-  --surface-inset: #11151c;
+  --bg: #100e0b;
+  --bg-subtle: #16130f;
+  --surface: #1a1713;
+  --surface-2: #211d18;
+  --surface-raised: #262019;
+  --surface-inset: #141210;
 
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.2);
+  --border: rgba(240, 228, 208, 0.10);
+  --border-strong: rgba(240, 228, 208, 0.20);
 
-  --text: #eef1f6;
-  --text-muted: #99a4b8;
-  --text-faint: #8590a3;
+  --text: #f2ece2;
+  --text-muted: #a79d8e;
+  --text-faint: #94897a;
 
-  --accent: #8b85f5;
-  --accent-bright: #a5a0f8;
-  --accent-soft: rgba(139, 133, 245, 0.16);
-  --accent-ink: #0b0a1f;
+  --accent: #cfae74;
+  --accent-bright: #e0c48f;
+  --accent-soft: rgba(207, 174, 116, 0.14);
+  --accent-ink: #171310;
 
-  --positive: #34d399;
-  --positive-soft: rgba(52, 211, 153, 0.14);
-  --alarm: #fb7185;
-  --alarm-soft: rgba(251, 113, 133, 0.14);
-  --urgent: #fbbf24;
-  --urgent-soft: rgba(251, 191, 36, 0.14);
+  --positive: #8ebd94;
+  --positive-soft: rgba(142, 189, 148, 0.12);
+  --alarm: #e3908a;
+  --alarm-soft: rgba(227, 144, 138, 0.12);
+  --urgent: #d5a75f;
+  --urgent-soft: rgba(213, 167, 95, 0.12);
 
-  --cat-emerald: #34d399;
-  --cat-blue: #60a5fa;
-  --cat-violet: #a78bfa;
-  --cat-amber: #fbbf24;
-  --cat-rose: #fb7185;
-  --cat-cyan: #22d3ee;
-  --cat-orange: #fb923c;
-  --cat-pink: #e879f9;
-  --cat-teal: #2dd4bf;
-  --cat-indigo: #818cf8;
-  --cat-lime: #a3e635;
-  --cat-slate: #94a3b8;
+  --cat-emerald: #8ebd94;
+  --cat-blue: #8fb4d6;
+  --cat-violet: #b6a2d1;
+  --cat-amber: #d5a75f;
+  --cat-rose: #e3908a;
+  --cat-cyan: #7fbcc4;
+  --cat-orange: #dfa070;
+  --cat-pink: #d99cc6;
+  --cat-teal: #84bfb2;
+  --cat-indigo: #a3a8dd;
+  --cat-lime: #b3c184;
+  --cat-slate: #a79d8e;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-lifted: 0 14px 36px -12px rgba(0, 0, 0, 0.7);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+  --shadow-lifted: 0 2px 4px rgba(0, 0, 0, 0.5), 0 24px 56px -28px rgba(0, 0, 0, 0.9);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -206,23 +237,28 @@ body {
   border-color: var(--border);
 }
 
-/* Every money figure. Tabular so columns of numbers line up. */
+/* Every money figure in a column. Tabular so decimal points line up —
+   this rule has survived every redesign in this project and survives
+   this one. */
 .num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* One hero figure per screen. Proportional figures at this size read
-   better than tabular; the .num rule is for aligned columns. */
+/* One hero figure per screen, set in the display serif.
+   A high-contrast serif numeral is the single strongest premium
+   signal available and costs nothing but a font load. Proportional
+   at this size — .num is for aligned columns, not for this. */
 .hero-figure {
-  font-size: clamp(2.25rem, 10vw, 3rem);
-  font-weight: 650;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 11vw, 3.5rem);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1;
   color: var(--text);
 }
 
-/* Any figure computed with today's FX rate rather than a frozen one.
+/* Any figure computed with today's rate rather than a frozen one.
    The ~ prefix is written in the JSX so it survives copy and screen
    readers; this only carries the muted styling. */
 .estimate {
@@ -230,17 +266,18 @@ body {
 }
 
 .section-label {
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 600;
   color: var(--text-faint);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.11em;
 }
 
 .page-title {
-  font-size: 24px;
-  font-weight: 680;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: 27px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   color: var(--text);
 }
 
@@ -253,14 +290,23 @@ body {
   overflow: hidden;
 }
 
-/* A card that should read as the primary object on the screen. */
+/* The primary object on the screen. A single hairline rule at the top
+   edge rather than a gradient — the paper analogue of a letterhead. */
 .card-hero {
-  background: linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+  background: var(--surface);
   box-shadow: var(--shadow-lifted);
 }
 
+.card-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--accent);
+}
+
 .row {
-  padding: 14px 16px;
+  padding: 15px 18px;
   position: relative;
 }
 
@@ -315,10 +361,11 @@ body {
   justify-content: center;
   gap: 8px;
   min-height: 44px;
-  padding: 10px 18px;
+  padding: 10px 20px;
   border-radius: var(--radius-control);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border-strong);
@@ -327,22 +374,24 @@ body {
 }
 
 .btn:active {
-  transform: scale(0.975);
+  transform: scale(0.985);
 }
 
 .btn:disabled {
   opacity: 0.45;
 }
 
+/* The primary action is ink, not metal. Bronze is reserved for the
+   hero figure and active nav; spending it on every button is exactly
+   what made the Neo-Luxury era read as plated. */
 .btn-primary {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--text);
+  color: var(--bg);
   border-color: transparent;
-  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:active {
-  background: var(--accent-bright);
+  background: var(--text-muted);
 }
 
 .btn-ghost {
@@ -402,10 +451,10 @@ button:focus-visible,
 
 .segmented button {
   min-height: 36px;
-  padding: 0 14px;
-  border-radius: calc(var(--radius-control) - 4px);
+  padding: 0 15px;
+  border-radius: calc(var(--radius-control) - 2px);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-muted);
   transition: background-color var(--motion), color var(--motion), box-shadow var(--motion);
 }
@@ -421,34 +470,34 @@ button:focus-visible,
   align-items: center;
   gap: 6px;
   min-height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
+  padding: 0 15px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--text-muted);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   transition: background-color var(--motion), color var(--motion), border-color var(--motion);
 }
 
 .chip[data-active="true"] {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--text);
+  color: var(--bg);
   border-color: transparent;
 }
 
-/* Progress bars — budgets, goals, bill payments. */
+/* Progress bars — budgets, goals, bill payments, the today meter. */
 .progress-track {
-  height: 8px;
-  border-radius: 999px;
+  height: 6px;
+  border-radius: 2px;
   background: var(--surface-inset);
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--accent);
   transition: width var(--motion);
 }
@@ -466,18 +515,22 @@ button:focus-visible,
 .status-pill {
   display: inline-flex;
   align-items: center;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
 .status-pill[data-status="open"] {
   background: var(--surface-inset);
   color: var(--text-muted);
 }
+/* Each of the four below puts text on a tint of its OWN colour, so
+   brightening the text alone can never fix a contrast failure here —
+   the background moves with it. Mix percentages are the measured
+   values, not defaults. */
 .status-pill[data-status="partial"] {
   background: var(--urgent-soft);
   color: var(--urgent);
@@ -487,7 +540,7 @@ button:focus-visible,
   color: var(--positive);
 }
 .status-pill[data-status="waived"] {
-  background: var(--surface-inset);
+  background: color-mix(in srgb, var(--text-faint) 8%, transparent);
   color: var(--text-faint);
 }
 .status-pill[data-status="past-due"] {
@@ -523,7 +576,20 @@ button:focus-visible,
   color: var(--positive);
 }
 
-/* Bottom tab bar. Five slots with Add raised in the centre. */
+/* --- Navigation ------------------------------------------------
+   Two forms of the same list. Below 1024px the bottom tab bar, which
+   is the shape the "logged in three taps" promise was designed
+   around. At 1024px and up a persistent sidebar, because a 512px
+   column stranded in the middle of a laptop screen is not a design,
+   it is an oversight. Both read from the same nav-links source. */
+
+/* The breakpoint swap lives here rather than on a Tailwind `lg:hidden`
+   class, and that is not a style preference. Tailwind v4 puts every utility
+   inside `@layer utilities`, and per the cascade-layers spec unlayered rules
+   beat every layered one regardless of specificity -- so an unlayered
+   `display: flex` here would silently defeat `lg:hidden`, which is exactly
+   the bug this project already shipped once with `.glass { overflow: hidden }`.
+   Keeping both halves of the swap in the same unlayered rule sidesteps it. */
 .tab-bar {
   position: fixed;
   bottom: 0;
@@ -531,9 +597,9 @@ button:focus-visible,
   right: 0;
   display: flex;
   border-top: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 40;
 }
@@ -544,12 +610,13 @@ button:focus-visible,
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   min-height: 56px;
   padding: 8px 0;
   color: var(--text-faint);
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
   transition: color var(--motion);
 }
 
@@ -557,22 +624,85 @@ button:focus-visible,
   color: var(--accent);
 }
 
-/* The raised centre Add action. */
+/* The raised centre Add action — ink, so the metal stays scarce. */
 .tab-add {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-control);
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: var(--shadow-card);
   transition: transform var(--motion);
 }
 
 .tab-bar a:active .tab-add {
-  transform: scale(0.92);
+  transform: scale(0.94);
+}
+
+@media (min-width: 1024px) {
+  .tab-bar {
+    display: none;
+  }
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 244px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: 28px 14px 20px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-subtle);
+  overflow-y: auto;
+  z-index: 40;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    display: flex;
+  }
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 12px;
+  border-radius: var(--radius-control);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: background-color var(--motion), color var(--motion);
+}
+
+@media (hover: hover) {
+  .sidebar-link:hover {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+/* The second and last place the metal appears. */
+.sidebar-link[data-active="true"] {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.sidebar-heading {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  padding: 0 12px 18px;
 }
 
 .keypad-btn {
@@ -584,13 +714,13 @@ button:focus-visible,
   background: var(--surface);
   border: 1px solid var(--border);
   font-size: 22px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text);
   transition: background-color var(--motion), transform var(--motion);
 }
 
 .keypad-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
   background: var(--surface-2);
 }
 
@@ -598,61 +728,62 @@ button:focus-visible,
    rather than a solid fill, so the same token works on both themes
    without a second value per category. */
 .cat-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-control);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1;
   flex-shrink: 0;
-  background: color-mix(in srgb, var(--cat-color, var(--cat-slate)) 15%, transparent);
+  background: color-mix(in srgb, var(--cat-color, var(--cat-slate)) 13%, transparent);
 }
 
 .cat-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
   flex-shrink: 0;
   background: var(--cat-color, var(--cat-slate));
 }
 
 .account-swatch {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-control);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   flex-shrink: 0;
-  background: color-mix(in srgb, var(--cat-color, var(--cat-slate)) 15%, transparent);
+  background: color-mix(in srgb, var(--cat-color, var(--cat-slate)) 13%, transparent);
   color: var(--cat-color, var(--cat-slate));
 }
 
 /* --- Charts ---------------------------------------------------
    Hand-rolled SVG/flex charts, no charting dependency. Bars are
-   thin, ends are rounded, and every bar is directly labelled so
-   identity never rests on colour alone. */
+   thin, and every bar is directly labelled so identity never rests
+   on colour alone. */
 
 .bar-track {
-  height: 10px;
-  border-radius: 999px;
+  height: 8px;
+  border-radius: 2px;
   background: var(--surface-inset);
   overflow: hidden;
 }
 
 .bar-fill {
   height: 100%;
-  border-radius: 999px;
+  border-radius: 2px;
   background: var(--cat-color, var(--accent));
   min-width: 3px;
 }
 
 /* Vertical column chart for month-over-month trend. One series, so
-   no legend is needed — the title names it. */
+   no legend is needed — the heading names it. */
 .col-chart {
   display: flex;
   align-items: flex-end;
@@ -670,8 +801,8 @@ button:focus-visible,
 }
 
 .col-bar {
-  border-radius: 4px 4px 2px 2px;
-  background: var(--accent-soft);
+  border-radius: 2px;
+  background: var(--surface-inset);
   border: 1px solid transparent;
   min-height: 3px;
   transition: background-color var(--motion);
@@ -692,13 +823,22 @@ button:focus-visible,
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-card);
   background: var(--surface-raised);
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow-lifted);
   max-width: 480px;
   margin: 0 auto;
   animation: toast-in var(--motion);
+}
+
+@media (min-width: 1024px) {
+  .toast {
+    left: 268px;
+    right: 24px;
+    bottom: 24px;
+    margin: 0;
+  }
 }
 
 @keyframes toast-in {

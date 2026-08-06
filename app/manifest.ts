@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Track every expense in one place — budgets, bills and net worth.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6f7f9",
-    theme_color: "#4f46e5",
+    background_color: "#f4f1ec",
+    theme_color: "#f4f1ec",
     icons: [
       { src: "/icons/192", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icons/192", sizes: "192x192", type: "image/png", purpose: "maskable" },
