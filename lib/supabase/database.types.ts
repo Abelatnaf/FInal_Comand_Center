@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -49,37 +49,37 @@ export type Database = {
       }
       categories: {
         Row: {
+          budget_usd_minor: number | null
           color: string
           created_at: string
           icon: string
           id: string
           is_archived: boolean
           kind: string
-          budget_usd_minor: number | null
           name: string
           sort_order: number
           user_id: string
         }
         Insert: {
+          budget_usd_minor?: number | null
           color?: string
           created_at?: string
           icon?: string
           id?: string
           is_archived?: boolean
           kind: string
-          budget_usd_minor?: number | null
           name: string
           sort_order?: number
           user_id: string
         }
         Update: {
+          budget_usd_minor?: number | null
           color?: string
           created_at?: string
           icon?: string
           id?: string
           is_archived?: boolean
           kind?: string
-          budget_usd_minor?: number | null
           name?: string
           sort_order?: number
           user_id?: string
@@ -133,6 +133,149 @@ export type Database = {
             referencedRelation: "category_spend_by_month"
             referencedColumns: ["category_id"]
           },
+          {
+            foreignKeyName: "category_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_term"
+            referencedColumns: ["category_id"]
+          },
+        ]
+      }
+      meal_plans: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          id: string
+          name: string
+          swipes_total: number | null
+          term_id: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          swipes_total?: number | null
+          term_id: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          swipes_total?: number | null
+          term_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_plans_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_plans_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_term"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "current_term"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_burndown"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_progress"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_summary"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "terms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_with_week"
+            referencedColumns: ["term_id"]
+          },
+        ]
+      }
+      meal_swipe_uses: {
+        Row: {
+          created_at: string
+          id: string
+          meal_plan_id: string
+          swipes: number
+          used_on: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_plan_id: string
+          swipes?: number
+          used_on?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_plan_id?: string
+          swipes?: number
+          used_on?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_swipe_uses_meal_plan_id_fkey"
+            columns: ["meal_plan_id"]
+            isOneToOne: false
+            referencedRelation: "meal_plan_progress"
+            referencedColumns: ["meal_plan_id"]
+          },
+          {
+            foreignKeyName: "meal_swipe_uses_meal_plan_id_fkey"
+            columns: ["meal_plan_id"]
+            isOneToOne: false
+            referencedRelation: "meal_plans"
+            referencedColumns: ["id"]
+          },
         ]
       }
       obligation_installments: {
@@ -180,39 +323,6 @@ export type Database = {
           },
         ]
       }
-      push_subscriptions: {
-        Row: {
-          auth: string
-          created_at: string
-          endpoint: string
-          id: string
-          is_active: boolean
-          last_sent_at: string | null
-          p256dh: string
-          user_id: string
-        }
-        Insert: {
-          auth: string
-          created_at?: string
-          endpoint: string
-          id?: string
-          is_active?: boolean
-          last_sent_at?: string | null
-          p256dh: string
-          user_id: string
-        }
-        Update: {
-          auth?: string
-          created_at?: string
-          endpoint?: string
-          id?: string
-          is_active?: boolean
-          last_sent_at?: string | null
-          p256dh?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       obligations: {
         Row: {
           amount_usd_minor: number
@@ -252,6 +362,39 @@ export type Database = {
           title?: string
           user_id?: string
           waived_at?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          p256dh?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -338,6 +481,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "category_spend_by_month"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_term"
             referencedColumns: ["category_id"]
           },
         ]
@@ -444,6 +594,254 @@ export type Database = {
         }
         Relationships: []
       }
+      split_shares: {
+        Row: {
+          amount_minor: number
+          created_at: string
+          id: string
+          person: string
+          settled_at: string | null
+          settled_transaction_id: string | null
+          transaction_id: string
+          user_id: string
+        }
+        Insert: {
+          amount_minor: number
+          created_at?: string
+          id?: string
+          person: string
+          settled_at?: string | null
+          settled_transaction_id?: string | null
+          transaction_id: string
+          user_id: string
+        }
+        Update: {
+          amount_minor?: number
+          created_at?: string
+          id?: string
+          person?: string
+          settled_at?: string | null
+          settled_transaction_id?: string | null
+          transaction_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_shares_settled_transaction_id_fkey"
+            columns: ["settled_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "split_shares_settled_transaction_id_fkey"
+            columns: ["settled_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_with_week"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "split_shares_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "split_shares_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_with_week"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      split_template_shares: {
+        Row: {
+          created_at: string
+          id: string
+          person: string
+          share_bp: number
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          person: string
+          share_bp: number
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          person?: string
+          share_bp?: number
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_template_shares_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "split_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      split_templates: {
+        Row: {
+          created_at: string
+          id: string
+          recurring_entry_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recurring_entry_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recurring_entry_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "split_templates_recurring_entry_id_fkey"
+            columns: ["recurring_entry_id"]
+            isOneToOne: true
+            referencedRelation: "recurring_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_loans: {
+        Row: {
+          created_at: string
+          disbursed_on: string
+          id: string
+          interest_rate_bp: number
+          is_subsidized: boolean
+          name: string
+          principal_minor: number
+          servicer: string | null
+          term_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          disbursed_on?: string
+          id?: string
+          interest_rate_bp?: number
+          is_subsidized?: boolean
+          name: string
+          principal_minor: number
+          servicer?: string | null
+          term_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          disbursed_on?: string
+          id?: string
+          interest_rate_bp?: number
+          is_subsidized?: boolean
+          name?: string
+          principal_minor?: number
+          servicer?: string | null
+          term_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_loans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_term"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "student_loans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "current_term"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "student_loans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_burndown"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "student_loans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_progress"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "student_loans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_summary"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "student_loans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "terms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_loans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_with_week"
+            referencedColumns: ["term_id"]
+          },
+        ]
+      }
+      terms: {
+        Row: {
+          created_at: string
+          ends_on: string
+          id: string
+          is_archived: boolean
+          name: string
+          starts_on: string
+          target_end_balance_minor: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_on: string
+          id?: string
+          is_archived?: boolean
+          name: string
+          starts_on: string
+          target_end_balance_minor?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_on?: string
+          id?: string
+          is_archived?: boolean
+          name?: string
+          starts_on?: string
+          target_end_balance_minor?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           account_id: string
@@ -524,6 +922,13 @@ export type Database = {
             referencedColumns: ["category_id"]
           },
           {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_term"
+            referencedColumns: ["category_id"]
+          },
+          {
             foreignKeyName: "transactions_obligation_id_fkey"
             columns: ["obligation_id"]
             isOneToOne: false
@@ -535,255 +940,6 @@ export type Database = {
             columns: ["obligation_id"]
             isOneToOne: false
             referencedRelation: "obligations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      terms: {
-        Row: {
-          created_at: string
-          ends_on: string
-          id: string
-          is_archived: boolean
-          name: string
-          starts_on: string
-          target_end_balance_minor: number
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          ends_on: string
-          id?: string
-          is_archived?: boolean
-          name: string
-          starts_on: string
-          target_end_balance_minor?: number
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          ends_on?: string
-          id?: string
-          is_archived?: boolean
-          name?: string
-          starts_on?: string
-          target_end_balance_minor?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
-      split_templates: {
-        Row: {
-          created_at: string
-          id: string
-          recurring_entry_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          recurring_entry_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          recurring_entry_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "split_templates_recurring_entry_id_fkey"
-            columns: ["recurring_entry_id"]
-            isOneToOne: true
-            referencedRelation: "recurring_entries"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      split_template_shares: {
-        Row: {
-          created_at: string
-          id: string
-          person: string
-          share_bp: number
-          template_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          person: string
-          share_bp: number
-          template_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          person?: string
-          share_bp?: number
-          template_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "split_template_shares_template_id_fkey"
-            columns: ["template_id"]
-            isOneToOne: false
-            referencedRelation: "split_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      split_shares: {
-        Row: {
-          amount_minor: number
-          created_at: string
-          id: string
-          person: string
-          settled_at: string | null
-          settled_transaction_id: string | null
-          transaction_id: string
-          user_id: string
-        }
-        Insert: {
-          amount_minor: number
-          created_at?: string
-          id?: string
-          person: string
-          settled_at?: string | null
-          settled_transaction_id?: string | null
-          transaction_id: string
-          user_id: string
-        }
-        Update: {
-          amount_minor?: number
-          created_at?: string
-          id?: string
-          person?: string
-          settled_at?: string | null
-          settled_transaction_id?: string | null
-          transaction_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "split_shares_transaction_id_fkey"
-            columns: ["transaction_id"]
-            isOneToOne: false
-            referencedRelation: "transactions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "split_shares_settled_transaction_id_fkey"
-            columns: ["settled_transaction_id"]
-            isOneToOne: false
-            referencedRelation: "transactions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      meal_plans: {
-        Row: {
-          account_id: string | null
-          created_at: string
-          id: string
-          name: string
-          swipes_total: number | null
-          term_id: string
-          user_id: string
-        }
-        Insert: {
-          account_id?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          swipes_total?: number | null
-          term_id: string
-          user_id: string
-        }
-        Update: {
-          account_id?: string | null
-          created_at?: string
-          id?: string
-          name?: string
-          swipes_total?: number | null
-          term_id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      meal_swipe_uses: {
-        Row: {
-          created_at: string
-          id: string
-          meal_plan_id: string
-          swipes: number
-          used_on: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          meal_plan_id: string
-          swipes?: number
-          used_on?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          meal_plan_id?: string
-          swipes?: number
-          used_on?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      student_loans: {
-        Row: {
-          created_at: string
-          disbursed_on: string
-          id: string
-          interest_rate_bp: number
-          is_subsidized: boolean
-          name: string
-          principal_minor: number
-          servicer: string | null
-          term_id: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          disbursed_on?: string
-          id?: string
-          interest_rate_bp?: number
-          is_subsidized?: boolean
-          name: string
-          principal_minor: number
-          servicer?: string | null
-          term_id?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          disbursed_on?: string
-          id?: string
-          interest_rate_bp?: number
-          is_subsidized?: boolean
-          name?: string
-          principal_minor?: number
-          servicer?: string | null
-          term_id?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "student_loans_term_id_fkey"
-            columns: ["term_id"]
-            isOneToOne: false
-            referencedRelation: "terms"
             referencedColumns: ["id"]
           },
         ]
@@ -852,128 +1008,6 @@ export type Database = {
       }
     }
     Views: {
-      current_term: {
-        Row: {
-          ends_on: string | null
-          name: string | null
-          starts_on: string | null
-          term_id: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      category_spend_by_term: {
-        Row: {
-          category_color: string | null
-          category_icon: string | null
-          category_id: string | null
-          category_name: string | null
-          ends_on: string | null
-          entry_count: number | null
-          spent_usd_minor: number | null
-          starts_on: string | null
-          term_id: string | null
-          term_name: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      term_summary: {
-        Row: {
-          elapsed_days: number | null
-          ends_on: string | null
-          name: string | null
-          net_minor: number | null
-          received_minor: number | null
-          received_per_day_minor: number | null
-          savings_rate_percent: number | null
-          spent_minor: number | null
-          spent_per_day_minor: number | null
-          starts_on: string | null
-          term_id: string | null
-          total_days: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      term_burndown: {
-        Row: {
-          actual_minor: number | null
-          day: string | null
-          ends_on: string | null
-          ideal_minor: number | null
-          starts_on: string | null
-          term_id: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      term_progress: {
-        Row: {
-          actual_daily_minor: number | null
-          days_elapsed: number | null
-          days_remaining: number | null
-          ends_on: string | null
-          expected_income_minor: number | null
-          liquid_minor: number | null
-          meal_plan_minor: number | null
-          name: string | null
-          projected_zero_on: string | null
-          received_minor: number | null
-          safe_daily_meal_minor: number | null
-          safe_daily_minor: number | null
-          shortfall_minor: number | null
-          spendable_minor: number | null
-          spent_minor: number | null
-          spent_today_minor: number | null
-          starts_on: string | null
-          target_end_balance_minor: number | null
-          term_id: string | null
-          total_days: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      owed_to_me: {
-        Row: {
-          oldest_on: string | null
-          owed_minor: number | null
-          person: string | null
-          share_count: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      meal_plan_progress: {
-        Row: {
-          account_id: string | null
-          days_remaining: number | null
-          dining_minor: number | null
-          ends_on: string | null
-          meal_plan_id: string | null
-          name: string | null
-          starts_on: string | null
-          swipes_remaining: number | null
-          swipes_total: number | null
-          swipes_used: number | null
-          term_id: string | null
-          user_id: string | null
-          weeks_remaining: number | null
-        }
-        Relationships: []
-      }
-      student_loan_summary: {
-        Row: {
-          accrued_interest_minor: number | null
-          avg_rate_percent: number | null
-          balance_minor: number | null
-          est_monthly_payment_minor: number | null
-          loan_count: number | null
-          principal_minor: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       balance_by_account: {
         Row: {
           account_id: string | null
@@ -1012,20 +1046,20 @@ export type Database = {
       }
       budget_status: {
         Row: {
+          budget_usd_minor: number | null
           category_id: string | null
           color: string | null
           icon: string | null
-          budget_usd_minor: number | null
           is_term: boolean | null
           name: string | null
           percent_used: number | null
-          win_end: string | null
-          win_start: string | null
-          window_name: string | null
           remaining_usd_minor: number | null
           sort_order: number | null
           spent_usd_minor: number | null
           user_id: string | null
+          win_end: string | null
+          win_start: string | null
+          window_name: string | null
         }
         Relationships: []
       }
@@ -1038,6 +1072,32 @@ export type Database = {
           entry_count: number | null
           month: string | null
           spent_usd_minor: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      category_spend_by_term: {
+        Row: {
+          category_color: string | null
+          category_icon: string | null
+          category_id: string | null
+          category_name: string | null
+          ends_on: string | null
+          entry_count: number | null
+          spent_usd_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          term_name: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      current_term: {
+        Row: {
+          ends_on: string | null
+          name: string | null
+          starts_on: string | null
+          term_id: string | null
           user_id: string | null
         }
         Relationships: []
@@ -1081,6 +1141,88 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_plan_progress: {
+        Row: {
+          account_id: string | null
+          days_remaining: number | null
+          dining_minor: number | null
+          ends_on: string | null
+          meal_plan_id: string | null
+          name: string | null
+          starts_on: string | null
+          swipes_remaining: number | null
+          swipes_total: number | null
+          swipes_used: number | null
+          term_id: string | null
+          user_id: string | null
+          weeks_remaining: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_plans_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_plans_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "balance_by_account"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_term"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "current_term"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_burndown"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_progress"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "term_summary"
+            referencedColumns: ["term_id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "terms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_plans_term_id_fkey"
+            columns: ["term_id"]
+            isOneToOne: false
+            referencedRelation: "transactions_with_week"
+            referencedColumns: ["term_id"]
+          },
+        ]
+      }
       monthly_summary: {
         Row: {
           entry_count: number | null
@@ -1106,6 +1248,16 @@ export type Database = {
           title: string | null
           user_id: string | null
           waived_at: string | null
+        }
+        Relationships: []
+      }
+      owed_to_me: {
+        Row: {
+          oldest_on: string | null
+          owed_minor: number | null
+          person: string | null
+          share_count: number | null
+          user_id: string | null
         }
         Relationships: []
       }
@@ -1140,6 +1292,74 @@ export type Database = {
             referencedColumns: ["account_id"]
           },
         ]
+      }
+      student_loan_summary: {
+        Row: {
+          accrued_interest_minor: number | null
+          avg_rate_percent: number | null
+          balance_minor: number | null
+          est_monthly_payment_minor: number | null
+          loan_count: number | null
+          principal_minor: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      term_burndown: {
+        Row: {
+          actual_minor: number | null
+          day: string | null
+          ends_on: string | null
+          ideal_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      term_progress: {
+        Row: {
+          actual_daily_minor: number | null
+          days_elapsed: number | null
+          days_remaining: number | null
+          ends_on: string | null
+          expected_income_minor: number | null
+          liquid_minor: number | null
+          meal_plan_minor: number | null
+          name: string | null
+          projected_zero_on: string | null
+          received_minor: number | null
+          safe_daily_meal_minor: number | null
+          safe_daily_minor: number | null
+          shortfall_minor: number | null
+          spendable_minor: number | null
+          spent_minor: number | null
+          spent_today_minor: number | null
+          starts_on: string | null
+          target_end_balance_minor: number | null
+          term_id: string | null
+          total_days: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      term_summary: {
+        Row: {
+          elapsed_days: number | null
+          ends_on: string | null
+          name: string | null
+          net_minor: number | null
+          received_minor: number | null
+          received_per_day_minor: number | null
+          savings_rate_percent: number | null
+          spent_minor: number | null
+          spent_per_day_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          total_days: number | null
+          user_id: string | null
+        }
+        Relationships: []
       }
       transactions_with_week: {
         Row: {
@@ -1199,6 +1419,13 @@ export type Database = {
             referencedColumns: ["category_id"]
           },
           {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_spend_by_term"
+            referencedColumns: ["category_id"]
+          },
+          {
             foreignKeyName: "transactions_obligation_id_fkey"
             columns: ["obligation_id"]
             isOneToOne: false
@@ -1216,6 +1443,10 @@ export type Database = {
       }
     }
     Functions: {
+      apply_split_template: {
+        Args: { p_entry_id: string; p_tx_id: string; p_user_id: string }
+        Returns: number
+      }
       assert_owned: {
         Args: {
           p_id: string
@@ -1226,6 +1457,16 @@ export type Database = {
         Returns: undefined
       }
       delete_own_account: { Args: never; Returns: undefined }
+      due_reminders: {
+        Args: { p_days?: number }
+        Returns: {
+          amount_minor: number
+          due_on: string
+          kind: string
+          title: string
+          user_id: string
+        }[]
+      }
       get_shared_snapshot: {
         Args: { p_token: string }
         Returns: {
@@ -1239,16 +1480,6 @@ export type Database = {
           next_due_title: string
           safe_daily_minor: number
           term_name: string
-        }[]
-      }
-      due_reminders: {
-        Args: { p_days?: number }
-        Returns: {
-          amount_minor: number
-          due_on: string
-          kind: string
-          title: string
-          user_id: string
         }[]
       }
       post_due_recurring_entries: { Args: never; Returns: number }
