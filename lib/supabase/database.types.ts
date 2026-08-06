@@ -765,6 +765,40 @@ export type Database = {
         }
         Relationships: []
       }
+      category_spend_by_term: {
+        Row: {
+          category_color: string | null
+          category_icon: string | null
+          category_id: string | null
+          category_name: string | null
+          ends_on: string | null
+          entry_count: number | null
+          spent_usd_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          term_name: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      term_summary: {
+        Row: {
+          elapsed_days: number | null
+          ends_on: string | null
+          name: string | null
+          net_minor: number | null
+          received_minor: number | null
+          received_per_day_minor: number | null
+          savings_rate_percent: number | null
+          spent_minor: number | null
+          spent_per_day_minor: number | null
+          starts_on: string | null
+          term_id: string | null
+          total_days: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       term_burndown: {
         Row: {
           actual_minor: number | null
