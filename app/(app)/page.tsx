@@ -169,13 +169,27 @@ export default async function HomePage() {
       )
     : 0;
 
+  const kicker = term
+    ? `${formatShortDate(term.starts_on!)} – ${formatShortDate(term.ends_on!)}`
+    : "Monthly report";
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="page-title">{term?.name ?? formatMonthLong(thisMonth)}</h1>
+      {/* A masthead, not a header bar: the kicker names the reporting
+          window the way a dateline names an edition, then the term/month
+          name runs as the actual headline underneath it. */}
+      <div className="flex items-end justify-between gap-3 pb-4 border-b border-border">
+        <div>
+          <p className="section-label mb-1.5">{kicker}</p>
+          <h1 className="page-title">{term?.name ?? formatMonthLong(thisMonth)}</h1>
+        </div>
         {/* The sidebar carries Settings from 1024px up, so this would be a
             second link to the same place. */}
-        <Link href="/settings" aria-label="Settings" className="p-2 -m-2 text-muted lg:hidden">
+        <Link
+          href="/settings"
+          aria-label="Settings"
+          className="p-2 -m-2 mb-1 text-muted lg:hidden shrink-0"
+        >
           <SettingsIcon className="w-6 h-6" />
         </Link>
       </div>

@@ -1,23 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Newsreader } from "next/font/google";
+import { Fraunces, Libre_Franklin } from "next/font/google";
 import "./globals.css";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-
-// The display serif, used for exactly two things: the one hero figure per
-// screen and page titles. A high-contrast serif numeral is the strongest
-// premium signal available for the cost of one font load -- and Newsreader
-// is chosen over the more decorative options specifically because it has
-// real lining figures, which a money app cannot do without.
-const newsreader = Newsreader({
+// Body/UI. Libre Franklin is drawn from the Franklin Gothic lineage --
+// literally a newspaper-headline typeface family -- which is the whole point
+// of the "editorial ledger" direction: legible at small tabular sizes, real
+// character at large ones, and not the Inter/Roboto/system-font default
+// every AI-generated interface converges on.
+const libreFranklin = Libre_Franklin({
   subsets: ["latin"],
-  weight: ["400", "500"],
-  style: ["normal"],
-  // Named for the family, not the role: globals.css aliases it to
-  // --font-display, and a variable that references itself is a cycle CSS
-  // silently discards.
-  variable: "--font-newsreader",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-libre-franklin",
+});
+
+// The display serif, used for the one hero figure per screen, page titles,
+// and the masthead wordmark. Fraunces carries real weight contrast and a
+// genuine italic (not a faux-obliqued one), both load-bearing for the
+// editorial voice this pass is going for. Named for the family, not the
+// role: globals.css aliases it to --font-display, and a variable that
+// references itself is a cycle CSS silently discards.
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-fraunces",
 });
 
 export const metadata: Metadata = {
@@ -35,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${newsreader.variable}`}>
+    <html lang="en" className={`${libreFranklin.variable} ${fraunces.variable}`}>
       <body className="min-h-full antialiased">
         <ServiceWorkerRegister />
         {children}

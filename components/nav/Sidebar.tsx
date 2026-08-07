@@ -22,9 +22,21 @@ export function Sidebar() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  // A masthead dateline, not a live clock — purely decorative, so it is
+  // computed inline rather than deferred to an effect like this app's
+  // genuinely stateful client reads (theme, install prompt).
+  const dateline = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
     <nav className="sidebar" aria-label="Main">
-      <p className="sidebar-heading">Command Deck</p>
+      <div className="sidebar-heading">
+        <span className="wordmark">Command Deck</span>
+        <span className="dateline">{dateline}</span>
+      </div>
 
       {primary.map((link) => {
         const Icon = ICONS[link.icon];
