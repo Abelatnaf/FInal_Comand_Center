@@ -196,71 +196,78 @@ export default async function HomePage() {
 
       {/* One column on a phone, two from 1024px. The split is by decision
           type rather than by size: the left column answers "what can I spend
-          right now", the right one "what's coming, and where did it go". */}
+          right now", the right one "what's coming, and where did it go".
+
+          Only two things on this whole screen are boxed cards now: the one
+          hero, and the two genuine row-lists (Coming Up, Recent). Everything
+          else -- meal plan, what's owed, this term so far, budgets, where it
+          went -- is a single fact, and a single fact does not need its own
+          floating box to sit in. Those read instead as sections in one
+          continuous column, divided by a hairline rule the way items in a
+          printed report are, rather than as a grid of separate widgets. */}
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:items-start">
         <div className="flex flex-col gap-5">
       {term ? (
-        <>
-          <div className="card card-hero row">
-            <p className="section-label mb-2">Money left</p>
-            <Amount minor={liquid} className={`hero-figure block ${liquid <= 0n ? "text-alarm" : ""}`} />
-            <p className="text-[14px] text-muted mt-1">
-              {term.days_remaining} {term.days_remaining === 1 ? "day" : "days"} until {term.name} ends
-              {term.ends_on && ` · ${formatShortDate(term.ends_on)}`}
+        <div className="card card-hero row">
+          <p className="section-label mb-2">Money left</p>
+          <Amount minor={liquid} className={`hero-figure block ${liquid <= 0n ? "text-alarm" : ""}`} />
+          <p className="text-[14px] text-muted mt-1">
+            {term.days_remaining} {term.days_remaining === 1 ? "day" : "days"} until {term.name} ends
+            {term.ends_on && ` · ${formatShortDate(term.ends_on)}`}
+          </p>
+
+          {expectedIncome > 0n && (
+            <p className="text-[13px] text-muted mt-1">
+              Plus <Amount minor={expectedIncome} className="text-positive" /> still due in before it
+              ends.
             </p>
+          )}
 
-            {expectedIncome > 0n && (
-              <p className="text-[13px] text-muted mt-1">
-                Plus <Amount minor={expectedIncome} className="text-positive" /> still due in before it
-                ends.
-              </p>
-            )}
-
-            {safeDaily !== null && (
-              <div className="flex gap-6 mt-4 pt-4 border-t">
+          {safeDaily !== null && (
+            <div className="flex gap-6 mt-4 pt-4 border-t">
+              <div>
+                <p className="section-label">Safe to spend</p>
+                <Amount minor={safeDaily} className="text-[17px] font-semibold" />
+                <p className="text-[12px] text-faint">
+                  a day{targetEnd > 0n && `, keeping ${formatMoney(targetEnd)}`}
+                </p>
+              </div>
+              {actualDaily !== null && (
                 <div>
-                  <p className="section-label">Safe to spend</p>
-                  <Amount minor={safeDaily} className="text-[17px] font-semibold" />
-                  <p className="text-[12px] text-faint">
-                    a day{targetEnd > 0n && `, keeping ${formatMoney(targetEnd)}`}
-                  </p>
+                  <p className="section-label">You&rsquo;re spending</p>
+                  <Amount
+                    minor={actualDaily}
+                    className={`text-[17px] font-semibold ${
+                      actualDaily > safeDaily ? "text-alarm" : "text-positive"
+                    }`}
+                  />
+                  <p className="text-[12px] text-faint">a day</p>
                 </div>
-                {actualDaily !== null && (
-                  <div>
-                    <p className="section-label">You&rsquo;re spending</p>
-                    <Amount
-                      minor={actualDaily}
-                      className={`text-[17px] font-semibold ${
-                        actualDaily > safeDaily ? "text-alarm" : "text-positive"
-                      }`}
-                    />
-                    <p className="text-[12px] text-faint">a day</p>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-            {/* A target you can no longer reach is a real state, and it is not
-                the same as "spend nothing" -- say the gap outright. */}
-            {shortfall !== null && (
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-[15px] text-alarm font-medium">
-                  You&rsquo;re {formatMoney(shortfall)} short of the {formatMoney(targetEnd)} you wanted
-                  left over.
-                </p>
-                <p className="text-[13px] text-muted mt-1">
-                  There&rsquo;s no daily figure that gets you there from here — either lower the target on{" "}
-                  {term.name}, or find another {formatMoney(shortfall)} before it ends.
-                </p>
-              </div>
-            )}
-          </div>
+          {/* A target you can no longer reach is a real state, and it is not
+              the same as "spend nothing" -- say the gap outright. */}
+          {shortfall !== null && (
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-[15px] text-alarm font-medium">
+                You&rsquo;re {formatMoney(shortfall)} short of the {formatMoney(targetEnd)} you wanted
+                left over.
+              </p>
+              <p className="text-[13px] text-muted mt-1">
+                There&rsquo;s no daily figure that gets you there from here — either lower the target on{" "}
+                {term.name}, or find another {formatMoney(shortfall)} before it ends.
+              </p>
+            </div>
+          )}
 
-          {/* The decision-shaped version of the same number: not "what's my
+          {/* The decision-shaped version of the same number, folded into the
+              same card rather than a second box beside it: not "what's my
               term average", but "can I spend $20 right now". A single ratio
               against a limit is a meter, not a chart. */}
           {safeDaily !== null && todayPercent !== null && (
-            <div className="card row">
+            <div className="mt-4 pt-4 border-t">
               <div className="flex items-baseline justify-between mb-2">
                 <p className="section-label">Today</p>
                 <p className="text-[13px] text-muted num">
@@ -274,11 +281,7 @@ export default async function HomePage() {
                   style={{ width: `${Math.min(todayPercent, 100)}%` }}
                 />
               </div>
-              <p
-                className={`text-[13px] mt-2 ${
-                  spentToday > safeDaily ? "text-alarm" : "text-muted"
-                }`}
-              >
+              <p className={`text-[13px] mt-2 ${spentToday > safeDaily ? "text-alarm" : "text-muted"}`}>
                 {spentToday > safeDaily
                   ? `${formatMoney(spentToday - safeDaily)} over today's pace.`
                   : `${formatMoney(safeDaily - spentToday)} left today.`}
@@ -289,7 +292,7 @@ export default async function HomePage() {
           {/* The single most useful thing this screen can say. Stated outright
               rather than left for the user to work out from two rates. */}
           {runsOutEarly && (
-            <div className="card row">
+            <div className="mt-4 pt-4 border-t">
               <p className="text-[15px] text-alarm font-medium">
                 At this rate you run out on {formatShortDate(term.projected_zero_on!)}
               </p>
@@ -299,8 +302,7 @@ export default async function HomePage() {
               </p>
             </div>
           )}
-
-        </>
+        </div>
       ) : (
         <div className="card row flex flex-col gap-3">
           <p className="text-[15px] text-text">Set up your term to see how long your money has to last.</p>
@@ -315,59 +317,63 @@ export default async function HomePage() {
       )}
 
       {meals.map((m) => (
-        <Link key={m.meal_plan_id} href="/meal-plan" className="card row row-link block">
-          <div className="flex items-center justify-between mb-2">
-            <p className="section-label">{m.name}</p>
-            <span className="text-[13px] text-accent font-semibold">Log a swipe →</span>
-          </div>
-          <div className="flex gap-6">
-            {BigInt(m.dining_minor ?? 0) > 0n && (
-              <div>
-                <Amount minor={BigInt(m.dining_minor ?? 0)} className="text-[17px] font-semibold" />
-                <p className="text-[12px] text-faint">dining dollars</p>
-              </div>
-            )}
-            {m.swipes_remaining != null && (
-              <div>
-                <p className="text-[17px] font-semibold num">{m.swipes_remaining}</p>
-                <p className="text-[12px] text-faint">
-                  swipes left
-                  {m.weeks_remaining
-                    ? ` · ${Math.floor(m.swipes_remaining / m.weeks_remaining)} a week`
-                    : ""}
-                </p>
-              </div>
-            )}
-          </div>
-        </Link>
+        <div key={m.meal_plan_id} className="section">
+          <Link href="/meal-plan" className="section-link block">
+            <div className="flex items-center justify-between mb-2">
+              <p className="section-label">{m.name}</p>
+              <span className="text-[13px] text-accent font-semibold">Log a swipe →</span>
+            </div>
+            <div className="flex gap-6">
+              {BigInt(m.dining_minor ?? 0) > 0n && (
+                <div>
+                  <Amount minor={BigInt(m.dining_minor ?? 0)} className="text-[17px] font-semibold" />
+                  <p className="text-[12px] text-faint">dining dollars</p>
+                </div>
+              )}
+              {m.swipes_remaining != null && (
+                <div>
+                  <p className="text-[17px] font-semibold num">{m.swipes_remaining}</p>
+                  <p className="text-[12px] text-faint">
+                    swipes left
+                    {m.weeks_remaining
+                      ? ` · ${Math.floor(m.swipes_remaining / m.weeks_remaining)} a week`
+                      : ""}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Link>
+        </div>
       ))}
 
       {owedTotal > 0n && (
-        <Link href="/split" className="card row row-link block">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="section-label mb-0.5">Owed to you</p>
-              <p className="text-[13px] text-muted truncate">
-                {owed.slice(0, 3).map((o) => o.person).join(", ")}
-                {owed.length > 3 && ` +${owed.length - 3}`}
-              </p>
+        <div className="section">
+          <Link href="/split" className="section-link block">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="section-label mb-0.5">Owed to you</p>
+                <p className="text-[13px] text-muted truncate">
+                  {owed.slice(0, 3).map((o) => o.person).join(", ")}
+                  {owed.length > 3 && ` +${owed.length - 3}`}
+                </p>
+              </div>
+              <Amount minor={owedTotal} className="text-[17px] font-semibold text-positive shrink-0" />
             </div>
-            <Amount minor={owedTotal} className="text-[17px] font-semibold text-positive shrink-0" />
-          </div>
-        </Link>
+          </Link>
+        </div>
       )}
         </div>
 
         <div className="flex flex-col gap-5">
       {term && burndown.length > 1 && (
-        <div className="card row">
+        <div className="section">
           <p className="section-label mb-3">Money left, day by day</p>
           <TermBurndown points={burndown} />
         </div>
       )}
 
       {term && BigInt(term.received_minor ?? 0) > 0n && (
-        <div className="card row flex items-center justify-between gap-3">
+        <div className="section flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="section-label mb-0.5">This term so far</p>
             <p className="text-[13px] text-muted">
@@ -403,32 +409,34 @@ export default async function HomePage() {
       )}
 
       {budgets.length > 0 && (
-        <Link href="/budgets" className="card row row-link block">
-          <div className="flex items-center justify-between mb-2">
-            <p className="section-label">Budgets{budgets[0]?.is_term ? " this term" : " this month"}</p>
-            <span className="text-[13px] text-accent font-semibold">All →</span>
-          </div>
-          <div className="flex items-baseline justify-between mb-2 text-[15px]">
-            <Amount minor={budgetSpent} className="font-semibold" />
-            <span className="text-muted num text-[13px]">of {formatMoney(budgetTotal)}</span>
-          </div>
-          <div className="progress-track">
-            <div
-              className="progress-fill"
-              data-tone={budgetPercent > 100 ? "alarm" : budgetPercent > 85 ? "urgent" : undefined}
-              style={{ width: `${Math.min(budgetPercent, 100)}%` }}
-            />
-          </div>
-          {overBudget.length > 0 && (
-            <p className="text-[13px] text-alarm mt-2">
-              {overBudget.length} {overBudget.length === 1 ? "category is" : "categories are"} over
-            </p>
-          )}
-        </Link>
+        <div className="section">
+          <Link href="/budgets" className="section-link block">
+            <div className="flex items-center justify-between mb-2">
+              <p className="section-label">Budgets{budgets[0]?.is_term ? " this term" : " this month"}</p>
+              <span className="text-[13px] text-accent font-semibold">All →</span>
+            </div>
+            <div className="flex items-baseline justify-between mb-2 text-[15px]">
+              <Amount minor={budgetSpent} className="font-semibold" />
+              <span className="text-muted num text-[13px]">of {formatMoney(budgetTotal)}</span>
+            </div>
+            <div className="progress-track">
+              <div
+                className="progress-fill"
+                data-tone={budgetPercent > 100 ? "alarm" : budgetPercent > 85 ? "urgent" : undefined}
+                style={{ width: `${Math.min(budgetPercent, 100)}%` }}
+              />
+            </div>
+            {overBudget.length > 0 && (
+              <p className="text-[13px] text-alarm mt-2">
+                {overBudget.length} {overBudget.length === 1 ? "category is" : "categories are"} over
+              </p>
+            )}
+          </Link>
+        </div>
       )}
 
       {slices.length > 0 && (
-        <div className="card row">
+        <div className="section">
           <div className="flex items-center justify-between mb-3">
             <p className="section-label">Where it went this month</p>
             <Link href="/insights" className="text-[13px] text-accent font-semibold">

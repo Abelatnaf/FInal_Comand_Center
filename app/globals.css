@@ -315,17 +315,23 @@ body {
   color: var(--text);
 }
 
+/* No shadow by default. A shadow under every content block is what makes
+   a page of stacked cards read as a generic dashboard template regardless
+   of the type or colour underneath it — a flat surface plus a hairline
+   border is a quiet plane, not a floating widget. Shadow is now reserved
+   for card-hero (the one true elevated object per screen) and true
+   overlay chrome (the toast, the raised tab-bar Add button). */
 .card {
   position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
-/* The primary object on the screen. A single hairline rule at the top
-   edge rather than a gradient — the paper analogue of a letterhead. */
+/* The primary object on the screen — the one place a card is still
+   allowed to lift off the page. A single hairline rule at the top edge
+   rather than a gradient — the paper analogue of a letterhead. */
 .card-hero {
   background: var(--surface);
   box-shadow: var(--shadow-lifted);
@@ -350,6 +356,44 @@ body {
 
 .row-link {
   transition: background-color var(--motion);
+}
+
+/* --- Sections -----------------------------------------------------
+   The alternative to a card: content that sits in the flow of the page
+   rather than as an object on it. No border, no shadow, no fill — just
+   generous vertical rhythm and a hairline rule between one section and
+   the next, the way a printed report separates one item from the next.
+   This is now the default treatment for informational/read-only content
+   (Home's secondary blocks); `.card` stays for the one hero, forms, and
+   genuinely distinct controls. */
+.section {
+  padding: 20px 0;
+}
+
+.section:first-child {
+  padding-top: 0;
+}
+
+.section + .section {
+  border-top: 1px solid var(--border);
+}
+
+.section-link {
+  display: block;
+  margin: 0 -10px;
+  padding: 10px;
+  border-radius: var(--radius-control);
+  transition: background-color var(--motion);
+}
+
+.section-link:active {
+  background: var(--surface-2);
+}
+
+@media (hover: hover) {
+  .section-link:hover {
+    background: var(--surface-2);
+  }
 }
 
 .row-link:active {
